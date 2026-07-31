@@ -1,0 +1,313 @@
+@import url("../pantallas/pantalla-principal/pantalla-principal.css");
+@import url("../pantallas/pantalla-principal/componentes/selector-modo-informe/selector-modo-informe.css");
+@import url("../pantallas/pantalla-principal/componentes/contador-operativos/contador-operativos.css");
+@import url("../pantallas/pantalla-principal/componentes/selector-operativo-contextual/selector-operativo-contextual.css");
+@import url("../pantallas/pantalla-principal/componentes/contenedor-dinamico/contenedor-dinamico.css");
+@import url("../pantallas/inicia/inicia.css");
+@import url("../pantallas/finaliza/finaliza.css");
+@import url("../pantallas/informes/informes.css");
+@import url("../pantallas/control-moviles/control-moviles.css");
+
+:root {
+  --bg-app: #2b2f36;
+  --card-bg: #d7dce3;
+  --card-bg-2: #c9d0da;
+
+  --text: #0b1220;
+  --text-2: #1f2937;
+
+  --blue-strong: #0b3d91;
+  --blue-strong-2: #072e6d;
+
+  --border: #8e99a8;
+  --danger: #b11a1a;
+
+  --gold: #d4af37;
+  --gold-2: #b8890a;
+
+  --focus: rgba(11, 61, 145, 0.25);
+
+  --radius-card: 14px;
+  --radius-input: 12px;
+
+  --check-scale: 1.35;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  padding: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-app);
+  color: var(--text);
+}
+
+button,
+select,
+input,
+textarea {
+  font-family: inherit;
+}
+
+select,
+input,
+textarea {
+  width: 100%;
+  background: #eef1f6;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-input);
+  color: var(--text);
+  outline: none;
+}
+
+select {
+  min-height: 48px;
+  padding: 8px 38px 8px 12px;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--blue-strong);
+}
+
+input,
+textarea {
+  padding: 8px 10px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+textarea {
+  min-height: 84px;
+  resize: vertical;
+}
+
+select:focus,
+input:focus,
+textarea:focus {
+  border-color: var(--blue-strong);
+  box-shadow: 0 0 0 4px var(--focus);
+}
+
+.obligatorio {
+  border: 3px solid var(--danger) !important;
+}
+
+.hidden {
+  display: none !important;
+}
+
+button,
+#btnEnviar,
+.boton-enviar-whatsapp,
+#botonEnviarWhatsappHost button {
+  width: 100%;
+  min-height: 50px;
+  margin-top: 15px;
+  padding: 12px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--blue-strong);
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 900;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  box-shadow: 0 14px 28px rgba(11, 61, 145, 0.30);
+}
+
+button:hover,
+#btnEnviar:hover,
+.boton-enviar-whatsapp:hover,
+#botonEnviarWhatsappHost button:hover {
+  background: var(--blue-strong-2);
+}
+
+button:active,
+#btnEnviar:active,
+.boton-enviar-whatsapp:active,
+#botonEnviarWhatsappHost button:active {
+  transform: translateY(1px);
+}
+
+label.check input[type="checkbox"],
+.section input[type="checkbox"] {
+  transform: scale(var(--check-scale));
+}
+
+
+/* PASO36_FOTOS_MODULO */
+.fotos-formulario-host {
+  margin-top: 12px;
+}
+
+.fotos-modulo {
+  width: 100%;
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(238, 245, 255, 0.92);
+  border: 2px solid rgba(11, 61, 145, 0.30);
+}
+
+.fotos-modulo h3 {
+  margin: 0 0 10px 0;
+  color: var(--blue-strong-2);
+  font-size: 14px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.fotos-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.foto-slot {
+  display: grid;
+  gap: 5px;
+}
+
+.foto-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  min-height: 38px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: #0b3d91;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+  user-select: none;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.20);
+}
+
+.foto-input-real {
+  display: none;
+}
+
+.foto-galeria {
+  width: 100%;
+  min-height: 34px;
+  border: 2px solid rgba(0,0,0,0.20);
+  border-radius: 9px;
+  background: #d1d5db;
+  color: #111827;
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: lowercase;
+  cursor: pointer;
+}
+
+.foto-estado {
+  min-height: 20px;
+  padding: 4px 6px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.75);
+  color: #374151;
+  font-size: 11px;
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.foto-estado.foto-cargada {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+@media (max-width: 520px) {
+  .fotos-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* PASO39_FOTOS_WHATSAPP_INFO */
+.salida-whatsapp-fotos-info {
+  margin-bottom: 8px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: #dbeafe;
+  border: 2px solid rgba(11, 61, 145, 0.25);
+  color: #0b3d91;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.hidden {
+  display: none !important;
+}
+
+
+/* PASO44_NUMERALES_CATEGORIA */
+.numeral-finaliza-item small {
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: #e0ecff;
+  color: #0b3d91;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+/* PASO56_OCULTAR_DIAGNOSTICO_SUPABASE */
+#diagnosticoSupabaseHost,
+.diagnostico-supabase,
+.supabase-diagnostico,
+[data-diagnostico-supabase],
+[data-supabase-diagnostico] {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+/* PASO57_FLUJO_INFORMES */
+.informe-operativo-interno {
+  margin-bottom: 12px;
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(238, 245, 255, 0.88);
+  border: 2px solid rgba(11, 61, 145, 0.22);
+}
+
+.informe-operativo-interno h3 {
+  margin: 0 0 8px 0;
+  color: var(--blue-strong-2, #0b3d91);
+  font-size: 16px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.informe-operativo-interno label {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--blue-strong-2, #0b3d91);
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.informe-operativo-interno select {
+  width: 100%;
+}
+
+.informe-operativo-ayuda {
+  margin: 6px 0 0 0;
+  color: #374151;
+  font-size: 12px;
+  font-weight: 800;
+}

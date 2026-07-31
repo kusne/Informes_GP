@@ -1,0 +1,28 @@
+<section class="formulario-operativo formulario-finaliza" data-formulario="finaliza-ocv" data-tipo-operativo="OCV" data-foto-prefijo="finaliza-ocv">
+  <h2>FINALIZA - OCV</h2>
+  <p>Formulario de finalización para operativo de control vehicular.</p>
+
+  <div class="bloque-formulario">
+    <label for="finalizaActas-ocv">Actas</label>
+    <input id="finalizaActas-ocv" name="actas" type="number" min="0" step="1" value="0">
+  </div>
+
+  <div class="bloque-formulario">
+    <label for="finalizaPersonas-ocv">Personas identificadas</label>
+    <input id="finalizaPersonas-ocv" name="personas" type="number" min="0" step="1" value="0">
+  </div>
+
+  <div class="bloque-formulario">
+    <label for="finalizaVehiculos-ocv">Vehículos controlados</label>
+    <input id="finalizaVehiculos-ocv" name="vehiculos" type="number" min="0" step="1" value="0">
+  </div>
+
+  <div data-numerales-finaliza-host></div>
+
+  <div class="bloque-formulario">
+    <label for="finalizaObservaciones-ocv">Observaciones</label>
+    <textarea id="finalizaObservaciones-ocv" name="observaciones" placeholder="Observaciones de la finalización"></textarea>
+  </div>
+
+  <div class="fotos-formulario-host" data-fotos-html="/frontend/pantallas/finaliza/tipos/ocv/fotos/fotos-finaliza-ocv.html" data-fotos-module="/frontend/pantallas/finaliza/tipos/ocv/fotos/fotos-finaliza-ocv.js"></div>
+</section>

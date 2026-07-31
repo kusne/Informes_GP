@@ -1,0 +1,71 @@
+.diagnostico-supabase {
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 2px solid rgba(0,0,0,0.12);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.diagnostico-supabase-linea {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.diagnostico-supabase-linea strong {
+  color: var(--blue-strong-2);
+  font-weight: 900;
+}
+
+.diagnostico-supabase-linea span {
+  flex: 1;
+}
+
+.diagnostico-supabase-linea button {
+  width: auto;
+  min-height: 28px;
+  padding: 4px 9px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.diagnostico-supabase-pendiente {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.diagnostico-supabase-ok {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.diagnostico-supabase-error {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.diagnostico-supabase-detalle {
+  margin-top: 8px;
+  padding: 8px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.72);
+  color: #111827;
+  font-size: 12px;
+  line-height: 1.35;
+  overflow-x: auto;
+}
+
+.diagnostico-supabase-detalle ul {
+  margin: 5px 0 0 18px;
+  padding: 0;
+}
+
+.diagnostico-bloque-error {
+  margin-top: 8px;
+  padding: 6px;
+  border-radius: 8px;
+  background: rgba(254, 226, 226, 0.75);
+}

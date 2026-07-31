@@ -1,13 +1,20 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8">
   <title>Informes GP</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="./00_app/app.css">
+  <link rel="stylesheet" href="./frontend/app/app.css">
 </head>
 <body>
   <div id="app"></div>
-  <script type="module" src="./00_app/app-bootstrap.js"></script>
+
+  <script type="module" src="./frontend/app/app-bootstrap.js"></script>
+
+  <!-- Compatibilidad temporal: conserva los parches activos de la versión recibida. -->
+  <script src="./frontend/compatibilidad/control-moviles/wsp-control-moviles-flujo-ui.js?v=control-moviles-informes-gp"></script>
+  <script src="./frontend/compatibilidad/control-moviles/wsp-control-moviles-ui.js?v=control-moviles-informes-gp"></script>
+  <script src="./frontend/compatibilidad/control-moviles/control-moviles.js?v=control-moviles-informes-gp"></script>
+  <script src="./frontend/compatibilidad/pantalla-principal/pantalla-principal-flujo.js?v=control-moviles-informes-gp"></script>
 </body>
 </html>

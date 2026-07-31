@@ -1,0 +1,24 @@
+<section class="formulario-informe-especial" data-modelo-informe="CONTROL_SUPERIOR">
+  <h2>CONTROL SUPERIOR</h2>
+  <p>Informe especial vinculado al operativo seleccionado.</p>
+
+  <div class="bloque-formulario">
+    <label for="controlSuperiorAutoridad">Autoridad</label>
+    <select id="controlSuperiorAutoridad" name="autoridad" class="obligatorio">
+      <option value="">Seleccionar</option>
+      <option value="JEFE">JEFE</option>
+      <option value="SUBJEFE">SUBJEFE</option>
+      <option value="OTROS">OTROS</option>
+    </select>
+  </div>
+
+  <div class="bloque-formulario">
+    <label for="controlSuperiorNombre">Nombre / cargo</label>
+    <input id="controlSuperiorNombre" name="nombre_autoridad" type="text" placeholder="Se completa automático para Jefe/Subjefe o manual para Otros">
+  </div>
+
+  <div class="bloque-formulario">
+    <label for="controlSuperiorObservaciones">Observaciones</label>
+    <textarea id="controlSuperiorObservaciones" name="observaciones" placeholder="Detalle del control superior"></textarea>
+  </div>
+</section>

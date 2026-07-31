@@ -1,0 +1,145 @@
+#app,
+#root,
+#pantallaPrincipalHost {
+  width: 100%;
+}
+
+.app,
+.pantalla-principal {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 14px;
+  background: transparent;
+}
+
+.brand,
+.encabezado-principal,
+.header-principal {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 6px 0 58px 0;
+}
+
+.brand-text h3,
+.brand h1,
+.encabezado-principal h1,
+.header-principal h1,
+.pantalla-principal h1,
+.titulo-principal {
+  margin: 0;
+  color: var(--gold) !important;
+  font-size: 24px;
+  line-height: 1.05;
+  font-weight: 900;
+  letter-spacing: 0.2px;
+}
+
+.brand-sub,
+.subtitulo-principal,
+.encabezado-principal p,
+.header-principal p {
+  margin: 4px 0 0 0;
+  color: var(--gold) !important;
+  font-size: 14px;
+  font-weight: 700;
+  opacity: 1 !important;
+}
+
+.brand-logo,
+.logo-principal,
+.encabezado-principal img,
+.header-principal img {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+  display: block;
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.top-label,
+label.top-label,
+#tituloContadorOperativos {
+  display: block;
+  margin: 0 0 6px 0;
+  color: var(--gold) !important;
+  font-size: 19px;
+  line-height: 1.1;
+  font-weight: 900;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+}
+
+#selectorModoInformeHost,
+#selectorOperativoContextualHost,
+#contenedorDinamicoHost {
+  width: 100%;
+}
+
+#selectorModoInformeHost {
+  margin-bottom: 14px;
+}
+
+#selectorOperativoContextualHost {
+  margin-bottom: 12px;
+}
+
+.operativos-title-row,
+.contador-linea,
+.fila-contador-operativos {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 10px !important;
+  width: 100%;
+  margin: 0 0 6px 0 !important;
+}
+
+.operativos-title-row .top-label,
+.operativos-title-label,
+#tituloContadorOperativos {
+  display: inline-flex !important;
+  align-items: center !important;
+  width: auto !important;
+  margin: 0 !important;
+}
+
+@media (max-width: 560px) {
+  .app,
+  .pantalla-principal {
+    max-width: 100%;
+    padding: 12px;
+  }
+
+  .brand,
+  .encabezado-principal,
+  .header-principal {
+    margin-bottom: 54px;
+  }
+
+  .brand-logo,
+  .logo-principal,
+  .encabezado-principal img,
+  .header-principal img {
+    width: 90px;
+    height: 90px;
+  }
+
+  .brand-text h3,
+  .brand h1,
+  .encabezado-principal h1,
+  .header-principal h1,
+  .pantalla-principal h1,
+  .titulo-principal {
+    font-size: 22px;
+  }
+
+  .top-label,
+  label.top-label,
+  #tituloContadorOperativos {
+    font-size: 18px;
+  }
+}

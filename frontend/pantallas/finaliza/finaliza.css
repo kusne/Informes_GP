@@ -1,0 +1,13 @@
+.formulario-finaliza h2,
+.formulario-operativo.formulario-finaliza h2 {
+  margin: 0 0 8px 0;
+  color: var(--blue-strong-2);
+  font-size: 19px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.formulario-finaliza p {
+  color: var(--text-2);
+  font-weight: 700;
+}

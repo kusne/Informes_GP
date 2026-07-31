@@ -1,0 +1,550 @@
+import { listarModelosInformesGP } from "../informes/modelos-informes.js";
+import { TABLAS_SUPABASE } from "../../../backend/infraestructura/supabase/supabase-client.js";
+
+const estadoPantalla = {
+  modo: "",
+  operativoSeleccionado: null,
+  modeloInformeSeleccionado: null,
+  cantidadOperativos: 0,
+  operativosDisponibles: [],
+  modelosInformesDisponibles: []
+};
+
+let listenerEnvioRegistrado = false;
+let listenerRealtimeRegistrado = false;
+let timeoutRefresco = null;
+
+export async function iniciarPantallaPrincipal({ hostSelector }) {
+  const host = document.querySelector(hostSelector);
+
+  if (!host) {
+    throw new Error(`No se encontró host de pantalla principal: ${hostSelector}`);
+  }
+
+  await iniciarCoordinadorSeguro();
+
+  host.innerHTML = await cargarHtmlPantallaPrincipalSeguro();
+
+  await iniciarSelectorModoSeguro();
+
+  registrarListenerPostEnvio();
+  registrarListenerRealtime();
+  iniciarRealtimeSeguro();
+
+  actualizarTituloContador("");
+  await renderContadorSeguro(0);
+
+  await renderSelectorOperativoSeguro({
+    modo: "",
+    items: []
+  });
+
+  await renderContenedorSeguro({
+    modo: "",
+    operativoSeleccionado: null,
+    modeloInformeSeleccionado: null
+  });
+}
+
+async function cambiarModoPantalla(modo) {
+  estadoPantalla.modo = normalizarModo(modo);
+  estadoPantalla.operativoSeleccionado = null;
+  estadoPantalla.modeloInformeSeleccionado = null;
+
+  await registrarModoSeguro(estadoPantalla.modo);
+  await registrarOperativoSeguro(null);
+
+  await recargarItemsPantalla({
+    motivo: "cambio-modo"
+  });
+}
+
+async function recargarItemsPantalla({
+  motivo = ""
+} = {}) {
+  const modo = estadoPantalla.modo;
+
+  estadoPantalla.operativoSeleccionado = null;
+  estadoPantalla.modeloInformeSeleccionado = null;
+
+  await registrarOperativoSeguro(null);
+
+  let items = [];
+
+  if (modo === "INFORMES") {
+    items = listarModelosInformesGP();
+    estadoPantalla.modelosInformesDisponibles = items;
+    estadoPantalla.operativosDisponibles = [];
+  } else {
+    items = await obtenerOperativosSeguro(modo);
+    estadoPantalla.operativosDisponibles = items;
+    estadoPantalla.modelosInformesDisponibles = [];
+  }
+
+  estadoPantalla.cantidadOperativos = items.length;
+
+  await registrarOperativosDisponiblesSeguro({
+    modo,
+    operativos: modo === "INFORMES" ? [] : items
+  });
+
+  actualizarTituloContador(modo);
+  await renderContadorSeguro(estadoPantalla.cantidadOperativos);
+
+  await renderSelectorOperativoSeguro({
+    modo,
+    items
+  });
+
+  await renderContenedorSeguro({
+    modo,
+    operativoSeleccionado: null,
+    modeloInformeSeleccionado: null
+  });
+
+  if (motivo) {
+    console.log("[Informes_GP] Pantalla refrescada:", motivo);
+  }
+}
+
+function recargarItemsDebounce(motivo) {
+  if (timeoutRefresco) {
+    clearTimeout(timeoutRefresco);
+  }
+
+  timeoutRefresco = setTimeout(async () => {
+    timeoutRefresco = null;
+
+    if (!estadoPantalla.modo) return;
+
+    await recargarItemsPantalla({
+      motivo
+    });
+  }, 500);
+}
+
+async function cargarHtmlPantallaPrincipalSeguro() {
+  try {
+    const ui = await import("../../servicios/ui/cargar-componente-html.js");
+
+    if (typeof ui.cargarComponenteHtml === "function") {
+      return await ui.cargarComponenteHtml("/frontend/pantallas/pantalla-principal/pantalla-principal.html");
+    }
+  } catch (error) {
+    console.warn("[Informes_GP] No se pudo cargar pantalla-principal.html. Se usa fallback.", error);
+  }
+
+  return `
+    <section class="pantalla-principal">
+      <section class="pantalla-principal-card pantalla-principal-selector-card">
+        <div id="selectorModoInformeHost"></div>
+      </section>
+
+      <section class="pantalla-principal-card pantalla-principal-operativos-card">
+        <div class="pantalla-principal-contador-linea">
+          <h2 id="tituloContadorOperativos">OPERATIVOS</h2>
+          <div id="contadorOperativosHost"></div>
+        </div>
+
+        <div id="selectorOperativoContextualHost"></div>
+      </section>
+
+      <section id="contenedorDinamicoHost" class="pantalla-principal-dinamico"></section>
+    </section>
+  `;
+}
+
+async function iniciarSelectorModoSeguro() {
+  try {
+    const modulo = await import("./componentes/selector-modo-informe/selector-modo-informe.js");
+
+    if (typeof modulo.iniciarSelectorModoInforme !== "function") {
+      throw new Error("selector-modo-informe.js no exporta iniciarSelectorModoInforme.");
+    }
+
+    await modulo.iniciarSelectorModoInforme({
+      hostSelector: "#selectorModoInformeHost",
+      onChange: async (modo) => {
+        await cambiarModoPantalla(modo);
+      }
+    });
+  } catch (error) {
+    console.error("[Informes_GP] Error cargando selector modo:", error);
+
+    const host = document.querySelector("#selectorModoInformeHost");
+    if (!host) return;
+
+    host.innerHTML = `
+      <div class="selector-modo-informe">
+        <label for="selectorModoInforme">Informes</label>
+        <select id="selectorModoInforme">
+          <option value="">Seleccionar</option>
+          <option value="INICIA">INICIA</option>
+          <option value="FINALIZA">FINALIZA</option>
+          <option value="INFORMES">INFORMES</option>
+          <option value="CONTROL_MOVILES">CONTROL DE MÓVILES</option>
+        </select>
+      </div>
+    `;
+
+    const selector = host.querySelector("#selectorModoInforme");
+    selector?.addEventListener("change", async () => {
+      await cambiarModoPantalla(selector.value);
+    });
+  }
+}
+
+async function renderContadorSeguro(cantidad) {
+  try {
+    const modulo = await import("./componentes/contador-operativos/contador-operativos.js");
+
+    if (typeof modulo.renderContadorOperativos === "function") {
+      await modulo.renderContadorOperativos("#contadorOperativosHost", cantidad);
+      return;
+    }
+  } catch (error) {
+    console.warn("[Informes_GP] Error cargando contador. Se usa fallback.", error);
+  }
+
+  const host = document.querySelector("#contadorOperativosHost");
+  if (host) {
+    host.innerHTML = `<div class="contador-operativos"><span>${Number(cantidad || 0)}</span></div>`;
+  }
+}
+
+async function renderSelectorOperativoSeguro({
+  modo,
+  items
+}) {
+  try {
+    const modulo = await import("./componentes/selector-operativo-contextual/selector-operativo-contextual.js");
+
+    if (typeof modulo.renderSelectorOperativoContextual === "function") {
+      await modulo.renderSelectorOperativoContextual({
+        hostSelector: "#selectorOperativoContextualHost",
+        modo,
+        operativosIniciales: items,
+        onChange: async (item) => {
+          if (estadoPantalla.modo === "INFORMES") {
+            estadoPantalla.modeloInformeSeleccionado = item;
+            estadoPantalla.operativoSeleccionado = null;
+
+            await renderContenedorSeguro({
+              modo: estadoPantalla.modo,
+              operativoSeleccionado: null,
+              modeloInformeSeleccionado: item
+            });
+
+            return;
+          }
+
+          estadoPantalla.operativoSeleccionado = item;
+          estadoPantalla.modeloInformeSeleccionado = null;
+
+          await registrarOperativoSeguro(item);
+
+          await renderContenedorSeguro({
+            modo: estadoPantalla.modo,
+            operativoSeleccionado: item,
+            modeloInformeSeleccionado: null
+          });
+        }
+      });
+
+      return;
+    }
+  } catch (error) {
+    console.error("[Informes_GP] Error cargando selector contextual:", error);
+  }
+
+  renderSelectorFallback({
+    modo,
+    items
+  });
+}
+
+function renderSelectorFallback({
+  modo,
+  items
+}) {
+  const host = document.querySelector("#selectorOperativoContextualHost");
+  if (!host) return;
+
+  if (modo === "CONTROL_MOVILES") {
+    host.innerHTML = `
+      <div class="selector-operativo-contextual">
+        <label>Control de móviles</label>
+        <select disabled><option>Control de móviles no requiere operativo.</option></select>
+      </div>
+    `;
+    return;
+  }
+
+  const placeholder = modo === "INFORMES" ? "Seleccionar informe" : "Seleccionar operativo";
+
+  host.innerHTML = `
+    <div class="selector-operativo-contextual">
+      <label>${modo === "INFORMES" ? "Modelos de informes" : "Operativo / franja horaria"}</label>
+      <select id="selectorContextualFallback">
+        <option value="">${items.length ? placeholder : "No hay opciones disponibles"}</option>
+        ${items.map((item) => `<option value="${escapeHtml(item.operativo_key || item.modelo_key)}">${escapeHtml(item.label || item.etiqueta || construirEtiqueta(item))}</option>`).join("")}
+      </select>
+    </div>
+  `;
+
+  const selector = host.querySelector("#selectorContextualFallback");
+
+  selector?.addEventListener("change", async () => {
+    const item = items.find((x) => String(x.operativo_key || x.modelo_key) === selector.value) || null;
+
+    if (modo === "INFORMES") {
+      estadoPantalla.modeloInformeSeleccionado = item;
+
+      await renderContenedorSeguro({
+        modo,
+        operativoSeleccionado: null,
+        modeloInformeSeleccionado: item
+      });
+
+      return;
+    }
+
+    estadoPantalla.operativoSeleccionado = item;
+    await registrarOperativoSeguro(item);
+
+    await renderContenedorSeguro({
+      modo,
+      operativoSeleccionado: item,
+      modeloInformeSeleccionado: null
+    });
+  });
+}
+
+async function renderContenedorSeguro({
+  modo,
+  operativoSeleccionado,
+  modeloInformeSeleccionado
+}) {
+  try {
+    const modulo = await import("./componentes/contenedor-dinamico/contenedor-dinamico.js");
+
+    if (typeof modulo.renderContenedorDinamico !== "function") {
+      throw new Error("contenedor-dinamico.js no exporta renderContenedorDinamico.");
+    }
+
+    await modulo.renderContenedorDinamico({
+      hostSelector: "#contenedorDinamicoHost",
+      modo,
+      operativoSeleccionado,
+      modeloInformeSeleccionado,
+      getContexto
+    });
+  } catch (error) {
+    console.error("[Informes_GP] Error cargando contenedor dinámico:", error);
+
+    const host = document.querySelector("#contenedorDinamicoHost");
+    if (!host) return;
+
+    host.innerHTML = `
+      <section class="pantalla-mensaje error-formulario">
+        <h2>Error en módulo dinámico</h2>
+        <p>${escapeHtml(error?.message || String(error))}</p>
+        <pre class="error-detalle-arranque">${escapeHtml(error?.stack || "")}</pre>
+      </section>
+    `;
+  }
+}
+
+async function obtenerOperativosSeguro(modo) {
+  if (!modo || modo === "CONTROL_MOVILES" || modo === "INFORMES") {
+    return [];
+  }
+
+  try {
+    const modulo = await import("../../../backend/aplicacion/operativos/operativos.js");
+
+    if (typeof modulo.obtenerOperativosPorModo !== "function") {
+      throw new Error("06_Operativos/operativos.js no exporta obtenerOperativosPorModo.");
+    }
+
+    return await modulo.obtenerOperativosPorModo(modo);
+  } catch (error) {
+    console.error("[Informes_GP] Error leyendo operativos:", error);
+    return [];
+  }
+}
+
+function iniciarRealtimeSeguro() {
+  import("../../../backend/infraestructura/supabase/supabase-realtime.js")
+    .then((modulo) => {
+      if (typeof modulo.iniciarRealtimeInformesGP === "function") {
+        modulo.iniciarRealtimeInformesGP({
+          guardia_fecha: window.InformesGP?.guardiaFecha || "",
+          onCambio: (detalle) => manejarCambioSupabase(detalle)
+        });
+      }
+    })
+    .catch((error) => {
+      console.warn("[Informes_GP] Realtime desactivado por error:", error);
+    });
+}
+
+function registrarListenerRealtime() {
+  if (listenerRealtimeRegistrado) return;
+
+  listenerRealtimeRegistrado = true;
+
+  window.addEventListener("informesgp:supabase-cambio", (event) => {
+    manejarCambioSupabase(event.detail || {});
+  });
+}
+
+function manejarCambioSupabase(detalle = {}) {
+  const tabla = String(detalle.tabla || "").trim();
+
+  if (!tabla) return;
+
+  if (estadoPantalla.modo === "INFORMES") {
+    return;
+  }
+
+  if ([TABLAS_SUPABASE.operativosProgramados, TABLAS_SUPABASE.operativosEstado].includes(tabla)) {
+    recargarItemsDebounce(`realtime-${tabla}`);
+  }
+}
+
+function registrarListenerPostEnvio() {
+  if (listenerEnvioRegistrado) return;
+
+  listenerEnvioRegistrado = true;
+
+  window.addEventListener("informesgp:envio-whatsapp-ok", async () => {
+    if (estadoPantalla.modo !== "INFORMES") {
+      await recargarItemsPantalla({
+        motivo: "post-envio"
+      });
+    }
+  });
+}
+
+async function iniciarCoordinadorSeguro() {
+  try {
+    const modulo = await import("../../../backend/aplicacion/estado/informes-coordinador.js");
+
+    if (typeof modulo.iniciarCoordinadorInformes === "function") {
+      modulo.iniciarCoordinadorInformes();
+    }
+
+    if (window.InformesGP?.guardiaFecha && typeof modulo.registrarGuardiaFecha === "function") {
+      modulo.registrarGuardiaFecha(window.InformesGP.guardiaFecha);
+    }
+  } catch (error) {
+    console.warn("[Informes_GP] Coordinador no disponible:", error);
+  }
+}
+
+async function registrarModoSeguro(modo) {
+  try {
+    const modulo = await import("../../../backend/aplicacion/estado/informes-coordinador.js");
+
+    if (typeof modulo.registrarModoActual === "function") {
+      modulo.registrarModoActual(modo);
+    }
+  } catch {}
+}
+
+async function registrarOperativoSeguro(operativo) {
+  try {
+    const modulo = await import("../../../backend/aplicacion/estado/informes-coordinador.js");
+
+    if (typeof modulo.registrarOperativoSeleccionado === "function") {
+      modulo.registrarOperativoSeleccionado(operativo);
+    }
+  } catch {}
+}
+
+async function registrarOperativosDisponiblesSeguro({
+  modo,
+  operativos
+}) {
+  try {
+    const modulo = await import("../../../backend/aplicacion/estado/informes-coordinador.js");
+
+    if (typeof modulo.registrarOperativosDisponibles === "function") {
+      modulo.registrarOperativosDisponibles({
+        modo,
+        operativos
+      });
+    }
+  } catch {}
+}
+
+function getContexto() {
+  return {
+    ...estadoPantalla,
+    guardiaFecha: window.InformesGP?.guardiaFecha || "",
+    guardia_fecha: window.InformesGP?.guardiaFecha || ""
+  };
+}
+
+function actualizarTituloContador(modo) {
+  const titulo = document.getElementById("tituloContadorOperativos");
+  if (!titulo) return;
+
+  if (modo === "INFORMES") {
+    titulo.textContent = "MODELOS DE INFORMES";
+    return;
+  }
+
+  if (modo === "FINALIZA") {
+    titulo.textContent = "OPERATIVOS INICIADOS";
+    return;
+  }
+
+  if (modo === "INICIA") {
+    titulo.textContent = "OPERATIVOS PENDIENTES";
+    return;
+  }
+
+  if (modo === "CONTROL_MOVILES") {
+    titulo.textContent = "CONTROL DE MÓVILES";
+    return;
+  }
+
+  titulo.textContent = "OPERATIVOS";
+}
+
+function construirEtiqueta(op = {}) {
+  const franja = op.franja_horaria || construirFranja(op.hora_inicio, op.hora_fin) || "SIN HORARIO";
+  const lugar = op.lugar || op.qth || op.ubicacion || "SIN LUGAR";
+  const tipo = String(op.tipo_nombre || op.tipo_operativo || "OPERATIVO").replaceAll("_", " ");
+
+  return `${franja} - ${lugar} - ${tipo}`;
+}
+
+function construirFranja(inicio, fin) {
+  const i = String(inicio || "").trim();
+  const f = String(fin || "").trim();
+
+  if (i && f) return `${i} A ${f} HS`;
+  if (i) return `${i} HS`;
+
+  return "";
+}
+
+function normalizarModo(valor) {
+  return String(valor || "")
+    .trim()
+    .toUpperCase()
+    .replaceAll("-", "_")
+    .replace(/\s+/g, "_");
+}
+
+function escapeHtml(valor) {
+  return String(valor || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}

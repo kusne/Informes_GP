@@ -1,0 +1,80 @@
+<section id="controlMovilesRoot" class="cmv-root" data-control-moviles-root>
+  <header class="cmv-header">
+    <div>
+      <h2 class="cmv-title">Control de móviles</h2>
+      <p id="controlMovilesEstado" class="cmv-estado">Seleccione un móvil en servicio.</p>
+    </div>
+
+    <label class="cmv-fuera-servicio">
+      <input id="controlMovilFueraServicio" type="checkbox" />
+      <span>Fuera de Servicio</span>
+    </label>
+  </header>
+
+  <div id="controlMovilesAyudaWrap" class="cmv-ayuda-wrap">
+    <button id="controlMovilesAyudaBtn" class="cmv-ayuda-btn" type="button" aria-expanded="false" aria-controls="controlMovilesAyudaPopup">?</button>
+    <div id="controlMovilesAyudaPopup" class="cmv-ayuda-popup hidden" role="dialog" aria-label="Ayuda control de móviles">
+      <strong>Que Controlar? Sistemas Pasivos y Activos</strong>
+      <p><b>Anotar:</b> kilometraje y Combustible</p>
+      <p><b>Revisar:</b> Luces Altas/Bajas/de giro/balizas y Sirena; Batería, Cubiertas y Nivel Aceite, Gato, Matafuego.</p>
+      <p><b>Ejemplo de Novedad:</b> matafuego vencido--cubierta lisa--sin batería--luz quemada</p>
+      <p>Anotar en Observaciones las novedades; adjuntar fotos/video y apretar guardar.</p>
+    </div>
+  </div>
+
+  <div id="controlMovilesListado" class="cmv-listado" data-vista="listado">
+    <div id="controlMovilesChips" class="cmv-chips" aria-label="Móviles disponibles"></div>
+  </div>
+
+  <form id="controlMovilesFormulario" class="cmv-formulario hidden" data-vista="formulario" novalidate>
+    <div class="cmv-seleccionado">
+      <span>Móvil seleccionado</span>
+      <strong id="controlMovilNumeroSeleccionado">---</strong>
+    </div>
+
+    <div class="cmv-form-grid">
+      <label class="cmv-campo">
+        <span>Kilometraje</span>
+        <input id="controlMovilKilometraje" type="number" inputmode="numeric" autocomplete="off" placeholder="Kilometraje" />
+      </label>
+
+      <label class="cmv-campo">
+        <span>Combustible</span>
+        <select id="controlMovilCombustible">
+          <option value="">Seleccionar</option>
+          <option value="0">0</option>
+          <option value="1/4">1/4</option>
+          <option value="1/2">1/2</option>
+          <option value="3/4">3/4</option>
+          <option value="FULL">FULL</option>
+        </select>
+      </label>
+    </div>
+
+    <label class="cmv-campo cmv-observaciones">
+      <span>Observaciones</span>
+      <textarea id="controlMovilObservaciones" rows="4" placeholder="Novedades u observaciones del control"></textarea>
+    </label>
+
+    <div class="cmv-fotos">
+      <label class="cmv-campo">
+        <span>Foto 1</span>
+        <input id="controlMovilFoto1" type="file" accept="image/*,video/*" />
+        <img id="controlMovilPreview1" class="cmv-preview hidden" alt="Vista previa foto 1" />
+      </label>
+
+      <label class="cmv-campo">
+        <span>Foto 2</span>
+        <input id="controlMovilFoto2" type="file" accept="image/*,video/*" />
+        <img id="controlMovilPreview2" class="cmv-preview hidden" alt="Vista previa foto 2" />
+      </label>
+    </div>
+
+    <div class="cmv-acciones">
+      <button id="controlMovilesVolver" class="cmv-btn cmv-btn-secundario" type="button">Volver</button>
+      <button id="controlMovilesGuardar" class="cmv-btn cmv-btn-guardar" type="submit">Guardar</button>
+    </div>
+  </form>
+
+  <button id="controlMovilesSalir" class="cmv-salir" type="button">Salir</button>
+</section>

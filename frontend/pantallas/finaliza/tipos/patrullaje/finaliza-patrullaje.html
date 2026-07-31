@@ -1,0 +1,28 @@
+<section class="formulario-operativo formulario-finaliza" data-formulario="finaliza-patrullaje" data-tipo-operativo="PATRULLAJE" data-foto-prefijo="finaliza-patrullaje">
+  <h2>FINALIZA - PATRULLAJE</h2>
+  <p>Formulario de finalización para patrullaje.</p>
+
+  <div class="bloque-formulario">
+    <label for="finalizaActas-patrullaje">Actas</label>
+    <input id="finalizaActas-patrullaje" name="actas" type="number" min="0" step="1" value="0">
+  </div>
+
+  <div class="bloque-formulario">
+    <label for="finalizaPersonas-patrullaje">Personas identificadas</label>
+    <input id="finalizaPersonas-patrullaje" name="personas" type="number" min="0" step="1" value="0">
+  </div>
+
+  <div class="bloque-formulario">
+    <label for="finalizaVehiculos-patrullaje">Vehículos controlados</label>
+    <input id="finalizaVehiculos-patrullaje" name="vehiculos" type="number" min="0" step="1" value="0">
+  </div>
+
+  <div data-numerales-finaliza-host></div>
+
+  <div class="bloque-formulario">
+    <label for="finalizaObservaciones-patrullaje">Observaciones</label>
+    <textarea id="finalizaObservaciones-patrullaje" name="observaciones" placeholder="Observaciones de la finalización"></textarea>
+  </div>
+
+  <div class="fotos-formulario-host" data-fotos-html="/frontend/pantallas/finaliza/tipos/patrullaje/fotos/fotos-finaliza-patrullaje.html" data-fotos-module="/frontend/pantallas/finaliza/tipos/patrullaje/fotos/fotos-finaliza-patrullaje.js"></div>
+</section>

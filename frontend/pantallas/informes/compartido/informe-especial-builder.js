@@ -1,0 +1,251 @@
+import { registrarInformeModulo } from "../../../../backend/aplicacion/estado/informes-coordinador.js";
+import { cargarFotosDeFormulario } from "../../../servicios/fotos/fotos-formulario-loader.js";
+import { validarInformeEspecial } from "../../../../backend/dominio/informes/informe-especial-validaciones.js";
+import { construirTextoInformeEspecial } from "../../../../backend/dominio/informes/informe-especial-salida-texto.js";
+import { mapearInformeEspecialParaSupabase } from "../../../../backend/dominio/informes/informe-especial-mapper-supabase.js";
+import {
+  construirNumeralesSugeridosInforme,
+  construirIncrementosSugeridosInforme
+} from "../../../../backend/dominio/informes/informe-especial-reglas-numerales.js";
+
+export async function iniciarModeloInformeEspecial({
+  form,
+  modelo,
+  operativoSeleccionado,
+  getContexto
+} = {}) {
+  if (!form) {
+    registrarInformeModulo({
+      actual: null,
+      errores: ["No se encontró el formulario del informe especial."],
+      texto: "",
+      supabasePayload: null
+    });
+    return;
+  }
+
+  await cargarFotosDeFormulario({
+    form,
+    contexto: {
+      ...resolverContexto(getContexto),
+      operativoSeleccionado
+    }
+  });
+
+  const actualizar = () => {
+    const actual = construirInformeEspecialDesdeFormulario({
+      form,
+      modelo,
+      operativoSeleccionado,
+      contexto: resolverContexto(getContexto)
+    });
+
+    const errores = validarInformeEspecial(actual);
+    const texto = construirTextoInformeEspecial(actual);
+    const supabasePayload = mapearInformeEspecialParaSupabase({
+      ...actual,
+      texto
+    });
+
+    registrarInformeModulo({
+      actual,
+      errores,
+      texto,
+      supabasePayload
+    });
+  };
+
+  form.addEventListener("input", actualizar);
+  form.addEventListener("change", actualizar);
+  form.addEventListener("keyup", actualizar);
+  form.addEventListener("paste", () => setTimeout(actualizar, 0));
+
+  actualizar();
+}
+
+export function construirInformeEspecialDesdeFormulario({
+  form,
+  modelo,
+  operativoSeleccionado,
+  contexto = {}
+} = {}) {
+  const formulario = leerDatosFormulario(form);
+  const modeloNormalizado = normalizarModelo(modelo || form?.dataset?.modeloInforme || "");
+  const fotoPrefijo = form?.dataset?.fotoPrefijo || "";
+  const fotos = fotoPrefijo ? (window.InformesGP?.fotos?.[fotoPrefijo] || []) : [];
+
+  const base = {
+    modo: "INFORMES",
+    modelo: modeloNormalizado,
+    fecha: new Date().toISOString(),
+    guardia_fecha: resolverGuardiaFecha({
+      operativoSeleccionado,
+      contexto
+    }),
+    operativo: operativoSeleccionado || null,
+    operativo_key: operativoSeleccionado?.operativo_key || "",
+    tipo_operativo: normalizarTipo(operativoSeleccionado?.tipo_operativo || "GENERICO"),
+    hora_inicio: operativoSeleccionado?.hora_inicio || "",
+    hora_fin: operativoSeleccionado?.hora_fin || "",
+    lugar: operativoSeleccionado?.lugar || "",
+    formulario,
+    fotos,
+    calculos: calcularDatosModelo(modeloNormalizado, formulario)
+  };
+
+  const numeralesSugeridos = construirNumeralesSugeridosInforme(base);
+  const incrementosSugeridos = construirIncrementosSugeridosInforme(base);
+
+  return {
+    ...base,
+    numerales_sugeridos: numeralesSugeridos,
+    incrementos_sugeridos: incrementosSugeridos,
+    calculos: {
+      ...base.calculos,
+      incrementos_sugeridos: incrementosSugeridos,
+      numerales_sugeridos: numeralesSugeridos
+    }
+  };
+}
+
+export function leerDatosFormulario(form) {
+  const datos = {};
+
+  if (!form) return datos;
+
+  const campos = form.querySelectorAll("[name]");
+
+  for (const campo of campos) {
+    const nombre = campo.getAttribute("name");
+    if (!nombre) continue;
+
+    if (campo.type === "checkbox") {
+      datos[nombre] = Boolean(campo.checked);
+      continue;
+    }
+
+    if (campo.type === "radio") {
+      if (campo.checked) {
+        datos[nombre] = limpiarValor(campo.value);
+      }
+      continue;
+    }
+
+    datos[nombre] = limpiarValor(campo.value);
+  }
+
+  return datos;
+}
+
+function calcularDatosModelo(modelo, formulario) {
+  if (modelo === "ALCOHOLEMIA_POSITIVA") {
+    const tipoVehiculo = normalizarTipoVehiculo(formulario.tipo_vehiculo);
+    const resultado = Number(formulario.resultado || 0);
+    const limite = resolverLimiteAlcoholemia(tipoVehiculo);
+    const sancionable = Number.isFinite(resultado) && resultado > limite;
+
+    return {
+      tipo_vehiculo_normalizado: tipoVehiculo,
+      resultado,
+      limite,
+      sancionable,
+      codigo_sancionable: resolverCodigoSancionable(tipoVehiculo),
+      licencia_digital: Boolean(formulario.licencia_digital),
+      con_decreto_460_22: Boolean(formulario.con_decreto_460_22)
+    };
+  }
+
+  if (modelo === "DECRETO_460_22") {
+    return {
+      procedimiento_460_22: true
+    };
+  }
+
+  return {};
+}
+
+function resolverLimiteAlcoholemia(tipoVehiculo) {
+  if (tipoVehiculo === "MOTO") return 0.20;
+
+  if (["TRANSPORTE", "CAMION", "CHASIS", "TRACTOR", "CARRETON"].includes(tipoVehiculo)) {
+    return 0;
+  }
+
+  return 0.50;
+}
+
+function resolverCodigoSancionable(tipoVehiculo) {
+  if (tipoVehiculo === "MOTO") return "2020";
+
+  if (["TRANSPORTE", "CAMION", "CHASIS", "TRACTOR", "CARRETON"].includes(tipoVehiculo)) {
+    return "2033";
+  }
+
+  return "2016";
+}
+
+function normalizarTipoVehiculo(valor) {
+  const texto = normalizarTexto(valor);
+
+  if (texto.includes("MOTO")) return "MOTO";
+  if (texto.includes("TRANSPORTE")) return "TRANSPORTE";
+  if (texto.includes("CAMION")) return "CAMION";
+  if (texto.includes("CHASIS")) return "CHASIS";
+  if (texto.includes("TRACTOR")) return "TRACTOR";
+  if (texto.includes("CARRETON")) return "CARRETON";
+  if (texto.includes("CAMIONETA") || texto.includes("PICK")) return "CAMIONETA";
+
+  return texto || "";
+}
+
+function resolverGuardiaFecha({ operativoSeleccionado, contexto }) {
+  return String(
+    operativoSeleccionado?.guardia_fecha ||
+    contexto?.guardia_fecha ||
+    contexto?.guardiaFecha ||
+    window.InformesGP?.guardiaFecha ||
+    ""
+  ).trim();
+}
+
+function resolverContexto(getContexto) {
+  if (typeof getContexto !== "function") return {};
+
+  try {
+    return getContexto() || {};
+  } catch {
+    return {};
+  }
+}
+
+function limpiarValor(valor) {
+  if (valor === null || valor === undefined) return "";
+
+  return String(valor)
+    .replace(/\r\n/g, "\n")
+    .trim();
+}
+
+function normalizarModelo(valor) {
+  return String(valor || "")
+    .trim()
+    .toUpperCase()
+    .replaceAll("-", "_")
+    .replace(/\s+/g, "_");
+}
+
+function normalizarTipo(valor) {
+  return String(valor || "GENERICO")
+    .trim()
+    .toUpperCase()
+    .replaceAll("-", "_")
+    .replace(/\s+/g, "_");
+}
+
+function normalizarTexto(valor) {
+  return String(valor || "")
+    .trim()
+    .toUpperCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}

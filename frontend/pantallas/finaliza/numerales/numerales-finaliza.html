@@ -1,0 +1,29 @@
+<section class="numerales-finaliza-modulo">
+  <h3>Detalles / numerales</h3>
+
+  <div class="numerales-finaliza-grid">
+    <div class="bloque-formulario">
+      <label for="numeralFinalizaCodigo">Código</label>
+      <input id="numeralFinalizaCodigo" type="text" autocomplete="off" placeholder="Ej: 2016, 2020, 460/22">
+    </div>
+
+    <div class="bloque-formulario">
+      <label for="numeralFinalizaCantidad">Cantidad</label>
+      <input id="numeralFinalizaCantidad" type="number" min="1" step="1" value="1">
+    </div>
+  </div>
+
+  <div class="bloque-formulario">
+    <label for="numeralFinalizaDetalle">Detalle</label>
+    <textarea id="numeralFinalizaDetalle" placeholder="Detalle del numeral / novedad"></textarea>
+  </div>
+
+  <div class="numerales-finaliza-acciones">
+    <button type="button" id="botonAgregarNumeralFinaliza">Agregar numeral</button>
+    <button type="button" id="botonLimpiarNumeralesFinaliza">Limpiar</button>
+  </div>
+
+  <div id="numeralesFinalizaLista" class="numerales-finaliza-lista"></div>
+
+  <textarea id="numeralesFinalizaTextoHidden" name="numerales" class="numerales-finaliza-hidden"></textarea>
+</section>

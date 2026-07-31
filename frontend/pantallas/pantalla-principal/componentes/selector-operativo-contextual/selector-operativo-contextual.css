@@ -1,0 +1,18 @@
+.selector-operativo-contextual,
+.operativo-select-wrap {
+  width: 100%;
+}
+
+.selector-operativo-contextual select,
+#selectorOperativoContextualHost select {
+  width: 100%;
+  min-height: 48px;
+  margin: 0;
+  background: #eef1f6;
+  border: 3px solid var(--danger) !important;
+  border-radius: var(--radius-input);
+  color: var(--blue-strong);
+  font-size: 17px;
+  font-weight: 800;
+  padding: 8px 38px 8px 12px;
+}

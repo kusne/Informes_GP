@@ -1,16 +1,20 @@
-﻿# Informes_GP
+# Informes_GP
 
-Nueva app limpia para informes operativos BMZCN / Guardia Provincial.
+Aplicación WSP para generar informes operativos que luego ingresan a BMZCN.
 
-## Objetivo
+## Ejecución
 
-- Leer operativos programados desde Supabase V2.
-- Generar informes de INICIO.
-- Generar informes de FINALIZADO.
-- Generar INFORMES especiales.
-- Mantener CONTROL DE MÓVILES separado.
-- Preparar datos estructurados para Estadísticas nueva.
+```powershell
+npm start
+```
 
-## Estado actual
+Abrir `http://localhost:5174`.
 
-Paso 001: estructura limpia + pantalla principal funcional.
+## Separación obligatoria
+
+- `frontend/`: HTML, CSS, componentes visuales, controladores de pantalla y adaptadores del DOM.
+- `backend/`: reglas, validaciones, formateadores, estado, operativos, persistencia Supabase y servidor.
+- El backend no importa archivos del frontend.
+- Los cambios visuales deben realizarse dentro de `frontend/` sin modificar reglas de `backend/`.
+
+La carpeta `frontend/compatibilidad/` conserva de forma aislada los parches activos recibidos. No contiene reglas nuevas y se retirará cuando sus funciones hayan sido absorbidas por los módulos definitivos.

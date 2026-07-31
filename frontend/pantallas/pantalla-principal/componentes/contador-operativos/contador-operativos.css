@@ -1,0 +1,31 @@
+#contadorOperativosHost {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.contador-operativos,
+.contador-operativos-wsp,
+#contadorOperativosHost > div,
+#contadorOperativosHost > span {
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px !important;
+  min-height: 30px !important;
+  border: 3px solid var(--danger) !important;
+  border-radius: 999px !important;
+  background: #eef1f6 !important;
+  color: var(--blue-strong) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 20px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  box-shadow: 0 3px 8px rgba(0,0,0,.25) !important;
+  user-select: none !important;
+  pointer-events: none !important;
+}
