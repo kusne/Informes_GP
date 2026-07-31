@@ -1,7 +1,9 @@
 import {
   supabase,
   supabaseDisponible,
-  TABLAS_REALTIME_INFORMES_GP
+  TABLAS_REALTIME_INFORMES_GP,
+  TABLAS_SUPABASE_ACTUALES,
+  TABLAS_SUPABASE
 } from "./supabase-client.js";
 
 const TABLAS_REALTIME = TABLAS_REALTIME_INFORMES_GP;
@@ -142,6 +144,7 @@ function manejarCambioRealtime({
 }) {
   const detalle = {
     tabla,
+    recurso: resolverRecursoRealtime(tabla),
     guardia_fecha: guardiaFecha,
     eventType: payload?.eventType || "",
     new: payload?.new || null,
@@ -170,4 +173,21 @@ function manejarCambioRealtime({
       console.error("[Informes_GP] Error en callback Realtime:", error);
     }
   }, 350);
+}
+
+function resolverRecursoRealtime(tabla) {
+  if ([
+    TABLAS_SUPABASE_ACTUALES.operativosPublicados,
+    TABLAS_SUPABASE_ACTUALES.operativosEstado,
+    TABLAS_SUPABASE.operativosProgramados,
+    TABLAS_SUPABASE.operativosEstado
+  ].includes(tabla)) {
+    return "OPERATIVOS";
+  }
+
+  if ([TABLAS_SUPABASE.informesIntradiarios, TABLAS_SUPABASE.informesIntradiariosItems].includes(tabla)) {
+    return "INFORMES";
+  }
+
+  return "OTRO";
 }

@@ -1,9 +1,9 @@
 import { supabaseDisponible } from "../../infraestructura/supabase/supabase-client.js";
-import { listarOperativosProgramadosV2 } from "../../infraestructura/supabase/operativos-programados-v2-repo.js";
 import {
-  listarOperativosEnCursoV2,
-  listarOperativosFinalizadosV2
-} from "../../infraestructura/supabase/operativos-estado-v2-repo.js";
+  listarOperativosPublicadosActuales,
+  listarOperativosEnCursoActuales,
+  listarOperativosFinalizadosActuales
+} from "../../infraestructura/supabase/operativos-produccion-lectura-repo.js";
 import { obtenerContextoOperativos, registrarFuenteOperativos } from "./operativos-contexto.js";
 import { guardarOperativosEnCache } from "./operativos-cache.js";
 import { obtenerGuardiaFecha0600 } from "../../dominio/compartido/fechas/guardia-0600.js";
@@ -109,41 +109,54 @@ export async function obtenerOperativosPorModo(modo, opciones = {}) {
         operativos: normalizados
       });
 
-      registrarFuenteOperativos({ modo: modoNormalizado, fuente: "SUPABASE" });
+      registrarFuenteOperativos({ modo: modoNormalizado, fuente: "SUPABASE_ACTUAL" });
 
       return normalizados;
     } catch (error) {
-      console.warn("[Informes_GP] No se pudieron leer operativos desde Supabase. Se usa fallback demo.", error);
+      console.error("[Informes_GP] Falló la lectura real de operativos desde Supabase.", error);
+      registrarFuenteOperativos({ modo: modoNormalizado, fuente: "ERROR_SUPABASE" });
     }
+  } else {
+    console.error("[Informes_GP] Supabase no está disponible. No se usarán contadores de demostración.");
+    registrarFuenteOperativos({ modo: modoNormalizado, fuente: "SIN_SUPABASE" });
   }
 
-  const demo = obtenerOperativosDemoPorModo(modoNormalizado, guardiaFecha);
+  if (modoDemoHabilitado(opciones)) {
+    const demo = obtenerOperativosDemoPorModo(modoNormalizado, guardiaFecha);
+
+    guardarOperativosEnCache({
+      modo: modoNormalizado,
+      guardiaFecha,
+      operativos: demo
+    });
+
+    registrarFuenteOperativos({ modo: modoNormalizado, fuente: "DEMO_EXPLICITO" });
+    return demo;
+  }
 
   guardarOperativosEnCache({
     modo: modoNormalizado,
     guardiaFecha,
-    operativos: demo
+    operativos: []
   });
 
-  registrarFuenteOperativos({ modo: modoNormalizado, fuente: "DEMO" });
-
-  return demo;
+  return [];
 }
 
 async function obtenerOperativosDesdeSupabase({ modo, guardiaFecha }) {
   if (modo === "INICIA") {
-    const programados = await listarOperativosProgramadosV2({
+    const programados = await listarOperativosPublicadosActuales({
       guardia_fecha: guardiaFecha
     });
 
-    const enCurso = await listarOperativosEnCursoV2({
+    const enCurso = await listarOperativosEnCursoActuales({
       guardia_fecha: guardiaFecha
     });
 
     let finalizados = [];
 
     try {
-      finalizados = await listarOperativosFinalizadosV2({
+      finalizados = await listarOperativosFinalizadosActuales({
         guardia_fecha: guardiaFecha
       });
     } catch (error) {
@@ -159,7 +172,7 @@ async function obtenerOperativosDesdeSupabase({ modo, guardiaFecha }) {
   }
 
   if (modo === "FINALIZA" || modo === "INFORMES") {
-    return listarOperativosEnCursoV2({
+    return listarOperativosEnCursoActuales({
       guardia_fecha: guardiaFecha
     });
   }
@@ -298,4 +311,14 @@ function extraerHoraFinDesdeFranja(franja) {
   const texto = String(franja || "");
   const matches = [...texto.matchAll(/(\d{1,2}:\d{2})/g)];
   return matches.length >= 2 ? matches[1][1] : "";
+}
+function modoDemoHabilitado(opciones = {}) {
+  if (opciones.modoDemo === true || opciones.demo === true) return true;
+
+  try {
+    if (window.InformesGP?.modoDemo === true) return true;
+    return new URLSearchParams(window.location.search).get("demo") === "1";
+  } catch {
+    return false;
+  }
 }

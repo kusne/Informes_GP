@@ -1,5 +1,4 @@
 import { listarModelosInformesGP } from "../informes/modelos-informes.js";
-import { TABLAS_SUPABASE } from "../../../backend/infraestructura/supabase/supabase-client.js";
 
 const estadoPantalla = {
   modo: "",
@@ -400,16 +399,14 @@ function registrarListenerRealtime() {
 }
 
 function manejarCambioSupabase(detalle = {}) {
-  const tabla = String(detalle.tabla || "").trim();
-
-  if (!tabla) return;
+  const recurso = String(detalle.recurso || detalle.categoria || "").trim().toUpperCase();
 
   if (estadoPantalla.modo === "INFORMES") {
     return;
   }
 
-  if ([TABLAS_SUPABASE.operativosProgramados, TABLAS_SUPABASE.operativosEstado].includes(tabla)) {
-    recargarItemsDebounce(`realtime-${tabla}`);
+  if (recurso === "OPERATIVOS") {
+    recargarItemsDebounce("realtime-operativos");
   }
 }
 

@@ -3,6 +3,12 @@ import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 const SUPABASE_URL_FIJA = "https://ugeydxozfewzhldjbkat.supabase.co";
 const SUPABASE_ANON_KEY_FIJA = "sb_publishable_ZeLC2rOxhhUXlQdvJ28JkA_qf802-pX";
 
+export const TABLAS_SUPABASE_ACTUALES = Object.freeze({
+  operativosPublicados: "operativos_publicados",
+  operativosEstado: "operativos_estado",
+  operativosEventos: "operativos_eventos"
+});
+
 export const TABLAS_SUPABASE = Object.freeze({
   operativosProgramados: "bmzcn_operativos_programados_v2",
   operativosEstado: "bmzcn_operativos_estado_v2",
@@ -12,8 +18,8 @@ export const TABLAS_SUPABASE = Object.freeze({
 });
 
 export const TABLAS_REALTIME_INFORMES_GP = Object.freeze([
-  TABLAS_SUPABASE.operativosProgramados,
-  TABLAS_SUPABASE.operativosEstado,
+  TABLAS_SUPABASE_ACTUALES.operativosPublicados,
+  TABLAS_SUPABASE_ACTUALES.operativosEstado,
   TABLAS_SUPABASE.informesIntradiarios,
   TABLAS_SUPABASE.informesIntradiariosItems
 ]);
@@ -72,7 +78,7 @@ function resolverConfigSupabase() {
 
 function crearClienteSupabaseSeguro({ url, anonKey }) {
   if (!url || !anonKey) {
-    console.warn("[Informes_GP] Supabase no configurado. La app funcionará con fallback/demo cuando corresponda.");
+    console.warn("[Informes_GP] Supabase no configurado. No se cargarán operativos hasta configurar la conexión.");
     return null;
   }
 

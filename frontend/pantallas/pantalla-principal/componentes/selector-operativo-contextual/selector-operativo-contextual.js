@@ -17,7 +17,7 @@ export async function renderSelectorOperativoContextual({
 
   host.innerHTML = await cargarComponenteHtml("/frontend/pantallas/pantalla-principal/componentes/selector-operativo-contextual/selector-operativo-contextual.html");
 
-  const selector = host.querySelector("#selectorOperativoContextual");
+  const selector = host.querySelector("#selectorOperativoContextual, #operativoContextualSelect");
   const label = host.querySelector("#selectorOperativoContextualLabel");
   const ayuda = host.querySelector("#selectorOperativoContextualAyuda");
 
@@ -31,8 +31,8 @@ export async function renderSelectorOperativoContextual({
 
   if (!selector) return;
 
-  label.textContent = resolverLabel(modoNormalizado);
-  ayuda.textContent = resolverAyuda(modoNormalizado, items.length);
+  if (label) label.textContent = resolverLabel(modoNormalizado);
+  if (ayuda) ayuda.textContent = resolverAyuda(modoNormalizado, items.length);
 
   llenarSelector({
     selector,
