@@ -1,7 +1,7 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
-const SUPABASE_URL_FIJA = "https://ugeydxozfewzhldjbkat.supabase.co";
-const SUPABASE_ANON_KEY_FIJA = "sb_publishable_ZeLC2rOxhhUXlQdvJ28JkA_qf802-pX";
+const SUPABASE_URL_FIJA = "https://hbnxvwrqxhurdteirsyl.supabase.co";
+const SUPABASE_ANON_KEY_FIJA = "sb_publishable_GgrICSZSYl6Fc5D8SzT-aA_GLCB9J01";
 
 export const TABLAS_SUPABASE_ACTUALES = Object.freeze({
   operativosPublicados: "operativos_publicados",

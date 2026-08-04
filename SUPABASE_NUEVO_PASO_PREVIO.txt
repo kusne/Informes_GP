@@ -1,0 +1,10 @@
+ANTES DE PROBAR INICIA/FINALIZA EN GITHUB PAGES:
+
+1) Abrir el proyecto Supabase nuevo: hbnxvwrqxhurdteirsyl
+2) SQL Editor -> New query
+3) Ejecutar completo:
+   backend/infraestructura/supabase/01_PREPARAR_SUPABASE_NUEVO_INFORMES_GP.sql
+4) Debe terminar sin error.
+5) Luego subir esta version de Informes_GP a GitHub y volver a probar.
+
+Esta version ya usa el proyecto nuevo tambien para las escrituras de Informes_GP.
