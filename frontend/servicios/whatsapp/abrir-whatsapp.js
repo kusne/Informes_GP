@@ -30,6 +30,76 @@ export function cerrarVentanaWhatsappPreparada(ventana) {
   } catch {}
 }
 
+export function puedeCompartirArchivosDesdeDispositivo(archivos = []) {
+  const files = normalizarArchivosCompartibles(archivos);
+
+  if (!files.length || typeof navigator === "undefined" || typeof navigator.share !== "function") {
+    return false;
+  }
+
+  if (typeof navigator.canShare === "function") {
+    try {
+      return navigator.canShare({ files });
+    } catch {
+      return false;
+    }
+  }
+
+  // Algunos navegadores implementan share(files) pero no canShare().
+  return true;
+}
+
+export function compartirInformeConArchivos({ texto, archivos = [] } = {}) {
+  const mensaje = String(texto || "").trim();
+  const files = normalizarArchivosCompartibles(archivos);
+
+  if (!mensaje) {
+    throw new Error("No hay texto para enviar por WhatsApp.");
+  }
+
+  if (!files.length) {
+    throw new Error("No hay fotos disponibles para adjuntar.");
+  }
+
+  if (!puedeCompartirArchivosDesdeDispositivo(files)) {
+    throw new Error(
+      "Este navegador no permite adjuntar las fotos directamente. Abra Informes GP desde Chrome/Android o desde la app instalada y vuelva a intentar."
+    );
+  }
+
+  // navigator.share() debe invocarse directamente dentro del gesto del usuario.
+  // Por eso esta función no realiza ningún await antes de abrir el selector del sistema.
+  return navigator.share({
+    title: "Informe BMZCN",
+    text: mensaje,
+    files
+  });
+}
+
+function normalizarArchivosCompartibles(archivos = []) {
+  if (!Array.isArray(archivos)) return [];
+
+  return archivos
+    .map((archivo, indice) => {
+      if (!archivo) return null;
+
+      if (typeof File !== "undefined" && archivo instanceof File) {
+        return archivo;
+      }
+
+      if (typeof Blob !== "undefined" && archivo instanceof Blob && typeof File !== "undefined") {
+        return new File(
+          [archivo],
+          `foto_${indice + 1}.jpg`,
+          { type: archivo.type || "image/jpeg" }
+        );
+      }
+
+      return null;
+    })
+    .filter(Boolean);
+}
+
 export function abrirWhatsappConTexto(texto, opciones = {}) {
   const mensaje = String(texto || "").trim();
 

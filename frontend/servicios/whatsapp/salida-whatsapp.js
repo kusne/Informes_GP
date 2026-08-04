@@ -5,15 +5,20 @@ import {
 import {
   abrirWhatsappConTexto,
   prepararVentanaWhatsapp,
-  cerrarVentanaWhatsappPreparada
+  cerrarVentanaWhatsappPreparada,
+  puedeCompartirArchivosDesdeDispositivo,
+  compartirInformeConArchivos
 } from "./abrir-whatsapp.js";
 import { obtenerSalidaInicioDesdeEstado } from "../../../backend/dominio/whatsapp/formateador-inicio.js";
 import { obtenerSalidaFinalizadoDesdeEstado } from "../../../backend/dominio/whatsapp/formateador-finalizado.js";
 import { obtenerSalidaInformesDesdeEstado } from "../../../backend/dominio/whatsapp/formateador-informes.js";
 import { obtenerSalidaControlMovilesDesdeEstado } from "../../../backend/dominio/whatsapp/formateador-control-moviles.js";
-import { limpiarFotosPorModoPayload } from "../../../backend/aplicacion/estado/fotos-estado.js";
 import {
-  agregarFotosAlTextoWhatsapp,
+  limpiarFotosPorModoPayload,
+  resolverPrefijoFotoPorModoPayload,
+  obtenerFotosPorPrefijo
+} from "../../../backend/aplicacion/estado/fotos-estado.js";
+import {
   contarFotosCargadasDesdeEstado
 } from "../../../backend/dominio/whatsapp/fotos-whatsapp.js";
 import { modoEnsayoActivo } from "../../../backend/infraestructura/ensayo/modo-ensayo.js";
@@ -124,9 +129,94 @@ export async function manejarEnvioWhatsapp({ boton = null, getContexto } = {}) {
     return;
   }
 
-  // La ventana se prepara AHORA, mientras el click del usuario sigue activo.
-  // Si se intenta abrir recién después de guardar/subir fotos, Chrome móvil puede
-  // bloquearla y la versión anterior terminaba navegando la propia app a WhatsApp.
+  const archivosFotos = obtenerArchivosFotosLocales({
+    modo,
+    payload: salida.payload
+  });
+
+  // Con fotos usamos Web Share para entregar los ARCHIVOS REALES al dispositivo.
+  // Esto evita convertir las imágenes en URLs dentro del cuerpo del informe.
+  if (archivosFotos.length > 0) {
+    if (!puedeCompartirArchivosDesdeDispositivo(archivosFotos)) {
+      alert(
+        "Las fotos están cargadas, pero este navegador no permite adjuntarlas directamente.\n\n" +
+        "Abra Informes GP desde Chrome/Android o desde la app instalada y vuelva a tocar Enviar WhatsApp.\n\n" +
+        "No se enviarán links de las fotos."
+      );
+      return;
+    }
+
+    envioEnCurso = true;
+    cambiarEstadoBoton(boton, true, "Compartiendo fotos...");
+    marcarEstadoEnvio("Seleccione WhatsApp para enviar el informe con las fotos...");
+
+    try {
+      // IMPORTANTE: esta es la primera operación asíncrona del click.
+      // navigator.share() conserva así la activación requerida por el navegador.
+      await compartirInformeConArchivos({
+        texto,
+        archivos: archivosFotos
+      });
+
+      cambiarEstadoBoton(
+        boton,
+        true,
+        modoEnsayoActivo() ? "Finalizando ensayo..." : "Guardando..."
+      );
+
+      const resultadoSupabase = await guardarSegunModoSiCorresponde({
+        modo,
+        payload: salida.payload
+      });
+
+      if (resultadoSupabase.bloqueaEnvio) {
+        alert(
+          "El informe y las fotos ya fueron compartidos, pero NO se pudo guardar el estado en Supabase.\n\n" +
+          (resultadoSupabase.mensaje || "Error desconocido de Supabase.")
+        );
+        return;
+      }
+
+      limpiarFotosPorModoPayload({
+        modo,
+        payload: resultadoSupabase.payloadFinal || salida.payload
+      });
+
+      marcarEstadoEnvio(
+        resultadoSupabase.ensayo
+          ? "Informe y fotos compartidos (ensayo)."
+          : "Informe y fotos enviados. Guardado en Supabase."
+      );
+
+      window.dispatchEvent(new CustomEvent("informesgp:envio-whatsapp-ok", {
+        detail: {
+          modo,
+          supabase: resultadoSupabase,
+          textoFinal: texto,
+          fotosAdjuntas: archivosFotos.length
+        }
+      }));
+    } catch (error) {
+      if (error?.name === "AbortError") {
+        marcarEstadoEnvio("Envío cancelado.");
+        return;
+      }
+
+      console.error("[Informes_GP] Error compartiendo WhatsApp con fotos:", error);
+      alert(error?.message || "No se pudo compartir el informe con las fotos.");
+    } finally {
+      envioEnCurso = false;
+
+      actualizarVistaPreviaSalida({
+        host: boton?.closest(".salida-whatsapp-panel") || document,
+        getContexto
+      });
+    }
+
+    return;
+  }
+
+  // Sin fotos mantenemos el flujo actual por wa.me y la app principal nunca se reemplaza.
   const ventanaWhatsapp = prepararVentanaWhatsapp();
   let whatsappEntregado = false;
 
@@ -149,11 +239,6 @@ export async function manejarEnvioWhatsapp({ boton = null, getContexto } = {}) {
       return;
     }
 
-    const textoFinal = agregarFotosAlTextoWhatsapp({
-      texto,
-      fotos: resultadoSupabase.fotos || []
-    });
-
     limpiarFotosPorModoPayload({
       modo,
       payload: resultadoSupabase.payloadFinal || salida.payload
@@ -165,7 +250,7 @@ export async function manejarEnvioWhatsapp({ boton = null, getContexto } = {}) {
         : (resultadoSupabase.saltado ? "Abriendo WhatsApp sin Supabase..." : "Guardado. Abriendo WhatsApp...")
     );
 
-    abrirWhatsappConTexto(textoFinal, {
+    abrirWhatsappConTexto(texto, {
       ventanaPreparada: ventanaWhatsapp
     });
     whatsappEntregado = true;
@@ -174,7 +259,8 @@ export async function manejarEnvioWhatsapp({ boton = null, getContexto } = {}) {
       detail: {
         modo,
         supabase: resultadoSupabase,
-        textoFinal
+        textoFinal: texto,
+        fotosAdjuntas: 0
       }
     }));
   } catch (error) {
@@ -192,6 +278,19 @@ export async function manejarEnvioWhatsapp({ boton = null, getContexto } = {}) {
       getContexto
     });
   }
+}
+
+function obtenerArchivosFotosLocales({ modo, payload } = {}) {
+  const prefijo = resolverPrefijoFotoPorModoPayload({
+    modo,
+    payload
+  });
+
+  if (!prefijo) return [];
+
+  return obtenerFotosPorPrefijo(prefijo)
+    .map((foto) => foto?.archivo || foto?.archivoOriginal || null)
+    .filter(Boolean);
 }
 
 function actualizarVistaPreviaSalida({ host, getContexto } = {}) {
@@ -248,7 +347,7 @@ function actualizarVistaPreviaSalida({ host, getContexto } = {}) {
       fotosInfo.classList.remove("hidden");
       fotosInfo.textContent = modoEnsayoActivo()
         ? `${cantidadFotos} foto(s) cargada(s). En ensayo no se subirán a Supabase.`
-        : `${cantidadFotos} foto(s) cargada(s). Al enviar, se subirán a Supabase y se agregará el link al WhatsApp.`;
+        : `${cantidadFotos} foto(s) cargada(s). Al enviar, se adjuntarán como imágenes reales y también se guardarán en Supabase.`;
     } else {
       fotosInfo.classList.add("hidden");
       fotosInfo.innerHTML = "";

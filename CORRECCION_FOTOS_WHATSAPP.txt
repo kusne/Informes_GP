@@ -1,0 +1,8 @@
+CORRECCION FOTOS WHATSAPP
+
+- Se eliminaron los links publicos de fotos del texto del informe.
+- Cuando hay fotos, se comparten los archivos reales con Web Share API.
+- El usuario debe elegir WhatsApp en el selector del dispositivo.
+- Las fotos siguen subiéndose a Supabase Storage para historial.
+- Sin fotos, se mantiene el flujo wa.me existente.
+- Si el navegador no soporta compartir archivos, no se sustituyen por URLs.

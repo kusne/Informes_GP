@@ -1,30 +1,9 @@
 export function agregarFotosAlTextoWhatsapp({
-  texto,
-  fotos = []
+  texto
 } = {}) {
-  const base = String(texto || "").trim();
-  const fotosValidas = normalizarFotos(fotos);
-
-  if (!base || !fotosValidas.length) {
-    return base;
-  }
-
-  const lineas = [
-    base,
-    "",
-    "FOTOS ADJUNTAS:"
-  ];
-
-  for (const foto of fotosValidas) {
-    const numero = foto.indice || "";
-    const url = foto.url_publica || foto.url || "";
-
-    if (url) {
-      lineas.push(`Foto ${numero}: ${url}`);
-    }
-  }
-
-  return lineas.filter((linea) => linea !== null && linea !== undefined).join("\n");
+  // Las fotos NO se convierten en links dentro del texto de WhatsApp.
+  // Los archivos reales se comparten desde la capa frontend mediante Web Share.
+  return String(texto || "").trim();
 }
 
 export function contarFotosCargadasDesdeEstado({
