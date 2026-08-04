@@ -1,4 +1,4 @@
-const CACHE_VERSION = "informes-gp-v20260803-opt4";
+const CACHE_VERSION = "informes-gp-v20260804-speed2";
 const CACHE_ESTATICO = `${CACHE_VERSION}-static`;
 
 const PRECACHE = [
@@ -9,7 +9,7 @@ const PRECACHE = [
   "./frontend/assets/logo-bmzcn-gold-black.png",
   "./frontend/assets/icon-192.png",
   "./frontend/assets/icon-512.png",
-  "./frontend/app/app-bootstrap.js?v=20260803-opt4",
+  "./frontend/app/app-bootstrap.js?v=20260804-speed2",
   "./frontend/app/app.js",
   "./frontend/servicios/navegacion/instancia-unica.js",
   "./frontend/servicios/ui/cargar-componente-html.js",
@@ -32,10 +32,41 @@ const PRECACHE = [
   "./backend/infraestructura/supabase/operativos-programados-v2-mapper.js",
   "./backend/infraestructura/supabase/supabase-operativos-programados-client.js",
   "./backend/infraestructura/supabase/operativos-estado-v2-repo.js",
-  "./frontend/compatibilidad/control-moviles/wsp-control-moviles-flujo-ui.js?v=20260803-opt4",
-  "./frontend/compatibilidad/control-moviles/wsp-control-moviles-ui.js?v=20260803-opt4",
-  "./frontend/compatibilidad/control-moviles/control-moviles.js?v=20260803-opt4",
-  "./frontend/compatibilidad/pantalla-principal/pantalla-principal-flujo.js?v=20260803-opt4"
+  "./backend/infraestructura/supabase/supabase-rest-rapido.js",
+  "./frontend/pantallas/inicia/inicia.html",
+  "./frontend/pantallas/inicia/inicia.js",
+  "./frontend/pantallas/inicia/compartido/inicio-builder.js",
+  "./frontend/pantallas/inicia/componentes/personal-policial/personal-policial.js",
+  "./frontend/pantallas/inicia/componentes/movilidad/movilidad.js",
+  "./frontend/pantallas/inicia/componentes/elementos/elementos.js",
+  "./frontend/pantallas/inicia/componentes/observaciones/observaciones.js",
+  "./frontend/pantallas/inicia/componentes/agregar-elementos-presencia-activa/agregar-elementos-presencia-activa.js",
+  "./frontend/pantallas/inicia/componentes/fotos-inicio/fotos-inicio.html",
+  "./frontend/pantallas/inicia/componentes/fotos-inicio/fotos-inicio.js",
+  "./frontend/servicios/fotos/fotos-formulario-loader.js",
+  "./frontend/servicios/fotos/comprimir-foto.js",
+  "./backend/dominio/inicia/recursos-inicio.js",
+  "./backend/dominio/compartido/recursos/catalogo-recursos-operativos.js",
+  "./frontend/compatibilidad/control-moviles/wsp-control-moviles-flujo-ui.js?v=20260804-speed2",
+  "./frontend/compatibilidad/control-moviles/wsp-control-moviles-ui.js?v=20260804-speed2",
+  "./frontend/compatibilidad/control-moviles/control-moviles.js?v=20260804-speed2",
+  "./frontend/compatibilidad/pantalla-principal/pantalla-principal-flujo.js?v=20260804-speed2",
+  "./backend/aplicacion/estado/fotos-estado.js",
+  "./backend/dominio/compartido/tipos/operativos-elementos-controlados-opcionales.js",
+  "./backend/dominio/compartido/tipos/presencia-activa-puente.js",
+  "./backend/dominio/inicia/inicio-mapper-supabase.js",
+  "./backend/dominio/inicia/inicio-salida-texto-base.js",
+  "./backend/dominio/inicia/inicio-validaciones-base.js",
+  "./backend/dominio/whatsapp/formateador-control-moviles.js",
+  "./backend/dominio/whatsapp/formateador-finalizado.js",
+  "./backend/dominio/whatsapp/formateador-informes.js",
+  "./backend/dominio/whatsapp/formateador-inicio.js",
+  "./backend/dominio/whatsapp/fotos-whatsapp.js",
+  "./backend/dominio/whatsapp/whatsapp-config.js",
+  "./backend/infraestructura/ensayo/operativos-ensayo.js",
+  "./frontend/pantallas/informes/modelos-informes.js",
+  "./frontend/servicios/whatsapp/abrir-whatsapp.js",
+  "./frontend/servicios/whatsapp/salida-whatsapp.js"
 ];
 
 self.addEventListener("install", (event) => {
@@ -66,7 +97,7 @@ self.addEventListener("fetch", (event) => {
   if (url.origin !== self.location.origin) return;
 
   if (request.mode === "navigate") {
-    event.respondWith(networkFirst(request));
+    event.respondWith(navigationCacheFirst(request));
     return;
   }
 
@@ -75,16 +106,25 @@ self.addEventListener("fetch", (event) => {
   }
 });
 
-async function networkFirst(request) {
+async function navigationCacheFirst(request) {
   const cache = await caches.open(CACHE_ESTATICO);
+  const cached = (await cache.match(request)) || (await cache.match("./index.html"));
+
+  // Desde la segunda visita el HTML sale del dispositivo inmediatamente.
+  // Cada despliegue cambia CACHE_VERSION, por lo que el install del nuevo SW
+  // precarga el index actualizado sin obligar a esperar GitHub en cada apertura.
+  if (cached) {
+    return cached;
+  }
+
   try {
     const response = await fetch(request);
     if (response?.ok) {
-      cache.put(request, response.clone());
+      await cache.put("./index.html", response.clone());
     }
     return response;
   } catch {
-    return (await cache.match(request)) || (await cache.match("./index.html"));
+    return new Response("Sin conexión", { status: 503 });
   }
 }
 

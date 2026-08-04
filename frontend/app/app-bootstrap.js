@@ -37,6 +37,6 @@ function registrarServiceWorkerSinBloquear() {
         .catch((error) => {
           console.warn("[Informes_GP] Service Worker no disponible:", error);
         });
-    }, 800);
+    }, 250);
   }, { once: true });
 }

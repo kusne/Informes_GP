@@ -11,7 +11,6 @@ import { obtenerSalidaInicioDesdeEstado } from "../../../backend/dominio/whatsap
 import { obtenerSalidaFinalizadoDesdeEstado } from "../../../backend/dominio/whatsapp/formateador-finalizado.js";
 import { obtenerSalidaInformesDesdeEstado } from "../../../backend/dominio/whatsapp/formateador-informes.js";
 import { obtenerSalidaControlMovilesDesdeEstado } from "../../../backend/dominio/whatsapp/formateador-control-moviles.js";
-import { subirFotosAdjuntasSupabase } from "../../../backend/infraestructura/supabase/subir-foto-supabase.js";
 import { limpiarFotosPorModoPayload } from "../../../backend/aplicacion/estado/fotos-estado.js";
 import {
   agregarFotosAlTextoWhatsapp,
@@ -370,7 +369,10 @@ async function guardarSegunModoSiCorresponde({ modo, payload }) {
   }
 
   try {
-    const resultadoFotos = await subirFotosAdjuntasSupabase({
+    // Storage/Supabase se carga recién al pulsar Enviar. No forma parte del
+    // arranque crítico de la app ni retrasa el primer formulario.
+    const fotosRepo = await import("../../../backend/infraestructura/supabase/subir-foto-supabase.js");
+    const resultadoFotos = await fotosRepo.subirFotosAdjuntasSupabase({
       modo,
       payload
     });

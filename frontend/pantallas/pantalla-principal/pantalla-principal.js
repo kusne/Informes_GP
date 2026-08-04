@@ -43,13 +43,14 @@ export async function iniciarPantallaPrincipal({ hostSelector }) {
   const selectorModo = document.querySelector("#selectorModoInformeSelect, #selectorModoInforme");
   if (selectorModo) selectorModo.value = "INICIA";
 
-  // Primero cargamos la información visible. Realtime se conecta después para
-  // que su WebSocket no compita con la primera lectura en conexiones móviles.
+  // INICIA se pinta y consulta en paralelo. La interfaz local no debe esperar a
+  // Supabase para aparecer. Realtime se difiere hasta que el arranque crítico
+  // ya terminó para que el CDN/WebSocket no compita con la primera pantalla.
   await cambiarModoPantalla("INICIA");
 
   if (!modoEnsayoActivo()) {
     registrarListenerRealtime();
-    iniciarRealtimeSeguro();
+    programarRealtimeSeguro();
   }
 }
 
@@ -78,6 +79,17 @@ async function recargarItemsPantalla({
 
   let items = [];
 
+  // El formulario INICIA es completamente local. Se empieza a construir de
+  // inmediato mientras viaja la consulta de operativos. Antes esta pantalla
+  // quedaba esperando a Supabase y daba sensación de app bloqueada.
+  const renderLocalInicial = modo === "INICIA"
+    ? renderContenedorSeguro({
+        modo,
+        operativoSeleccionado: null,
+        modeloInformeSeleccionado: null
+      })
+    : null;
+
   if (modo === "INFORMES") {
     items = listarModelosInformesGP();
     estadoPantalla.modelosInformesDisponibles = items;
@@ -86,6 +98,12 @@ async function recargarItemsPantalla({
     items = await obtenerOperativosSeguro(modo);
     estadoPantalla.operativosDisponibles = items;
     estadoPantalla.modelosInformesDisponibles = [];
+  }
+
+  // Esperamos el montaje local sólo después de que ambas tareas ya corrieron
+  // en paralelo. Evita la carrera de selección sin volver al arranque serial.
+  if (renderLocalInicial) {
+    await renderLocalInicial;
   }
 
   estadoPantalla.cantidadOperativos = items.length;
@@ -103,11 +121,13 @@ async function recargarItemsPantalla({
     items
   });
 
-  await renderContenedorSeguro({
-    modo,
-    operativoSeleccionado: null,
-    modeloInformeSeleccionado: null
-  });
+  if (!renderLocalInicial) {
+    await renderContenedorSeguro({
+      modo,
+      operativoSeleccionado: null,
+      modeloInformeSeleccionado: null
+    });
+  }
 
   if (motivo) {
     console.log("[Informes_GP] Pantalla refrescada:", motivo);
@@ -408,6 +428,17 @@ async function obtenerOperativosSeguro(modo) {
     console.error("[Informes_GP] Error leyendo operativos:", error);
     return [];
   }
+}
+
+function programarRealtimeSeguro() {
+  const iniciar = () => iniciarRealtimeSeguro();
+
+  if (typeof window.requestIdleCallback === "function") {
+    window.requestIdleCallback(iniciar, { timeout: 2500 });
+    return;
+  }
+
+  setTimeout(iniciar, 1500);
 }
 
 function iniciarRealtimeSeguro() {

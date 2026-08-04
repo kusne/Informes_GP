@@ -1,8 +1,7 @@
-import { supabaseDisponible } from "../../infraestructura/supabase/supabase-client.js";
 import {
-  listarEstadosOperativosV2
-} from "../../infraestructura/supabase/operativos-estado-v2-repo.js";
-import { listarOperativosProgramadosV2 } from "../../infraestructura/supabase/operativos-programados-v2-repo.js";
+  listarEstadosOperativosRestRapido,
+  listarOperativosProgramadosRestRapido
+} from "../../infraestructura/supabase/supabase-rest-rapido.js";
 import { obtenerContextoOperativos, registrarFuenteOperativos } from "./operativos-contexto.js";
 import { guardarOperativosEnCache } from "./operativos-cache.js";
 import { obtenerGuardiaFecha0600 } from "../../dominio/compartido/fechas/guardia-0600.js";
@@ -36,39 +35,34 @@ export async function obtenerOperativosPorModo(modo, opciones = {}) {
     return ensayo;
   }
 
-  if (supabaseDisponible()) {
-    try {
-      const operativos = await obtenerOperativosDesdeSupabase({
-        modo: modoNormalizado,
-        guardiaFecha
-      });
+  try {
+    const operativos = await obtenerOperativosDesdeSupabase({
+      modo: modoNormalizado,
+      guardiaFecha
+    });
 
-      const normalizados = filtrarSegunModo(
-        modoNormalizado,
-        normalizarOperativos(operativos)
-      );
+    const normalizados = filtrarSegunModo(
+      modoNormalizado,
+      normalizarOperativos(operativos)
+    );
 
-      guardarOperativosEnCache({
-        modo: modoNormalizado,
-        guardiaFecha,
-        operativos: normalizados
-      });
+    guardarOperativosEnCache({
+      modo: modoNormalizado,
+      guardiaFecha,
+      operativos: normalizados
+    });
 
-      registrarFuenteOperativos({
-        modo: modoNormalizado,
-        fuente: modoNormalizado === "INICIA"
-          ? "SUPABASE_NUEVO_PROGRAMADOS_V2"
-          : "SUPABASE_NUEVO_ESTADO_V2"
-      });
+    registrarFuenteOperativos({
+      modo: modoNormalizado,
+      fuente: modoNormalizado === "INICIA"
+        ? "SUPABASE_REST_RAPIDO_PROGRAMADOS_V2"
+        : "SUPABASE_REST_RAPIDO_ESTADO_V2"
+    });
 
-      return normalizados;
-    } catch (error) {
-      console.error("[Informes_GP] Falló la lectura de operativos desde el Supabase nuevo.", error);
-      registrarFuenteOperativos({ modo: modoNormalizado, fuente: "ERROR_SUPABASE" });
-    }
-  } else {
-    console.error("[Informes_GP] Supabase no está disponible. No se usarán contadores de demostración.");
-    registrarFuenteOperativos({ modo: modoNormalizado, fuente: "SIN_SUPABASE" });
+    return normalizados;
+  } catch (error) {
+    console.error("[Informes_GP] Falló la lectura rápida de operativos desde el Supabase nuevo.", error);
+    registrarFuenteOperativos({ modo: modoNormalizado, fuente: "ERROR_SUPABASE_REST" });
   }
 
   guardarOperativosEnCache({
@@ -85,12 +79,12 @@ async function obtenerOperativosDesdeSupabase({ modo, guardiaFecha }) {
     // PROGRAMADOS y ESTADO pertenecen al mismo proyecto nuevo.
     // Se leen en paralelo para reducir el tiempo de carga y evitar el circuito legacy.
     const [programadosResultado, estadosResultado] = await Promise.allSettled([
-      listarOperativosProgramadosV2({
+      listarOperativosProgramadosRestRapido({
         guardia_fecha: guardiaFecha,
         activo: true,
         excluir_sin_efecto: true
       }),
-      listarEstadosOperativosV2({
+      listarEstadosOperativosRestRapido({
         guardia_fecha: guardiaFecha
       })
     ]);
@@ -122,10 +116,10 @@ async function obtenerOperativosDesdeSupabase({ modo, guardiaFecha }) {
     // Se consulta el estado nuevo y la programación nueva en paralelo.
     // La programación aporta fecha_operativo; el estado aporta los datos del INICIO.
     const [estadosResultado, programadosResultado] = await Promise.allSettled([
-      listarEstadosOperativosV2({
+      listarEstadosOperativosRestRapido({
         guardia_fecha: guardiaFecha
       }),
-      listarOperativosProgramadosV2({
+      listarOperativosProgramadosRestRapido({
         guardia_fecha: guardiaFecha,
         activo: true,
         excluir_sin_efecto: false
@@ -151,7 +145,7 @@ async function obtenerOperativosDesdeSupabase({ modo, guardiaFecha }) {
   }
 
   if (modo === "INFORMES") {
-    const estados = await listarEstadosOperativosV2({
+    const estados = await listarEstadosOperativosRestRapido({
       guardia_fecha: guardiaFecha
     });
 

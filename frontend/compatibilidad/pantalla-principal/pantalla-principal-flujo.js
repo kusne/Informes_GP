@@ -443,19 +443,15 @@
       aplicarFlujo();
     });
 
-    const obs = new MutationObserver(() => {
-      clearTimeout(window.__igpFlujoTimer);
-      window.__igpFlujoTimer = setTimeout(aplicarFlujo, 80);
-    });
-
-    obs.observe(document.body, { childList: true, subtree: true });
+    // La arquitectura actual ya controla sus renders. El observer global de
+    // todo document.body provocaba escaneos repetidos mientras se montaban
+    // personal, móviles y elementos. Se conserva la compatibilidad por eventos
+    // de usuario sin vigilar cada mutación del DOM.
   }
 
   function iniciar() {
     bind();
     aplicarFlujo();
-    setTimeout(aplicarFlujo, 250);
-    setTimeout(aplicarFlujo, 900);
   }
 
   window.IGP.pantallaPrincipal.buscarSelectorPrincipal = buscarSelectorPrincipal;
