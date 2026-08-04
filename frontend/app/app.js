@@ -18,7 +18,12 @@ export async function iniciarApp() {
   window.InformesGP.guardiaFecha = guardiaFecha;
   registrarModoEnsayoEnWindow();
 
-  app.innerHTML = await cargarComponenteHtml("/frontend/app/app.html");
+  // GitHub Pages ya entrega el shell crítico dentro de index.html para que
+  // la interfaz aparezca de inmediato. En entornos antiguos se conserva el
+  // cargador HTML como fallback.
+  if (!app.querySelector("#pantallaPrincipalHost")) {
+    app.innerHTML = await cargarComponenteHtml("/frontend/app/app.html");
+  }
 
   await iniciarPantallaPrincipal({
     hostSelector: "#pantallaPrincipalHost"

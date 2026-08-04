@@ -2,6 +2,36 @@ import { TABLAS_SUPABASE } from "./supabase-client.js";
 
 const TABLA_OPERATIVOS_ESTADO = TABLAS_SUPABASE.operativosEstado;
 
+
+export async function listarEstadosOperativosV2({
+  guardia_fecha
+} = {}) {
+  const cliente = await obtenerClienteSupabase();
+
+  if (!cliente) {
+    console.warn("[Informes_GP] Supabase no disponible para listar estados de operativos.");
+    return [];
+  }
+
+  let query = cliente
+    .from(TABLA_OPERATIVOS_ESTADO)
+    .select("*");
+
+  if (guardia_fecha) {
+    query = query.eq("guardia_fecha", guardia_fecha);
+  }
+
+  const { data, error } = await query
+    .order("hora_inicio", { ascending: true })
+    .order("updated_at", { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  return normalizarEstados(data);
+}
+
 export async function listarOperativosEnCursoV2({
   guardia_fecha
 } = {}) {

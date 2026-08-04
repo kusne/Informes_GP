@@ -18,8 +18,8 @@ export const TABLAS_SUPABASE = Object.freeze({
 });
 
 export const TABLAS_REALTIME_INFORMES_GP = Object.freeze([
-  TABLAS_SUPABASE_ACTUALES.operativosPublicados,
-  TABLAS_SUPABASE_ACTUALES.operativosEstado,
+  TABLAS_SUPABASE.operativosProgramados,
+  TABLAS_SUPABASE.operativosEstado,
   TABLAS_SUPABASE.informesIntradiarios,
   TABLAS_SUPABASE.informesIntradiariosItems
 ]);

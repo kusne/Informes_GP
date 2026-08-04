@@ -15,21 +15,31 @@ export async function cargarComponenteHtml(ruta) {
   const rutaResuelta = resolverRutaApp(path);
 
   if (cacheHtml.has(rutaResuelta)) {
-    return cacheHtml.get(rutaResuelta);
+    return await cacheHtml.get(rutaResuelta);
   }
 
-  const respuesta = await fetch(rutaResuelta, {
-    cache: "no-store"
+  // Se cachea también la promesa para que dos módulos que pidan el mismo
+  // fragmento al mismo tiempo compartan una sola descarga.
+  const carga = fetch(rutaResuelta, {
+    cache: "default"
+  }).then(async (respuesta) => {
+    if (!respuesta.ok) {
+      throw new Error(`No se pudo cargar componente HTML: ${path}`);
+    }
+
+    return normalizarRutasHtmlApp(await respuesta.text());
   });
 
-  if (!respuesta.ok) {
-    throw new Error(`No se pudo cargar componente HTML: ${path}`);
+  cacheHtml.set(rutaResuelta, carga);
+
+  try {
+    const html = await carga;
+    cacheHtml.set(rutaResuelta, html);
+    return html;
+  } catch (error) {
+    cacheHtml.delete(rutaResuelta);
+    throw error;
   }
-
-  const html = normalizarRutasHtmlApp(await respuesta.text());
-  cacheHtml.set(rutaResuelta, html);
-
-  return html;
 }
 
 export function limpiarCacheComponentesHtml() {

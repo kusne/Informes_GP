@@ -4,6 +4,32 @@ import {
   normalizarTelefonoWhatsapp
 } from "../../../backend/dominio/whatsapp/whatsapp-config.js";
 
+const NOMBRE_VENTANA_WHATSAPP = "InformesGPWhatsApp";
+
+/**
+ * Debe llamarse directamente dentro del gesto del usuario (click), antes de
+ * cualquier await. Así los navegadores móviles no consideran la apertura como
+ * un popup tardío y la aplicación principal nunca se reemplaza por WhatsApp.
+ */
+export function prepararVentanaWhatsapp() {
+  try {
+    return window.open("about:blank", NOMBRE_VENTANA_WHATSAPP);
+  } catch (error) {
+    console.warn("[Informes_GP] El navegador bloqueó la preparación de WhatsApp.", error);
+    return null;
+  }
+}
+
+export function cerrarVentanaWhatsappPreparada(ventana) {
+  if (!ventana) return;
+
+  try {
+    if (!ventana.closed) {
+      ventana.close();
+    }
+  } catch {}
+}
+
 export function abrirWhatsappConTexto(texto, opciones = {}) {
   const mensaje = String(texto || "").trim();
 
@@ -23,7 +49,8 @@ export function abrirWhatsappConTexto(texto, opciones = {}) {
   });
 
   return abrirUrlWhatsapp(url, {
-    nuevaPestana: opciones.nuevaPestana ?? WHATSAPP_CONFIG.abrirEnNuevaPestana
+    nuevaPestana: opciones.nuevaPestana ?? WHATSAPP_CONFIG.abrirEnNuevaPestana,
+    ventanaPreparada: opciones.ventanaPreparada || null
   });
 }
 
@@ -48,7 +75,8 @@ export function construirUrlWhatsapp({
 }
 
 export function abrirUrlWhatsapp(url, {
-  nuevaPestana = true
+  nuevaPestana = true,
+  ventanaPreparada = null
 } = {}) {
   const enlace = String(url || "").trim();
 
@@ -56,15 +84,44 @@ export function abrirUrlWhatsapp(url, {
     throw new Error("No se pudo construir el enlace de WhatsApp.");
   }
 
-  let ventana = null;
+  if (!nuevaPestana) {
+    throw new Error("WhatsApp debe abrirse fuera de la ventana de Informes GP.");
+  }
 
-  if (nuevaPestana) {
-    ventana = window.open(enlace, "_blank", "noopener,noreferrer");
+  let ventana = ventanaPreparada;
+
+  if (!ventana || ventana.closed) {
+    try {
+      ventana = window.open("about:blank", NOMBRE_VENTANA_WHATSAPP);
+    } catch {
+      ventana = null;
+    }
   }
 
   if (!ventana) {
-    window.location.href = enlace;
+    throw new Error(
+      "El navegador bloqueó la apertura de WhatsApp. Habilite ventanas emergentes para Informes GP y vuelva a tocar Enviar por WhatsApp."
+    );
   }
+
+  try {
+    ventana.opener = null;
+  } catch {}
+
+  try {
+    ventana.location.replace(enlace);
+  } catch {
+    try {
+      ventana.location.href = enlace;
+    } catch (error) {
+      cerrarVentanaWhatsappPreparada(ventana);
+      throw new Error("No se pudo abrir WhatsApp sin cerrar Informes GP.");
+    }
+  }
+
+  try {
+    ventana.focus();
+  } catch {}
 
   return enlace;
 }

@@ -1,0 +1,29 @@
+{
+  "id": "./",
+  "name": "Informes GP - BMZCN",
+  "short_name": "Informes GP",
+  "description": "Generador de Informes - Brigada Motorizada Zona Centro Norte",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#2b2f36",
+  "theme_color": "#2b2f36",
+  "orientation": "portrait-primary",
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
+  "icons": [
+    {
+      "src": "./frontend/assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./frontend/assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

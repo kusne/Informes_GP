@@ -1,10 +1,8 @@
 import { supabaseDisponible } from "../../infraestructura/supabase/supabase-client.js";
 import {
-  listarOperativosEnCursoActuales,
-  listarOperativosFinalizadosActuales
-} from "../../infraestructura/supabase/operativos-produccion-lectura-repo.js";
+  listarEstadosOperativosV2
+} from "../../infraestructura/supabase/operativos-estado-v2-repo.js";
 import { listarOperativosProgramadosV2 } from "../../infraestructura/supabase/operativos-programados-v2-repo.js";
-import { operativosProgramadosDisponibles } from "../../infraestructura/supabase/supabase-operativos-programados-client.js";
 import { obtenerContextoOperativos, registrarFuenteOperativos } from "./operativos-contexto.js";
 import { guardarOperativosEnCache } from "./operativos-cache.js";
 import { obtenerGuardiaFecha0600 } from "../../dominio/compartido/fechas/guardia-0600.js";
@@ -38,11 +36,7 @@ export async function obtenerOperativosPorModo(modo, opciones = {}) {
     return ensayo;
   }
 
-  const fuenteDisponible = modoNormalizado === "INICIA"
-    ? operativosProgramadosDisponibles()
-    : supabaseDisponible();
-
-  if (fuenteDisponible) {
+  if (supabaseDisponible()) {
     try {
       const operativos = await obtenerOperativosDesdeSupabase({
         modo: modoNormalizado,
@@ -64,12 +58,12 @@ export async function obtenerOperativosPorModo(modo, opciones = {}) {
         modo: modoNormalizado,
         fuente: modoNormalizado === "INICIA"
           ? "SUPABASE_NUEVO_PROGRAMADOS_V2"
-          : "SUPABASE_ACTUAL"
+          : "SUPABASE_NUEVO_ESTADO_V2"
       });
 
       return normalizados;
     } catch (error) {
-      console.error("[Informes_GP] Falló la lectura real de operativos desde Supabase.", error);
+      console.error("[Informes_GP] Falló la lectura de operativos desde el Supabase nuevo.", error);
       registrarFuenteOperativos({ modo: modoNormalizado, fuente: "ERROR_SUPABASE" });
     }
   } else {
@@ -88,36 +82,34 @@ export async function obtenerOperativosPorModo(modo, opciones = {}) {
 
 async function obtenerOperativosDesdeSupabase({ modo, guardiaFecha }) {
   if (modo === "INICIA") {
-    const programados = await listarOperativosProgramadosV2({
-      guardia_fecha: guardiaFecha,
-      activo: true,
-      excluir_sin_efecto: true
-    });
+    // PROGRAMADOS y ESTADO pertenecen al mismo proyecto nuevo.
+    // Se leen en paralelo para reducir el tiempo de carga y evitar el circuito legacy.
+    const [programadosResultado, estadosResultado] = await Promise.allSettled([
+      listarOperativosProgramadosV2({
+        guardia_fecha: guardiaFecha,
+        activo: true,
+        excluir_sin_efecto: true
+      }),
+      listarEstadosOperativosV2({
+        guardia_fecha: guardiaFecha
+      })
+    ]);
 
-    // Durante esta primera etapa de migración, los PROGRAMADOS vienen
-    // exclusivamente del proyecto nuevo. El estado histórico se consulta solo
-    // como compatibilidad para no volver a ofrecer un operativo ya iniciado.
-    // Si esa lectura histórica falla, NO se bloquea la lista del Supabase nuevo.
-    let enCurso = [];
-    let finalizados = [];
-
-    if (supabaseDisponible()) {
-      try {
-        enCurso = await listarOperativosEnCursoActuales({
-          guardia_fecha: guardiaFecha
-        });
-      } catch (error) {
-        console.warn("[Informes_GP] No se pudo leer EN CURSO histórico para filtrar INICIA:", error);
-      }
-
-      try {
-        finalizados = await listarOperativosFinalizadosActuales({
-          guardia_fecha: guardiaFecha
-        });
-      } catch (error) {
-        console.warn("[Informes_GP] No se pudieron leer FINALIZADOS históricos para filtrar INICIA:", error);
-      }
+    if (programadosResultado.status !== "fulfilled") {
+      throw programadosResultado.reason;
     }
+
+    const programados = programadosResultado.value || [];
+    const estados = estadosResultado.status === "fulfilled"
+      ? estadosResultado.value || []
+      : [];
+
+    if (estadosResultado.status !== "fulfilled") {
+      console.warn("[Informes_GP] No se pudo leer bmzcn_operativos_estado_v2 para filtrar INICIA:", estadosResultado.reason);
+    }
+
+    const enCurso = estados.filter((op) => normalizarEstado(op?.estado) === "EN_CURSO");
+    const finalizados = estados.filter((op) => normalizarEstado(op?.estado) === "FINALIZADO");
 
     return filtrarProgramadosPendientes({
       programados,
@@ -127,36 +119,53 @@ async function obtenerOperativosDesdeSupabase({ modo, guardiaFecha }) {
   }
 
   if (modo === "FINALIZA") {
-    const enCurso = await listarOperativosEnCursoActuales({
-      guardia_fecha: guardiaFecha
-    });
+    // Se consulta el estado nuevo y la programación nueva en paralelo.
+    // La programación aporta fecha_operativo; el estado aporta los datos del INICIO.
+    const [estadosResultado, programadosResultado] = await Promise.allSettled([
+      listarEstadosOperativosV2({
+        guardia_fecha: guardiaFecha
+      }),
+      listarOperativosProgramadosV2({
+        guardia_fecha: guardiaFecha,
+        activo: true,
+        excluir_sin_efecto: false
+      })
+    ]);
 
-    // FINALIZA conserva el estado del circuito actual, pero la fecha que se
-    // imprime debe ser la fecha programada del nuevo Supabase. Solo se
-    // enriquece fecha_operativo por operativo_key; no se cambia ningún otro dato.
-    if (operativosProgramadosDisponibles()) {
-      try {
-        const programados = await listarOperativosProgramadosV2({
-          guardia_fecha: guardiaFecha,
-          activo: true,
-          excluir_sin_efecto: false
-        });
-        return enriquecerFechaOperativoDesdeProgramacion(enCurso, programados);
-      } catch (error) {
-        console.warn("[Informes_GP] No se pudo recuperar fecha_operativo del Supabase nuevo para FINALIZA:", error);
-      }
+    if (estadosResultado.status !== "fulfilled") {
+      throw estadosResultado.reason;
     }
 
+    const enCurso = (estadosResultado.value || [])
+      .filter((op) => normalizarEstado(op?.estado) === "EN_CURSO");
+
+    if (programadosResultado.status === "fulfilled") {
+      return enriquecerFechaOperativoDesdeProgramacion(
+        enCurso,
+        programadosResultado.value || []
+      );
+    }
+
+    console.warn("[Informes_GP] No se pudo recuperar fecha_operativo para FINALIZA:", programadosResultado.reason);
     return enCurso;
   }
 
   if (modo === "INFORMES") {
-    return listarOperativosEnCursoActuales({
+    const estados = await listarEstadosOperativosV2({
       guardia_fecha: guardiaFecha
     });
+
+    return estados.filter((op) => normalizarEstado(op?.estado) === "EN_CURSO");
   }
 
   return [];
+}
+
+function normalizarEstado(valor) {
+  return String(valor || "")
+    .trim()
+    .toUpperCase()
+    .replace(/\s+/g, "_");
 }
 
 

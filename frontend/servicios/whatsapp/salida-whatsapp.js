@@ -2,7 +2,11 @@ import {
   obtenerEstadoInformes,
   suscribirEstadoInformes
 } from "../../../backend/aplicacion/estado/informes-state.js";
-import { abrirWhatsappConTexto } from "./abrir-whatsapp.js";
+import {
+  abrirWhatsappConTexto,
+  prepararVentanaWhatsapp,
+  cerrarVentanaWhatsappPreparada
+} from "./abrir-whatsapp.js";
 import { obtenerSalidaInicioDesdeEstado } from "../../../backend/dominio/whatsapp/formateador-inicio.js";
 import { obtenerSalidaFinalizadoDesdeEstado } from "../../../backend/dominio/whatsapp/formateador-finalizado.js";
 import { obtenerSalidaInformesDesdeEstado } from "../../../backend/dominio/whatsapp/formateador-informes.js";
@@ -121,6 +125,12 @@ export async function manejarEnvioWhatsapp({ boton = null, getContexto } = {}) {
     return;
   }
 
+  // La ventana se prepara AHORA, mientras el click del usuario sigue activo.
+  // Si se intenta abrir recién después de guardar/subir fotos, Chrome móvil puede
+  // bloquearla y la versión anterior terminaba navegando la propia app a WhatsApp.
+  const ventanaWhatsapp = prepararVentanaWhatsapp();
+  let whatsappEntregado = false;
+
   envioEnCurso = true;
   cambiarEstadoBoton(
     boton,
@@ -135,6 +145,7 @@ export async function manejarEnvioWhatsapp({ boton = null, getContexto } = {}) {
     });
 
     if (resultadoSupabase.bloqueaEnvio) {
+      cerrarVentanaWhatsappPreparada(ventanaWhatsapp);
       alert(resultadoSupabase.mensaje || "No se pudo guardar en Supabase.");
       return;
     }
@@ -154,7 +165,11 @@ export async function manejarEnvioWhatsapp({ boton = null, getContexto } = {}) {
         ? "Ensayo: abriendo WhatsApp sin guardar..."
         : (resultadoSupabase.saltado ? "Abriendo WhatsApp sin Supabase..." : "Guardado. Abriendo WhatsApp...")
     );
-    abrirWhatsappConTexto(textoFinal);
+
+    abrirWhatsappConTexto(textoFinal, {
+      ventanaPreparada: ventanaWhatsapp
+    });
+    whatsappEntregado = true;
 
     window.dispatchEvent(new CustomEvent("informesgp:envio-whatsapp-ok", {
       detail: {
@@ -164,6 +179,10 @@ export async function manejarEnvioWhatsapp({ boton = null, getContexto } = {}) {
       }
     }));
   } catch (error) {
+    if (!whatsappEntregado) {
+      cerrarVentanaWhatsappPreparada(ventanaWhatsapp);
+    }
+
     console.error("[Informes_GP] Error al enviar WhatsApp:", error);
     alert(error?.message || "No se pudo enviar por WhatsApp.");
   } finally {

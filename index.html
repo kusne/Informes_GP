@@ -4,17 +4,81 @@
   <meta charset="utf-8">
   <title>Informes GP</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="./frontend/app/app.css">
+
+  <!-- Acelera los dos orígenes externos críticos sin cambiar la aplicación. -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://hbnxvwrqxhurdteirsyl.supabase.co" crossorigin>
+  <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+  <link rel="dns-prefetch" href="//hbnxvwrqxhurdteirsyl.supabase.co">
+
+  <link rel="stylesheet" href="./frontend/app/app-bundle.css">
+  <link rel="manifest" href="./manifest.webmanifest">
 </head>
 <body>
-  <div id="app"></div>
+  <!--
+    Shell crítico servido directamente por GitHub Pages.
+    Es el mismo markup visual que app.html + pantalla-principal.html, pero evita
+    dos fetch antes del primer pintado.
+  -->
+  <div id="app">
+    <div class="app-shell">
+      <main id="pantallaPrincipalHost" class="app-main">
+        <section class="pantalla-principal">
+          <header class="brand">
+            <div class="brand-text">
+              <h1 class="titulo-principal">Generador de Informes</h1>
+              <div class="brand-sub subtitulo-principal">Brigada Motorizada Zona Centro Norte</div>
+            </div>
 
-  <script type="module" src="./frontend/app/app-bootstrap.js"></script>
+            <img
+              src="./frontend/assets/logo-bmzcn-gold-black.png"
+              alt="Sello BMZCN"
+              class="brand-logo logo-principal"
+              onerror="this.style.display='none'"
+            >
+          </header>
+
+          <div id="avisoModoEnsayoHost" class="hidden"></div>
+
+          <div id="selectorModoInformeHost">
+            <div class="selector-modo-informe">
+              <label class="top-label" for="selectorModoInformeSelect">Informes</label>
+              <select id="selectorModoInformeSelect" class="obligatorio">
+                <option value="INICIA" selected>INICIA</option>
+                <option value="FINALIZA">FINALIZA</option>
+                <option value="INFORMES">INFORMES</option>
+                <option value="CONTROL_MOVILES">CONTROL DE MÓVILES</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="operativos-title-row">
+            <label id="tituloContadorOperativos" class="top-label operativos-title-label">OPERATIVOS</label>
+            <div id="contadorOperativosHost">
+              <span id="contadorOperativosValor" class="contador-operativos-wsp" title="Cantidad de operativos disponibles">0</span>
+            </div>
+          </div>
+
+          <div id="selectorOperativoContextualHost">
+            <div class="selector-operativo-contextual operativo-select-wrap">
+              <select id="operativoContextualSelect" class="obligatorio" disabled>
+                <option value="">Seleccionar operativo</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="contenedorDinamicoHost"></div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script type="module" src="./frontend/app/app-bootstrap.js?v=20260803-opt4"></script>
 
   <!-- Compatibilidad temporal: conserva los parches activos de la versión recibida. -->
-  <script src="./frontend/compatibilidad/control-moviles/wsp-control-moviles-flujo-ui.js?v=control-moviles-informes-gp"></script>
-  <script src="./frontend/compatibilidad/control-moviles/wsp-control-moviles-ui.js?v=control-moviles-informes-gp"></script>
-  <script src="./frontend/compatibilidad/control-moviles/control-moviles.js?v=control-moviles-informes-gp"></script>
-  <script src="./frontend/compatibilidad/pantalla-principal/pantalla-principal-flujo.js?v=control-moviles-informes-gp"></script>
+  <script src="./frontend/compatibilidad/control-moviles/wsp-control-moviles-flujo-ui.js?v=20260803-opt4"></script>
+  <script src="./frontend/compatibilidad/control-moviles/wsp-control-moviles-ui.js?v=20260803-opt4"></script>
+  <script src="./frontend/compatibilidad/control-moviles/control-moviles.js?v=20260803-opt4"></script>
+  <script src="./frontend/compatibilidad/pantalla-principal/pantalla-principal-flujo.js?v=20260803-opt4"></script>
 </body>
 </html>

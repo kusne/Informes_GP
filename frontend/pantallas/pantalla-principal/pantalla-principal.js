@@ -24,7 +24,11 @@ export async function iniciarPantallaPrincipal({ hostSelector }) {
 
   await iniciarCoordinadorSeguro();
 
-  host.innerHTML = await cargarHtmlPantallaPrincipalSeguro();
+  // El markup principal puede venir ya pintado desde index.html para evitar
+  // una pantalla vacía mientras GitHub Pages descarga módulos.
+  if (!host.querySelector(".pantalla-principal")) {
+    host.innerHTML = await cargarHtmlPantallaPrincipalSeguro();
+  }
 
   await renderAvisoModoEnsayo({
     hostSelector: "#avisoModoEnsayoHost"
@@ -34,17 +38,19 @@ export async function iniciarPantallaPrincipal({ hostSelector }) {
 
   registrarListenerPostEnvio();
 
-  if (!modoEnsayoActivo()) {
-    registrarListenerRealtime();
-    iniciarRealtimeSeguro();
-  }
-
   // INICIA es el modo operativo por defecto. Así el contador y el selector
   // se cargan apenas abre la aplicación, sin exigir una selección previa.
   const selectorModo = document.querySelector("#selectorModoInformeSelect, #selectorModoInforme");
   if (selectorModo) selectorModo.value = "INICIA";
 
+  // Primero cargamos la información visible. Realtime se conecta después para
+  // que su WebSocket no compita con la primera lectura en conexiones móviles.
   await cambiarModoPantalla("INICIA");
+
+  if (!modoEnsayoActivo()) {
+    registrarListenerRealtime();
+    iniciarRealtimeSeguro();
+  }
 }
 
 async function cambiarModoPantalla(modo) {

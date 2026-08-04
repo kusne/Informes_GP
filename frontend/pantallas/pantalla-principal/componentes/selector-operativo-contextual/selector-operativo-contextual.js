@@ -1,5 +1,3 @@
-import { cargarComponenteHtml } from "../../../../servicios/ui/cargar-componente-html.js";
-
 let ultimoRender = {
   modo: "",
   items: []
@@ -15,7 +13,13 @@ export async function renderSelectorOperativoContextual({
 
   if (!host) return;
 
-  host.innerHTML = await cargarComponenteHtml("/frontend/pantallas/pantalla-principal/componentes/selector-operativo-contextual/selector-operativo-contextual.html");
+  host.innerHTML = `
+    <div class="selector-operativo-contextual operativo-select-wrap">
+      <select id="operativoContextualSelect" class="obligatorio">
+        <option value="">Seleccionar Operativo</option>
+      </select>
+    </div>
+  `;
 
   const selector = host.querySelector("#selectorOperativoContextual, #operativoContextualSelect");
   const label = host.querySelector("#selectorOperativoContextualLabel");

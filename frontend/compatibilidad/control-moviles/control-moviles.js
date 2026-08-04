@@ -388,7 +388,7 @@
     if ($("bloqueControlMoviles")) return;
 
     try {
-      const resp = await fetch(new URL("frontend/compatibilidad/control-moviles/control-moviles.html?v=" + VERSION, document.baseURI).href, { cache: "no-store" });
+      const resp = await fetch(new URL("frontend/compatibilidad/control-moviles/control-moviles.html?v=" + VERSION, document.baseURI).href, { cache: "default" });
       if (!resp.ok) throw new Error("HTTP " + resp.status);
       const html = await resp.text();
       (mount || document.body).insertAdjacentHTML("beforeend", html);
