@@ -1,0 +1,6 @@
+.finaliza-personal-lista { display: grid; gap: 18px; }
+.finaliza-opcion-personal { min-height: 58px; padding: 12px 16px; font-size: 17px; }
+@media (max-width: 520px) {
+  .finaliza-personal-lista { gap: 15px; }
+  .finaliza-opcion-personal { min-height: 54px; padding: 10px 13px; font-size: 16px; }
+}

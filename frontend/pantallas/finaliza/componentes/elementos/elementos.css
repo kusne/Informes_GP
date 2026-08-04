@@ -1,0 +1,8 @@
+.finaliza-elementos-lista { display: grid; gap: 12px; }
+.finaliza-elemento-grupo { border-color: #1769d2 !important; }
+.finaliza-elementos-grid--1 { grid-template-columns: 1fr; }
+.finaliza-elementos-grid--2 { grid-template-columns: repeat(2,minmax(0,1fr)); }
+.finaliza-elementos-grid--3 { grid-template-columns: repeat(3,minmax(0,1fr)); }
+.finaliza-elementos-grid--4 { grid-template-columns: repeat(4,minmax(0,1fr)); }
+.finaliza-opcion-elemento { min-height: 46px; }
+@media (max-width: 410px) { .finaliza-opcion-elemento { font-size: 13px; } }

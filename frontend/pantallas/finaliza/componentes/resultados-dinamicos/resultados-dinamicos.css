@@ -1,0 +1,11 @@
+.finaliza-subresultado { margin: -3px 0 10px; padding: 10px; border-radius: 12px; background: rgba(255,255,255,.28); }
+.finaliza-subresultado .finaliza-campo:last-child { margin-bottom: 0; }
+.finaliza-graduaciones-wrap { display: grid; grid-template-columns: auto 1fr auto; align-items: start; gap: 8px; margin: 4px 0 10px; }
+.finaliza-graduaciones-wrap > label { color: #d0ad35; font-weight: 900; }
+.finaliza-graduaciones { display: flex; flex-wrap: wrap; gap: 7px; }
+.finaliza-graduacion-slot { display: inline-flex; align-items: center; gap: 3px; color: #173864; font-weight: 900; }
+.finaliza-graduacion-slot input { width: 62px; min-height: 36px; padding: 5px; border: 1px solid #8d96a3; border-radius: 9px; background: #eef1f6; text-align: center; }
+.finaliza-unidad-graduacion { color: #173864; font-weight: 800; align-self: end; padding-bottom: 8px; }
+.finaliza-lista-dinamica { display: grid; gap: 7px; margin-top: 4px; }
+.finaliza-lista-dinamica input { width: 100%; min-height: 40px; padding: 7px 10px; border: 1px solid #8d96a3; border-radius: 10px; background: #eef1f6; font-size: 16px; }
+.finaliza-lista-titulo { display:block; margin-bottom:6px; color:#d0ad35; font-size:15px; font-weight:900; }

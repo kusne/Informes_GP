@@ -1,7 +1,7 @@
 const contextoOperativos = {
   guardiaFecha: null,
   ultimoModo: "",
-  ultimaFuente: "DEMO"
+  ultimaFuente: "SIN_CARGA"
 };
 
 export function configurarContextoOperativos(parcial = {}) {
@@ -20,5 +20,5 @@ export function establecerGuardiaFechaOperativos(guardiaFecha) {
 
 export function registrarFuenteOperativos({ modo, fuente }) {
   contextoOperativos.ultimoModo = modo || "";
-  contextoOperativos.ultimaFuente = fuente || "DEMO";
+  contextoOperativos.ultimaFuente = fuente || "SIN_CARGA";
 }

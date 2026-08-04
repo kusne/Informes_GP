@@ -1,13 +1,185 @@
-.formulario-finaliza h2,
-.formulario-operativo.formulario-finaliza h2 {
-  margin: 0 0 8px 0;
-  color: var(--blue-strong-2);
-  font-size: 19px;
-  font-weight: 900;
-  text-transform: uppercase;
+@import url("./componentes/personal-policial/personal-policial.css");
+@import url("./componentes/movilidad/movilidad.css");
+@import url("./componentes/elementos/elementos.css");
+@import url("./componentes/fotos-finalizado/fotos-finalizado.css");
+@import url("./componentes/resultados-dinamicos/resultados-dinamicos.css");
+@import url("./componentes/agregar-controlados-presencia-activa/agregar-controlados-presencia-activa.css");
+@import url("./numerales/numerales-finaliza.css");
+
+.formulario-finaliza {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
-.formulario-finaliza p {
-  color: var(--text-2);
-  font-weight: 700;
+.finaliza-recurso-seccion {
+  width: 100%;
+  padding: 12px;
+  border: 3px solid var(--danger);
+  border-radius: 14px;
+  background: #d8dde5;
+  box-shadow: 0 7px 16px rgba(0,0,0,.22);
+}
+
+.finaliza-seccion-titulo {
+  width: fit-content;
+  margin: 0 0 12px;
+  padding: 2px 7px;
+  border-radius: 5px;
+  background: rgba(255,255,255,.72);
+  color: var(--blue-strong-2);
+  font-size: 18px;
+  line-height: 1.1;
+  font-weight: 900;
+}
+
+.finaliza-opcion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  border: 1px solid #929aa6;
+  border-radius: 14px;
+  background: #eef1f6;
+  color: #1d2632;
+  font-weight: 800;
+  box-shadow: 0 7px 12px rgba(0,0,0,.17);
+  cursor: pointer;
+  user-select: none;
+}
+
+.finaliza-opcion span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.finaliza-opcion input[type="checkbox"] { flex: 0 0 auto; width: 23px; height: 23px; margin: 0; accent-color: var(--blue-strong); cursor: pointer; }
+
+.finaliza-mismos {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 10px;
+  width: 100%;
+  padding: 10px;
+  border: 3px solid #1769d2;
+  border-radius: 14px;
+  background: #d7dce3;
+}
+
+.finaliza-mismo-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 58px;
+  padding: 9px 10px;
+  border-radius: 12px;
+  background: #fff;
+  color: #173864;
+  font-size: 15px;
+  line-height: 1.05;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.finaliza-mismo-item input[type="checkbox"],
+.finaliza-ver-items input[type="checkbox"] {
+  flex: 0 0 auto;
+  width: 27px;
+  height: 27px;
+  margin: 0;
+  accent-color: #1556a6;
+}
+
+.finaliza-resultados-card,
+.finaliza-texto-card {
+  width: 100%;
+  padding: 12px;
+  border: 3px solid #1769d2;
+  border-radius: 14px;
+  background: #d8dde5;
+  box-shadow: 0 7px 16px rgba(0,0,0,.18);
+}
+
+.finaliza-ver-items {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+  color: #173864;
+  font-size: 17px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.finaliza-resultados-titulo {
+  margin: 0 0 3px;
+  color: #3c4654;
+  font-size: 16px;
+}
+
+.finaliza-campo { display: grid; gap: 5px; margin-bottom: 10px; }
+.finaliza-campo label,
+.finaliza-medidas-titulo {
+  margin: 0;
+  color: #d0ad35;
+  font-size: 17px;
+  font-weight: 900;
+}
+.finaliza-campo input {
+  min-height: 42px;
+  padding: 7px 10px;
+  border: 1px solid #8d96a3;
+  border-radius: 13px;
+  background: #eef1f6;
+  font-size: 16px;
+}
+.finaliza-separador { height: 1px; margin: 4px 0 12px; background: #b8bec7; }
+.finaliza-medidas-titulo { margin-bottom: 8px; }
+.finaliza-items-detalle { margin-top: 12px; }
+
+.finaliza-texto-card > label,
+.finaliza-observaciones-card > label {
+  display: inline-block;
+  margin-bottom: 6px;
+  padding: 2px 6px;
+  border-radius: 5px;
+  background: rgba(255,255,255,.7);
+  color: #173864;
+  font-size: 17px;
+  font-weight: 900;
+}
+.finaliza-texto-card textarea { min-height: 88px; border: 1px solid #8d96a3; border-radius: 13px; background: #eef1f6; }
+.finaliza-observaciones-card { width: 100%; }
+.finaliza-observaciones-card textarea { min-height: 90px; border: 1px solid #8d96a3; border-radius: 10px; background: #eef1f6; }
+
+.formulario-finaliza .fotos-formulario-host { margin: 0; }
+
+.salida-whatsapp-panel.salida-whatsapp-finaliza-compacta {
+  margin-top: 14px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.salida-whatsapp-finaliza-compacta .salida-whatsapp-ensayo,
+.salida-whatsapp-finaliza-compacta .salida-whatsapp-preview-header,
+.salida-whatsapp-finaliza-compacta .salida-whatsapp-fotos-info,
+.salida-whatsapp-finaliza-compacta .salida-whatsapp-errores,
+.salida-whatsapp-finaliza-compacta .salida-whatsapp-preview { display: none !important; }
+.salida-whatsapp-finaliza-compacta #botonEnviarWhatsapp {
+  min-height: 58px;
+  margin: 0;
+  border-radius: 13px;
+  background: #0647ad;
+  font-size: 18px;
+  box-shadow: none;
+}
+.salida-whatsapp-finaliza-compacta #botonEnviarWhatsapp:disabled { opacity: .8; background: #0647ad; }
+
+@media (max-width: 410px) {
+  .finaliza-mismos { gap: 7px; padding: 8px; }
+  .finaliza-mismo-item { min-height: 54px; padding: 7px; font-size: 13px; }
+  .finaliza-mismo-item input[type="checkbox"] { width: 24px; height: 24px; }
+  .finaliza-resultados-card, .finaliza-texto-card { padding: 10px; }
+  .finaliza-campo label, .finaliza-medidas-titulo { font-size: 15px; }
 }

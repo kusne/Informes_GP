@@ -1,21 +1,28 @@
-import { TABLAS_SUPABASE } from "./supabase-client.js";
-
-const TABLA_OPERATIVOS_PROGRAMADOS = TABLAS_SUPABASE.operativosProgramados;
+import {
+  obtenerClienteOperativosProgramados,
+  TABLA_OPERATIVOS_PROGRAMADOS_V2
+} from "./supabase-operativos-programados-client.js";
+import {
+  normalizarOperativoProgramadoV2,
+  normalizarOperativosProgramadosV2
+} from "./operativos-programados-v2-mapper.js";
 
 export async function listarOperativosProgramadosV2({
   guardia_fecha,
-  activo = true
+  activo = true,
+  excluir_sin_efecto = true
 } = {}) {
-  const cliente = await obtenerClienteSupabase();
+  const cliente = obtenerClienteOperativosProgramados();
 
   if (!cliente) {
-    console.warn("[Informes_GP] Supabase no disponible para listar operativos programados.");
-    return [];
+    throw new Error("El cliente del nuevo Supabase de operativos no está disponible.");
   }
 
   let query = cliente
-    .from(TABLA_OPERATIVOS_PROGRAMADOS)
-    .select("*");
+    .from(TABLA_OPERATIVOS_PROGRAMADOS_V2)
+    .select(
+      "id,orden_publicada_id,operativo_key,lote_guardia_id,publicacion_lote_id,guardia_fecha,fecha_operativo,inicio_operativo,hora_desde,hora_hasta,lugar,lugar_normalizado,tipo,ordenes_origen,archivos_origen,activo,sin_efecto,sin_efecto_motivo,sin_efecto_updated_at,error_en_la_orden,error_motivo,registro_original,created_at,updated_at"
+    );
 
   if (guardia_fecha) {
     query = query.eq("guardia_fecha", guardia_fecha);
@@ -25,33 +32,36 @@ export async function listarOperativosProgramadosV2({
     query = query.eq("activo", Boolean(activo));
   }
 
-  query = query
-    .order("hora_inicio", { ascending: true })
-    .order("hora_fin", { ascending: true });
-
-  const { data, error } = await query;
-
-  if (error) {
-    throw error;
+  if (excluir_sin_efecto) {
+    query = query.eq("sin_efecto", false);
   }
 
-  return normalizarProgramados(data);
+  const { data, error } = await query.order("inicio_operativo", { ascending: true });
+
+  if (error) {
+    const mensaje = error?.message || String(error);
+    throw new Error(`No se pudieron leer ${TABLA_OPERATIVOS_PROGRAMADOS_V2}: ${mensaje}`);
+  }
+
+  return deduplicarPorKey(normalizarOperativosProgramadosV2(data));
 }
 
 export async function obtenerOperativoProgramadoPorKeyV2({
   guardia_fecha,
   operativo_key
 } = {}) {
-  const cliente = await obtenerClienteSupabase();
+  const cliente = obtenerClienteOperativosProgramados();
 
   if (!cliente || !operativo_key) {
     return null;
   }
 
   let query = cliente
-    .from(TABLA_OPERATIVOS_PROGRAMADOS)
+    .from(TABLA_OPERATIVOS_PROGRAMADOS_V2)
     .select("*")
     .eq("operativo_key", operativo_key)
+    .eq("activo", true)
+    .eq("sin_efecto", false)
     .limit(1);
 
   if (guardia_fecha) {
@@ -61,91 +71,34 @@ export async function obtenerOperativoProgramadoPorKeyV2({
   const { data, error } = await query.maybeSingle();
 
   if (error) {
-    throw error;
+    const mensaje = error?.message || String(error);
+    throw new Error(`No se pudo leer el operativo ${operativo_key}: ${mensaje}`);
   }
 
-  return data ? normalizarProgramado(data) : null;
+  return data ? normalizarOperativoProgramadoV2(data) : null;
 }
 
-function normalizarProgramados(data) {
-  if (!Array.isArray(data)) return [];
+function deduplicarPorKey(items = []) {
+  const mapa = new Map();
 
-  return data
-    .map(normalizarProgramado)
-    .filter((op) => op.operativo_key);
-}
+  for (const item of items) {
+    const key = String(item?.operativo_key || "").trim();
+    if (!key) continue;
 
-function normalizarProgramado(op) {
-  if (!op) return null;
-
-  const horaInicio = op.hora_inicio || extraerHoraInicioDesdeFranja(op.franja_horaria);
-  const horaFin = op.hora_fin || op.hora_finalizacion || extraerHoraFinDesdeFranja(op.franja_horaria);
-
-  return {
-    ...op,
-    operativo_key: String(op.operativo_key || op.id_operativo || op.id || construirKeyFallback(op)).trim(),
-    guardia_fecha: String(op.guardia_fecha || op.fecha_guardia || op.fecha || "").trim(),
-    hora_inicio: String(horaInicio || "").trim(),
-    hora_fin: String(horaFin || "").trim(),
-    lugar: String(op.lugar || op.qth || op.ubicacion || "SIN LUGAR").trim(),
-    tipo_operativo: normalizarTipo(op.tipo_operativo || op.tipo || op.tipo_codigo || "GENERICO"),
-    tipo_nombre: String(op.tipo_nombre || op.tipo_descripcion || op.tipo_operativo || op.tipo || "OPERATIVO").trim(),
-    estado: String(op.estado || "PROGRAMADO").trim().toUpperCase()
-  };
-}
-
-async function obtenerClienteSupabase() {
-  try {
-    const modulo = await import("./supabase-client.js");
-
-    if (typeof modulo.supabaseDisponible === "function" && !modulo.supabaseDisponible()) {
-      return null;
+    const anterior = mapa.get(key);
+    if (!anterior || timestamp(item.updated_at) >= timestamp(anterior.updated_at)) {
+      mapa.set(key, item);
     }
-
-    return (
-      modulo.supabase ||
-      modulo.supabaseClient ||
-      modulo.client ||
-      window.supabase ||
-      window.supabaseClient ||
-      window.InformesGP?.supabase ||
-      null
-    );
-  } catch (error) {
-    console.warn("[Informes_GP] No se pudo resolver cliente Supabase:", error);
-    return null;
   }
+
+  return Array.from(mapa.values()).sort((a, b) => {
+    const porInicio = timestamp(a.inicio_operativo) - timestamp(b.inicio_operativo);
+    if (porInicio !== 0) return porInicio;
+    return String(a.operativo_key).localeCompare(String(b.operativo_key));
+  });
 }
 
-function construirKeyFallback(op) {
-  return [
-    op?.guardia_fecha || op?.fecha_guardia || op?.fecha || "",
-    op?.hora_inicio || op?.inicio || "",
-    op?.hora_fin || op?.hora_finalizacion || op?.fin || "",
-    op?.lugar || op?.qth || op?.ubicacion || "",
-    op?.tipo_operativo || op?.tipo || ""
-  ]
-    .map((p) => String(p || "").trim().toLowerCase())
-    .filter(Boolean)
-    .join("-");
-}
-
-function extraerHoraInicioDesdeFranja(franja) {
-  const texto = String(franja || "");
-  const match = texto.match(/(\d{1,2}:\d{2})/);
-  return match ? match[1] : "";
-}
-
-function extraerHoraFinDesdeFranja(franja) {
-  const texto = String(franja || "");
-  const matches = [...texto.matchAll(/(\d{1,2}:\d{2})/g)];
-  return matches.length >= 2 ? matches[1][1] : "";
-}
-
-function normalizarTipo(valor) {
-  return String(valor || "GENERICO")
-    .trim()
-    .toUpperCase()
-    .replaceAll("-", "_")
-    .replace(/\s+/g, "_");
+function timestamp(valor) {
+  const n = Date.parse(valor || "");
+  return Number.isFinite(n) ? n : 0;
 }

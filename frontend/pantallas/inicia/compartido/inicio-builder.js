@@ -1,6 +1,7 @@
 import { validarInicioBase } from "../../../../backend/dominio/inicia/inicio-validaciones-base.js";
 import { construirTextoInicioBase } from "../../../../backend/dominio/inicia/inicio-salida-texto-base.js";
 import { mapearInicioParaSupabase } from "../../../../backend/dominio/inicia/inicio-mapper-supabase.js";
+import { usaElementosOpcionalesInicio } from "../../../../backend/dominio/compartido/tipos/operativos-elementos-controlados-opcionales.js";
 
 export function construirInicioDesdeFormulario({
   form,
@@ -9,12 +10,24 @@ export function construirInicioDesdeFormulario({
 } = {}) {
   const formulario = leerDatosFormularioBase(form);
   const tipoFormulario = form?.dataset?.tipoOperativo || "";
+
+  if (usaElementosOpcionalesInicio(operativoSeleccionado, tipoFormulario) && !formulario.agregar_elementos) {
+    // En los tipos configurados (Presencia Activa / Ordenamiento Vehicular) los elementos son opt-in.
+    // Aunque existan selecciones residuales en el DOM, sin el check no se envían.
+    formulario.elementos = "";
+  }
   const fotoPrefijo = form?.dataset?.fotoPrefijo || "";
   const fotos = fotoPrefijo ? (window.InformesGP?.fotos?.[fotoPrefijo] || []) : [];
 
   const actual = {
     modo: "INICIA",
+    // fecha conserva el momento real de generación/envío.
+    // fecha_operativo es la fecha programada publicada por Filtro Órdenes en Supabase.
     fecha: new Date().toISOString(),
+    fecha_operativo: resolverFechaOperativo({
+      operativoSeleccionado,
+      contexto
+    }),
     guardia_fecha: resolverGuardiaFecha({
       operativoSeleccionado,
       contexto
@@ -50,10 +63,14 @@ export function leerDatosFormularioBase(form) {
 
   if (!form) return datos;
 
-  const formData = new FormData(form);
+  // FormData solo acepta HTMLFormElement. Se conserva lectura manual como
+  // respaldo para componentes antiguos cuyo contenedor todavía sea una sección.
+  if (typeof HTMLFormElement !== "undefined" && form instanceof HTMLFormElement) {
+    const formData = new FormData(form);
 
-  for (const [clave, valor] of formData.entries()) {
-    datos[clave] = limpiarValor(valor);
+    for (const [clave, valor] of formData.entries()) {
+      datos[clave] = limpiarValor(valor);
+    }
   }
 
   for (const campo of form.querySelectorAll("[name]")) {
@@ -78,6 +95,15 @@ export function leerDatosFormularioBase(form) {
   }
 
   return datos;
+}
+
+function resolverFechaOperativo({ operativoSeleccionado, contexto }) {
+  return String(
+    operativoSeleccionado?.fecha_operativo ||
+    operativoSeleccionado?.datos?.fecha_operativo ||
+    contexto?.fecha_operativo ||
+    ""
+  ).trim();
 }
 
 function resolverGuardiaFecha({ operativoSeleccionado, contexto }) {

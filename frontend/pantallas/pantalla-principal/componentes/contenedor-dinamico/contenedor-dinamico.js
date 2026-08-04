@@ -1,4 +1,5 @@
 import { cargarComponenteHtml } from "../../../../servicios/ui/cargar-componente-html.js";
+import { resolverRutaApp } from "../../../../servicios/rutas/rutas-app.js";
 import { renderBotonEnviarWhatsapp } from "../../../../servicios/whatsapp/salida-whatsapp.js";
 
 export async function renderContenedorDinamico({
@@ -23,10 +24,18 @@ export async function renderContenedorDinamico({
       return;
     }
 
-    if (modoNormalizado === "INICIA" || modoNormalizado === "FINALIZA") {
-      await renderFormularioOperativo({
+    if (modoNormalizado === "INICIA") {
+      await renderFormularioIniciaContinuo({
         host,
-        modo: modoNormalizado,
+        operativoSeleccionado,
+        getContexto
+      });
+      return;
+    }
+
+    if (modoNormalizado === "FINALIZA") {
+      await renderFormularioFinalizaContinuo({
+        host,
         operativoSeleccionado,
         getContexto
       });
@@ -65,6 +74,84 @@ export async function renderContenedorDinamico({
   }
 }
 
+
+async function renderFormularioIniciaContinuo({
+  host,
+  operativoSeleccionado,
+  getContexto
+}) {
+  host.innerHTML = `
+    <section class="contenedor-inicia-continuo">
+      <div id="formularioIniciaContinuoHost"></div>
+      <div id="salidaWhatsappHost"></div>
+    </section>
+  `;
+
+  const formHost = host.querySelector("#formularioIniciaContinuoHost");
+  formHost.innerHTML = await cargarComponenteHtml("/frontend/pantallas/inicia/inicia.html");
+
+  const modulo = await import("../../../inicia/inicia.js");
+
+  if (typeof modulo.iniciarFormularioInicia !== "function") {
+    throw new Error("inicia.js no exporta iniciarFormularioInicia.");
+  }
+
+  await modulo.iniciarFormularioInicia({
+    operativoSeleccionado,
+    getContexto,
+    root: formHost
+  });
+
+  renderBotonEnviarWhatsapp({
+    hostSelector: "#salidaWhatsappHost",
+    getContexto,
+    panelClass: "salida-whatsapp-inicia-compacta",
+    buttonLabel: "Enviar por WhatsApp"
+  });
+}
+
+async function renderFormularioFinalizaContinuo({
+  host,
+  operativoSeleccionado,
+  getContexto
+}) {
+  if (!operativoSeleccionado) {
+    mostrarMensaje(host, {
+      titulo: "FINALIZA",
+      texto: "Seleccione un operativo iniciado para finalizar."
+    });
+    return;
+  }
+
+  host.innerHTML = `
+    <section class="contenedor-finaliza-continuo">
+      <div id="formularioFinalizaContinuoHost"></div>
+      <div id="salidaWhatsappHost"></div>
+    </section>
+  `;
+
+  const formHost = host.querySelector("#formularioFinalizaContinuoHost");
+  formHost.innerHTML = await cargarComponenteHtml("/frontend/pantallas/finaliza/finaliza.html");
+
+  const modulo = await import("../../../finaliza/finaliza.js");
+  if (typeof modulo.iniciarFormularioFinaliza !== "function") {
+    throw new Error("finaliza.js no exporta iniciarFormularioFinaliza.");
+  }
+
+  await modulo.iniciarFormularioFinaliza({
+    operativoSeleccionado,
+    getContexto,
+    root: formHost
+  });
+
+  renderBotonEnviarWhatsapp({
+    hostSelector: "#salidaWhatsappHost",
+    getContexto,
+    panelClass: "salida-whatsapp-finaliza-compacta",
+    buttonLabel: "Enviar por WhatsApp"
+  });
+}
+
 async function renderFormularioOperativo({
   host,
   modo,
@@ -96,7 +183,7 @@ async function renderFormularioOperativo({
   const formHost = host.querySelector("#formularioOperativoHost");
   formHost.innerHTML = await cargarComponenteHtml(rutas.html);
 
-  const modulo = await import(rutas.modulo);
+  const modulo = await import(resolverRutaApp(rutas.modulo));
   const iniciar = modulo[rutas.iniciarExport];
 
   if (typeof iniciar !== "function") {

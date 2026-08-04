@@ -1,0 +1,9 @@
+.finaliza-subtitulo { width: fit-content; margin: 14px 0 9px; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,.68); color: var(--blue-strong-2); font-size: 18px; font-weight: 900; }
+.finaliza-opciones-grid { display: grid; gap: 10px; }
+.finaliza-moviles-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
+.finaliza-motos-grid { grid-template-columns: repeat(4,minmax(0,1fr)); }
+.finaliza-opcion-recurso { min-width: 0; min-height: 46px; padding: 8px 10px; font-size: 16px; }
+@media (max-width: 410px) {
+  .finaliza-opciones-grid { gap: 8px; }
+  .finaliza-opcion-recurso { min-height: 44px; padding: 7px 8px; font-size: 14px; }
+}

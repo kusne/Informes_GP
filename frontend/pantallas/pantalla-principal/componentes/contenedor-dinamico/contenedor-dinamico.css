@@ -88,6 +88,19 @@
   width: 100%;
 }
 
+
+.salida-whatsapp-ensayo {
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  border: 2px solid #9a6700;
+  border-radius: 10px;
+  background: #fff4c2;
+  color: #5f3b00;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
 .salida-whatsapp-panel {
   margin-top: 12px;
   padding: 12px;

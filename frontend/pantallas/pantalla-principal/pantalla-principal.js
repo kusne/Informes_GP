@@ -1,4 +1,6 @@
 import { listarModelosInformesGP } from "../informes/modelos-informes.js";
+import { renderAvisoModoEnsayo } from "./componentes/aviso-modo-ensayo/aviso-modo-ensayo.js";
+import { modoEnsayoActivo } from "../../../backend/infraestructura/ensayo/modo-ensayo.js";
 
 const estadoPantalla = {
   modo: "",
@@ -24,25 +26,25 @@ export async function iniciarPantallaPrincipal({ hostSelector }) {
 
   host.innerHTML = await cargarHtmlPantallaPrincipalSeguro();
 
+  await renderAvisoModoEnsayo({
+    hostSelector: "#avisoModoEnsayoHost"
+  });
+
   await iniciarSelectorModoSeguro();
 
   registrarListenerPostEnvio();
-  registrarListenerRealtime();
-  iniciarRealtimeSeguro();
 
-  actualizarTituloContador("");
-  await renderContadorSeguro(0);
+  if (!modoEnsayoActivo()) {
+    registrarListenerRealtime();
+    iniciarRealtimeSeguro();
+  }
 
-  await renderSelectorOperativoSeguro({
-    modo: "",
-    items: []
-  });
+  // INICIA es el modo operativo por defecto. Así el contador y el selector
+  // se cargan apenas abre la aplicación, sin exigir una selección previa.
+  const selectorModo = document.querySelector("#selectorModoInformeSelect, #selectorModoInforme");
+  if (selectorModo) selectorModo.value = "INICIA";
 
-  await renderContenedorSeguro({
-    modo: "",
-    operativoSeleccionado: null,
-    modeloInformeSeleccionado: null
-  });
+  await cambiarModoPantalla("INICIA");
 }
 
 async function cambiarModoPantalla(modo) {
@@ -135,6 +137,8 @@ async function cargarHtmlPantallaPrincipalSeguro() {
 
   return `
     <section class="pantalla-principal">
+      <div id="avisoModoEnsayoHost" class="hidden"></div>
+
       <section class="pantalla-principal-card pantalla-principal-selector-card">
         <div id="selectorModoInformeHost"></div>
       </section>
@@ -177,8 +181,7 @@ async function iniciarSelectorModoSeguro() {
       <div class="selector-modo-informe">
         <label for="selectorModoInforme">Informes</label>
         <select id="selectorModoInforme">
-          <option value="">Seleccionar</option>
-          <option value="INICIA">INICIA</option>
+          <option value="INICIA" selected>INICIA</option>
           <option value="FINALIZA">FINALIZA</option>
           <option value="INFORMES">INFORMES</option>
           <option value="CONTROL_MOVILES">CONTROL DE MÓVILES</option>
@@ -241,6 +244,11 @@ async function renderSelectorOperativoSeguro({
           estadoPantalla.modeloInformeSeleccionado = null;
 
           await registrarOperativoSeguro(item);
+
+          if (estadoPantalla.modo === "INICIA") {
+            const actualizado = await actualizarOperativoIniciaSinRerenderSeguro(item);
+            if (actualizado) return;
+          }
 
           await renderContenedorSeguro({
             modo: estadoPantalla.modo,
@@ -311,12 +319,35 @@ function renderSelectorFallback({
     estadoPantalla.operativoSeleccionado = item;
     await registrarOperativoSeguro(item);
 
+    if (modo === "INICIA") {
+      const actualizado = await actualizarOperativoIniciaSinRerenderSeguro(item);
+      if (actualizado) return;
+    }
+
     await renderContenedorSeguro({
       modo,
       operativoSeleccionado: item,
       modeloInformeSeleccionado: null
     });
   });
+}
+
+async function actualizarOperativoIniciaSinRerenderSeguro(operativoSeleccionado) {
+  try {
+    const modulo = await import("../inicia/inicia.js");
+
+    if (typeof modulo.actualizarOperativoFormularioInicia !== "function") {
+      return false;
+    }
+
+    return Boolean(modulo.actualizarOperativoFormularioInicia({
+      operativoSeleccionado,
+      getContexto
+    }));
+  } catch (error) {
+    console.warn("[Informes_GP] No se pudo asociar el operativo a INICIA sin rerender.", error);
+    return false;
+  }
 }
 
 async function renderContenedorSeguro({
@@ -499,7 +530,7 @@ function actualizarTituloContador(modo) {
   }
 
   if (modo === "INICIA") {
-    titulo.textContent = "OPERATIVOS PENDIENTES";
+    titulo.textContent = "OPERATIVOS";
     return;
   }
 
@@ -523,7 +554,7 @@ function construirFranja(inicio, fin) {
   const i = String(inicio || "").trim();
   const f = String(fin || "").trim();
 
-  if (i && f) return `${i} A ${f} HS`;
+  if (i && f) return /FINALIZAR/i.test(f) ? `${i} A FINALIZAR` : `${i} A ${f} HS`;
   if (i) return `${i} HS`;
 
   return "";

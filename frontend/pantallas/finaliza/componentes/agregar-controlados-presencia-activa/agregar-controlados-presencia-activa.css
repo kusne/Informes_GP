@@ -1,0 +1,33 @@
+.finaliza-agregar-controlados-presencia {
+  width: 100%;
+  padding: 10px;
+  border: 3px solid #1769d2;
+  border-radius: 14px;
+  background: #d7dce3;
+  box-shadow: 0 7px 16px rgba(0, 0, 0, 0.18);
+}
+
+.finaliza-agregar-controlados-presencia-opcion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 54px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: #fff;
+  color: #173864;
+  font-size: 17px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.finaliza-agregar-controlados-presencia-opcion input[type="checkbox"] {
+  flex: 0 0 auto;
+  width: 27px;
+  height: 27px;
+  margin: 0;
+  accent-color: #1556a6;
+  cursor: pointer;
+}

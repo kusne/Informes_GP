@@ -37,9 +37,7 @@ export async function listarEstadosOperativosActuales({ guardia_fecha } = {}) {
 
   let query = cliente
     .from(TABLA_ESTADO)
-    .select(
-      "id,operativo_key,guardia_fecha,fecha_operativo,hora_desde,hora_hasta,lugar,tipo_operativo,ordenes_origen,estado,inicio_evento_id,finalizado_evento_id,metadata,created_at,updated_at,deleted_at"
-    )
+    .select("*")
     .is("deleted_at", null);
 
   if (guardia_fecha) query = query.eq("guardia_fecha", guardia_fecha);
@@ -108,7 +106,7 @@ function normalizarPublicadoActual(row) {
     guardia_fecha: texto(row.guardia_fecha || row.fecha_operativo),
     fecha_operativo: texto(row.fecha_operativo),
     hora_inicio: texto(row.hora_desde),
-    hora_fin: texto(row.hora_hasta),
+    hora_fin: normalizarHoraFinAbierta(row.hora_hasta),
     lugar: texto(row.lugar || row.lugar_normalizado || "SIN LUGAR"),
     tipo_operativo: normalizarTipo(tipoNombre),
     tipo_nombre: tipoNombre || "OPERATIVO",
@@ -145,7 +143,7 @@ function normalizarEstadoActual(row) {
     guardia_fecha: texto(row.guardia_fecha || row.fecha_operativo),
     fecha_operativo: texto(row.fecha_operativo),
     hora_inicio: texto(row.hora_desde || metadata.hora_inicio || extraerHoraInicio(metadata.horario)),
-    hora_fin: texto(row.hora_hasta || metadata.hora_fin || extraerHoraFin(metadata.horario)),
+    hora_fin: normalizarHoraFinAbierta(row.hora_hasta || metadata.hora_fin || extraerHoraFin(metadata.horario)),
     lugar: texto(row.lugar || metadata.lugar || "SIN LUGAR"),
     tipo_operativo: normalizarTipo(tipoNombre),
     tipo_nombre: tipoNombre || "OPERATIVO",
@@ -153,6 +151,7 @@ function normalizarEstadoActual(row) {
     personal: row.personal || metadata.personal_inicio || metadata.ultimo_personal || metadata.personal || [],
     moviles: row.moviles || metadata.moviles_inicio || metadata.ultimo_moviles || metadata.moviles || [],
     motos: row.motos || metadata.motos_inicio || metadata.ultimo_motos || metadata.motos || [],
+    moviles_motos: row.moviles_motos || metadata.moviles_motos || "",
     elementos: row.elementos || metadata.elementos_inicio || metadata.ultimo_elementos || metadata.elementos || {},
     datos: metadata
   };
@@ -169,7 +168,7 @@ function normalizarEventoFinalizado(row) {
     operativo_key: operativoKey,
     guardia_fecha: texto(row.guardia_fecha || payload.guardia_fecha),
     hora_inicio: texto(payload.hora_inicio || extraerHoraInicio(payload.horario || franja.horario)),
-    hora_fin: texto(payload.hora_fin || extraerHoraFin(payload.horario || franja.horario)),
+    hora_fin: normalizarHoraFinAbierta(payload.hora_fin || extraerHoraFin(payload.horario || franja.horario)),
     lugar: texto(payload.lugar || franja.lugar || "SIN LUGAR"),
     tipo_operativo: normalizarTipo(payload.tipo_operativo || franja.titulo || "OPERATIVO"),
     tipo_nombre: texto(payload.tipo_nombre || payload.tipo_operativo || franja.titulo || "OPERATIVO"),
@@ -282,8 +281,15 @@ function extraerHoraInicio(valor) {
 }
 
 function extraerHoraFin(valor) {
-  const matches = [...texto(valor).matchAll(/(\d{1,2}:\d{2})/g)];
-  return matches.length > 1 ? matches[1][1] : "";
+  const fuente = texto(valor);
+  const matches = [...fuente.matchAll(/(\d{1,2}:\d{2})/g)];
+  if (matches.length > 1) return matches[1][1];
+  return /A\s+FINALIZAR/i.test(fuente) ? "FINALIZAR" : "";
+}
+
+function normalizarHoraFinAbierta(valor) {
+  const limpio = texto(valor);
+  return /FINALIZAR/i.test(limpio) ? "FINALIZAR" : limpio;
 }
 
 function normalizarTipo(valor) {

@@ -1,0 +1,23 @@
+.aviso-modo-ensayo {
+  display: grid;
+  gap: 3px;
+  margin: 4px 0 14px;
+  padding: 10px 12px;
+  border: 3px solid #9a6700;
+  border-radius: 12px;
+  background: #fff4c2;
+  color: #5f3b00;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.20);
+}
+
+.aviso-modo-ensayo strong {
+  font-size: 15px;
+  font-weight: 950;
+  letter-spacing: 0.5px;
+}
+
+.aviso-modo-ensayo span {
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.25;
+}

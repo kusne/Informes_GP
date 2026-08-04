@@ -1,0 +1,18 @@
+INFORMES_GP - PUBLICACION EN GITHUB PAGES
+
+Esta version fue preparada para funcionar desde una subcarpeta de GitHub Pages,
+por ejemplo:
+https://kusne.github.io/Informes_GP/
+
+1. Copiar el contenido de esta carpeta a la raiz del repositorio Informes_GP.
+2. Subir los cambios a la rama main.
+3. En GitHub: Settings > Pages.
+4. Source: Deploy from a branch.
+5. Branch: main.
+6. Folder: / (root).
+7. Save.
+
+La aplicacion no necesita ejecutar backend/servidor/server.js en GitHub Pages.
+Ese archivo se conserva para el uso local. En la web, los modulos frontend y
+backend se ejecutan en el navegador y se conectan a Supabase mediante la
+publishable key y las politicas RLS.

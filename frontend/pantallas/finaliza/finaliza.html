@@ -1,4 +1,149 @@
-<section class="modulo-finaliza">
-  <h2>FINALIZA</h2>
-  <p>Seleccione un operativo iniciado para abrir el finalizado correspondiente.</p>
-</section>
+<form
+  id="formularioFinalizaUnificado"
+  class="formulario-operativo formulario-finaliza"
+  data-formulario="finaliza-unificado"
+  data-tipo-operativo="GENERICO"
+  data-foto-prefijo="finaliza-unificado"
+  novalidate
+>
+  <input type="hidden" name="personal" value="">
+  <input type="hidden" name="moviles_motos" value="">
+  <input type="hidden" name="elementos" value="">
+  <input type="hidden" name="graduaciones_sancionable" value="[]">
+  <input type="hidden" name="graduaciones_no_sancionable" value="[]">
+  <input type="hidden" name="qrz_documentos" value="[]">
+  <input type="hidden" name="dominio_items" value="[]">
+
+  <div id="finalizaPersonalPolicialHost" class="hidden"></div>
+  <div id="finalizaMovilidadHost" class="hidden"></div>
+  <div id="finalizaElementosHost" class="hidden"></div>
+
+  <section class="finaliza-mismos" aria-label="Datos del inicio a reutilizar">
+    <label class="finaliza-mismo-item" for="finalizaMismoPersonal">
+      <span>Mismo<br>personal?</span>
+      <input id="finalizaMismoPersonal" name="mismo_personal" type="checkbox" checked>
+    </label>
+    <label class="finaliza-mismo-item" for="finalizaMismoMoviles">
+      <span>Mismo<br>móvil/es?</span>
+      <input id="finalizaMismoMoviles" name="mismo_moviles" type="checkbox" checked>
+    </label>
+    <label class="finaliza-mismo-item" for="finalizaMismosElementos">
+      <span>Mismo<br>Elementos?</span>
+      <input id="finalizaMismosElementos" name="mismos_elementos" type="checkbox" checked>
+    </label>
+  </section>
+
+  <div id="finalizaAgregarControladosPresenciaHost" class="hidden"></div>
+
+  <section class="finaliza-resultados-card">
+    <label class="finaliza-ver-items" for="finalizaVerItems">
+      <input id="finalizaVerItems" name="ver_items" type="checkbox">
+      <span>Ver items</span>
+    </label>
+
+    <div class="finaliza-resultados-titulo">Resultados</div>
+
+    <div class="finaliza-campo">
+      <label for="finalizaVehiculos">Vehículos Fiscalizados:</label>
+      <input id="finalizaVehiculos" name="vehiculos" type="number" inputmode="numeric" min="0" step="1" value="">
+    </div>
+    <div class="finaliza-campo">
+      <label for="finalizaPersonas">Personas Identificadas:</label>
+      <input id="finalizaPersonas" name="personas" type="number" inputmode="numeric" min="0" step="1" value="">
+    </div>
+    <div class="finaliza-campo">
+      <label for="finalizaTestAlometro">Test de Alómetro:</label>
+      <input id="finalizaTestAlometro" name="test_alometro" type="number" inputmode="numeric" min="0" step="1" value="">
+    </div>
+    <div class="finaliza-campo">
+      <label for="finalizaTestAlcoholimetro">Test de Alcoholímetro:</label>
+      <input id="finalizaTestAlcoholimetro" name="test_alcoholimetro" type="number" inputmode="numeric" min="0" step="1" value="">
+    </div>
+    <div id="finalizaPositivosAlcoholimetro" class="finaliza-subresultado hidden">
+      <div class="finaliza-campo">
+        <label for="finalizaPositivaSancionable">Positiva Sancionable:</label>
+        <input id="finalizaPositivaSancionable" name="positiva_sancionable" type="number" inputmode="numeric" min="0" step="1" value="">
+      </div>
+      <div id="finalizaWrapGraduacionesSancionable" class="finaliza-graduaciones-wrap hidden">
+        <label>Graduaciones:</label>
+        <div id="finalizaGraduacionesSancionable" class="finaliza-graduaciones"></div>
+        <span class="finaliza-unidad-graduacion">g/l</span>
+      </div>
+      <div class="finaliza-campo">
+        <label for="finalizaPositivaNoSancionable">Positiva no Sancionable:</label>
+        <input id="finalizaPositivaNoSancionable" name="positiva_no_sancionable" type="number" inputmode="numeric" min="0" step="1" value="">
+      </div>
+      <div id="finalizaWrapGraduacionesNoSancionable" class="finaliza-graduaciones-wrap hidden">
+        <label>Graduaciones:</label>
+        <div id="finalizaGraduacionesNoSancionable" class="finaliza-graduaciones"></div>
+        <span class="finaliza-unidad-graduacion">g/l</span>
+      </div>
+    </div>
+    <div class="finaliza-campo">
+      <label for="finalizaActas">Actas Labradas:</label>
+      <input id="finalizaActas" name="actas" type="number" inputmode="numeric" min="0" step="1" value="">
+    </div>
+    <div class="finaliza-campo">
+      <label for="finalizaRequisas">Requisas:</label>
+      <input id="finalizaRequisas" name="requisas" type="number" inputmode="numeric" min="0" step="1" value="">
+    </div>
+    <div class="finaliza-campo">
+      <label for="finalizaQrz">Qrz:</label>
+      <input id="finalizaQrz" name="qrz" type="number" inputmode="numeric" min="0" step="1" value="">
+    </div>
+    <div id="finalizaWrapQrzCasilleros" class="finaliza-campo hidden">
+      <label class="finaliza-lista-titulo">Documentos Qrz:</label>
+      <div id="finalizaQrzCasilleros" class="finaliza-lista-dinamica"></div>
+    </div>
+    <div class="finaliza-campo">
+      <label for="finalizaDominio">Dominio:</label>
+      <input id="finalizaDominio" name="dominio" type="number" inputmode="numeric" min="0" step="1" value="">
+    </div>
+    <div id="finalizaWrapDominioCasilleros" class="finaliza-campo hidden">
+      <label class="finaliza-lista-titulo">Dominios:</label>
+      <div id="finalizaDominioCasilleros" class="finaliza-lista-dinamica"></div>
+    </div>
+
+    <div class="finaliza-separador"></div>
+    <h3 class="finaliza-medidas-titulo">Medidas Cautelares:</h3>
+
+    <div class="finaliza-campo">
+      <label for="finalizaRemision">Remisión:</label>
+      <input id="finalizaRemision" name="remision" type="number" inputmode="numeric" min="0" step="1" value="">
+    </div>
+    <div class="finaliza-campo">
+      <label for="finalizaRetencion">Retención:</label>
+      <input id="finalizaRetencion" name="retencion" type="number" inputmode="numeric" min="0" step="1" value="">
+    </div>
+    <div class="finaliza-campo">
+      <label for="finalizaProhibicion">Prohibición de Circulación:</label>
+      <input id="finalizaProhibicion" name="prohibicion_circulacion" type="number" inputmode="numeric" min="0" step="1" value="">
+    </div>
+    <div class="finaliza-campo">
+      <label for="finalizaCesion">Cesión de Conducción:</label>
+      <input id="finalizaCesion" name="cesion_conduccion" type="number" inputmode="numeric" min="0" step="1" value="">
+    </div>
+
+    <div id="finalizaNumeralesHost" class="finaliza-items-detalle hidden" data-numerales-finaliza-host></div>
+  </section>
+
+  <section class="finaliza-texto-card finaliza-detalles-card">
+    <label for="finalizaDetalles">Detalles:</label>
+    <textarea id="finalizaDetalles" name="detalles" placeholder="(01) 2016 Alcoholemia"></textarea>
+  </section>
+
+  <section class="finaliza-observaciones-card">
+    <label for="finalizaObservaciones">Observaciones:</label>
+    <textarea
+      id="finalizaObservaciones"
+      name="observaciones"
+      placeholder="Se realizó (01) verificación por animales sueltos&#10;o se realizó (01) Procedimiento Policial"
+    ></textarea>
+  </section>
+
+  <div
+    class="fotos-formulario-host"
+    data-fotos-html="/frontend/pantallas/finaliza/componentes/fotos-finalizado/fotos-finalizado.html"
+    data-fotos-module="/frontend/pantallas/finaliza/componentes/fotos-finalizado/fotos-finalizado.js"
+  ></div>
+</form>

@@ -1,3 +1,8 @@
+import {
+  resolverRutaApp,
+  normalizarRutasHtmlApp
+} from "../rutas/rutas-app.js";
+
 const cacheHtml = new Map();
 
 export async function cargarComponenteHtml(ruta) {
@@ -7,11 +12,13 @@ export async function cargarComponenteHtml(ruta) {
     throw new Error("Ruta HTML vacía.");
   }
 
-  if (cacheHtml.has(path)) {
-    return cacheHtml.get(path);
+  const rutaResuelta = resolverRutaApp(path);
+
+  if (cacheHtml.has(rutaResuelta)) {
+    return cacheHtml.get(rutaResuelta);
   }
 
-  const respuesta = await fetch(path, {
+  const respuesta = await fetch(rutaResuelta, {
     cache: "no-store"
   });
 
@@ -19,8 +26,8 @@ export async function cargarComponenteHtml(ruta) {
     throw new Error(`No se pudo cargar componente HTML: ${path}`);
   }
 
-  const html = await respuesta.text();
-  cacheHtml.set(path, html);
+  const html = normalizarRutasHtmlApp(await respuesta.text());
+  cacheHtml.set(rutaResuelta, html);
 
   return html;
 }

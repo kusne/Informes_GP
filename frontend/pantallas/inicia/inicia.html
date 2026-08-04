@@ -1,4 +1,32 @@
-<section class="modulo-inicia">
-  <h2>INICIA</h2>
-  <p>Seleccione un operativo cargado para abrir el inicio correspondiente.</p>
-</section>
+<form
+  id="formularioIniciaUnificado"
+  class="formulario-operativo formulario-inicia"
+  data-formulario="inicio-unificado"
+  data-tipo-operativo="GENERICO"
+  data-foto-prefijo="inicio-unificado"
+  novalidate
+>
+  <input type="hidden" name="personal" value="">
+  <input type="hidden" name="moviles_motos" value="">
+  <input type="hidden" name="elementos" value="">
+
+  <div id="inicioPersonalPolicialHost"></div>
+  <div id="inicioMovilidadHost"></div>
+  <div id="inicioAgregarElementosPresenciaHost" class="hidden"></div>
+  <div id="inicioElementosHost"></div>
+
+  <div class="inicio-observaciones">
+    <label for="inicioObservaciones">Observaciones:</label>
+    <textarea
+      id="inicioObservaciones"
+      name="observaciones"
+      placeholder="Se realizó (01) verificación por animales sueltos&#10;o se realizó (01) Procedimiento Policial"
+    ></textarea>
+  </div>
+
+  <div
+    class="fotos-formulario-host"
+    data-fotos-html="/frontend/pantallas/inicia/componentes/fotos-inicio/fotos-inicio.html"
+    data-fotos-module="/frontend/pantallas/inicia/componentes/fotos-inicio/fotos-inicio.js"
+  ></div>
+</form>

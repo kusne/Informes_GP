@@ -28,7 +28,7 @@
   const ID_PANEL_MODELOS = "igp-panel-modelos-informes";
   const ID_CONTROL_MOUNT = "igp-control-moviles-mount";
   const ID_STYLE = "igp-pantalla-principal-flujo-style";
-  const LOGO_PATH = "/frontend/assets/logo-bmzcn-gold-black.png";
+  const LOGO_PATH = new URL("frontend/assets/logo-bmzcn-gold-black.png", document.baseURI).href;
 
   let modeloSeleccionado = null;
   let selectorPrincipal = null;
@@ -222,7 +222,7 @@
     if (!document.querySelector("link[data-igp-control-moviles-css='1']")) {
       const link = document.createElement("link");
       link.rel = "stylesheet";
-      link.href = "/frontend/compatibilidad/control-moviles/control-moviles.css?v=control-moviles-20260704";
+      link.href = new URL("frontend/compatibilidad/control-moviles/control-moviles.css?v=control-moviles-20260704", document.baseURI).href;
       link.dataset.igpControlMovilesCss = "1";
       document.head.appendChild(link);
     }

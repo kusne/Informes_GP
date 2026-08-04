@@ -13,11 +13,18 @@ import {
   agregarFotosAlTextoWhatsapp,
   contarFotosCargadasDesdeEstado
 } from "../../../backend/dominio/whatsapp/fotos-whatsapp.js";
+import { modoEnsayoActivo } from "../../../backend/infraestructura/ensayo/modo-ensayo.js";
+import { registrarTransicionOperativoEnsayo } from "../../../backend/infraestructura/ensayo/operativos-ensayo.js";
 
 let cancelarSuscripcionPreview = null;
 let envioEnCurso = false;
 
-export function renderBotonEnviarWhatsapp({ hostSelector, getContexto } = {}) {
+export function renderBotonEnviarWhatsapp({
+  hostSelector,
+  getContexto,
+  panelClass = "",
+  buttonLabel = ""
+} = {}) {
   const host = document.querySelector(hostSelector);
 
   if (!host) return;
@@ -27,8 +34,13 @@ export function renderBotonEnviarWhatsapp({ hostSelector, getContexto } = {}) {
     cancelarSuscripcionPreview = null;
   }
 
+  const ensayo = modoEnsayoActivo();
+  const etiquetaBoton = String(buttonLabel || (ensayo ? "Probar WhatsApp" : "Enviar WhatsApp")).trim();
+  const clasePanel = String(panelClass || "").trim();
+
   host.innerHTML = `
-    <section class="salida-whatsapp-panel">
+    <section class="salida-whatsapp-panel ${escapeHtml(clasePanel)}">
+      ${ensayo ? `<div class="salida-whatsapp-ensayo">ENSAYO: genera el texto y abre WhatsApp, pero no guarda ni sube fotos a Supabase.</div>` : ""}
       <div class="salida-whatsapp-preview-header">
         <h3>Vista previa WhatsApp</h3>
         <span id="salidaWhatsappEstado" class="salida-whatsapp-estado">Sin datos</span>
@@ -40,8 +52,14 @@ export function renderBotonEnviarWhatsapp({ hostSelector, getContexto } = {}) {
 
       <pre id="salidaWhatsappPreview" class="salida-whatsapp-preview">Complete el formulario para generar el texto.</pre>
 
-      <button type="button" id="botonEnviarWhatsapp" class="boton-enviar-whatsapp" disabled>
-        Enviar WhatsApp
+      <button
+        type="button"
+        id="botonEnviarWhatsapp"
+        class="boton-enviar-whatsapp"
+        data-etiqueta-base="${escapeHtml(etiquetaBoton)}"
+        disabled
+      >
+        ${escapeHtml(etiquetaBoton)}
       </button>
     </section>
   `;
@@ -104,7 +122,11 @@ export async function manejarEnvioWhatsapp({ boton = null, getContexto } = {}) {
   }
 
   envioEnCurso = true;
-  cambiarEstadoBoton(boton, true, "Guardando...");
+  cambiarEstadoBoton(
+    boton,
+    true,
+    modoEnsayoActivo() ? "Preparando ensayo..." : "Guardando..."
+  );
 
   try {
     const resultadoSupabase = await guardarSegunModoSiCorresponde({
@@ -127,7 +149,11 @@ export async function manejarEnvioWhatsapp({ boton = null, getContexto } = {}) {
       payload: resultadoSupabase.payloadFinal || salida.payload
     });
 
-    marcarEstadoEnvio(resultadoSupabase.saltado ? "Abriendo WhatsApp sin Supabase..." : "Guardado. Abriendo WhatsApp...");
+    marcarEstadoEnvio(
+      resultadoSupabase.ensayo
+        ? "Ensayo: abriendo WhatsApp sin guardar..."
+        : (resultadoSupabase.saltado ? "Abriendo WhatsApp sin Supabase..." : "Guardado. Abriendo WhatsApp...")
+    );
     abrirWhatsappConTexto(textoFinal);
 
     window.dispatchEvent(new CustomEvent("informesgp:envio-whatsapp-ok", {
@@ -184,7 +210,7 @@ function actualizarVistaPreviaSalida({ host, getContexto } = {}) {
     estadoBox.textContent = "Sin modo";
     estadoBox.className = "salida-whatsapp-estado salida-whatsapp-estado-error";
     boton.disabled = true;
-    boton.textContent = "Enviar WhatsApp";
+    boton.textContent = resolverEtiquetaBoton(boton);
     return;
   }
 
@@ -202,7 +228,9 @@ function actualizarVistaPreviaSalida({ host, getContexto } = {}) {
 
     if (cantidadFotos > 0) {
       fotosInfo.classList.remove("hidden");
-      fotosInfo.textContent = `${cantidadFotos} foto(s) cargada(s). Al enviar, se subirán a Supabase y se agregará el link al WhatsApp.`;
+      fotosInfo.textContent = modoEnsayoActivo()
+        ? `${cantidadFotos} foto(s) cargada(s). En ensayo no se subirán a Supabase.`
+        : `${cantidadFotos} foto(s) cargada(s). Al enviar, se subirán a Supabase y se agregará el link al WhatsApp.`;
     } else {
       fotosInfo.classList.add("hidden");
       fotosInfo.innerHTML = "";
@@ -223,12 +251,15 @@ function actualizarVistaPreviaSalida({ host, getContexto } = {}) {
   }
 
   const habilitado = Boolean(texto) && errores.length === 0;
+  const panelCompacto = boton.closest?.(".salida-whatsapp-inicia-compacta, .salida-whatsapp-finaliza-compacta");
 
-  boton.textContent = "Enviar WhatsApp";
-  boton.disabled = !habilitado;
+  boton.textContent = resolverEtiquetaBoton(boton);
+  // INICIA y FINALIZA mantienen el botón visible y activo.
+  // La validación se ejecuta al pulsarlo y nunca resetea el formulario.
+  boton.disabled = panelCompacto ? false : !habilitado;
 
   if (habilitado) {
-    estadoBox.textContent = "Listo para enviar";
+    estadoBox.textContent = modoEnsayoActivo() ? "Listo para probar" : "Listo para enviar";
     estadoBox.className = "salida-whatsapp-estado salida-whatsapp-estado-ok";
   } else if (errores.length) {
     estadoBox.textContent = "Incompleto";
@@ -237,6 +268,12 @@ function actualizarVistaPreviaSalida({ host, getContexto } = {}) {
     estadoBox.textContent = "Sin texto";
     estadoBox.className = "salida-whatsapp-estado salida-whatsapp-estado-pendiente";
   }
+}
+
+function resolverEtiquetaBoton(boton) {
+  const personalizada = String(boton?.dataset?.etiquetaBase || "").trim();
+  if (personalizada) return personalizada;
+  return modoEnsayoActivo() ? "Probar WhatsApp" : "Enviar WhatsApp";
 }
 
 function resolverModoActual(estado, contexto) {
@@ -268,6 +305,29 @@ function resolverSalidaPorModo({ modo, estado }) {
 }
 
 async function guardarSegunModoSiCorresponde({ modo, payload }) {
+  if (modoEnsayoActivo()) {
+    const transicion = registrarTransicionOperativoEnsayo({
+      modo,
+      payload
+    });
+
+    if (transicion?.ok === false) {
+      console.warn("[Informes_GP] No se pudo actualizar el estado local del ensayo:", transicion?.mensaje || transicion);
+    }
+
+    return {
+      ok: true,
+      saltado: true,
+      ensayo: true,
+      transicionEnsayo: transicion || null,
+      mensaje: transicion?.ok === false
+        ? "Modo ensayo: se generó el informe, pero no pudo actualizarse el estado local del operativo."
+        : "Modo ensayo: estado local actualizado; no se guardó información en Supabase.",
+      payloadFinal: payload || null,
+      fotos: []
+    };
+  }
+
   if (!payload) {
     return {
       ok: true,

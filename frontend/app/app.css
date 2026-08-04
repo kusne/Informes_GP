@@ -1,4 +1,5 @@
 @import url("../pantallas/pantalla-principal/pantalla-principal.css");
+@import url("../pantallas/pantalla-principal/componentes/aviso-modo-ensayo/aviso-modo-ensayo.css");
 @import url("../pantallas/pantalla-principal/componentes/selector-modo-informe/selector-modo-informe.css");
 @import url("../pantallas/pantalla-principal/componentes/contador-operativos/contador-operativos.css");
 @import url("../pantallas/pantalla-principal/componentes/selector-operativo-contextual/selector-operativo-contextual.css");

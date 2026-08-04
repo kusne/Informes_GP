@@ -14,6 +14,7 @@ export function normalizarNombreFoto({
   const operativoKey = String(
     contexto?.operativoSeleccionado?.operativo_key ||
     contexto?.operativo_key ||
+    window.InformesGP?.operativoSeleccionado?.operativo_key ||
     "sin_operativo"
   ).trim();
 

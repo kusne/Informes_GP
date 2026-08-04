@@ -117,7 +117,7 @@ function construirFranja(inicio, fin) {
   const i = String(inicio || "").trim();
   const f = String(fin || "").trim();
 
-  if (i && f) return `${i} A ${f} HS`;
+  if (i && f) return /FINALIZAR/i.test(f) ? `${i} A FINALIZAR` : `${i} A ${f} HS`;
   if (i) return `${i} HS`;
 
   return "";

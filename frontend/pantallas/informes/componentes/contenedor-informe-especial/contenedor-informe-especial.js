@@ -1,4 +1,5 @@
 import { cargarComponenteHtml } from "../../../../servicios/ui/cargar-componente-html.js";
+import { resolverRutaApp } from "../../../../servicios/rutas/rutas-app.js";
 import { registrarInformeModulo } from "../../../../../backend/aplicacion/estado/informes-coordinador.js";
 
 const MODELOS = {
@@ -75,7 +76,7 @@ export async function renderContenedorInformeEspecial({
 
   contenido.innerHTML = await cargarComponenteHtml(config.html);
 
-  const modulo = await import(config.modulo);
+  const modulo = await import(resolverRutaApp(config.modulo));
   const iniciar = modulo?.[config.iniciar];
 
   if (typeof iniciar !== "function") {

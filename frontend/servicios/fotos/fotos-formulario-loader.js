@@ -1,4 +1,5 @@
 import { cargarComponenteHtml } from "../ui/cargar-componente-html.js";
+import { resolverRutaApp } from "../rutas/rutas-app.js";
 
 export async function cargarFotosDeFormulario({
   form,
@@ -17,7 +18,7 @@ export async function cargarFotosDeFormulario({
 
     host.innerHTML = await cargarComponenteHtml(html);
 
-    const modulo = await import(moduloPath);
+    const modulo = await import(resolverRutaApp(moduloPath));
 
     if (typeof modulo.iniciarModuloFotos === "function") {
       const estado = await modulo.iniciarModuloFotos({

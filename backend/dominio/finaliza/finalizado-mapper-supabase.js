@@ -2,11 +2,7 @@ export function mapearFinalizadoParaSupabase(finalizado) {
   if (!finalizado) return null;
 
   const f = finalizado.formulario || {};
-  const numerales = finalizado.numeralesFinaliza || {
-    items: [],
-    resumen: "",
-    texto: ""
-  };
+  const numerales = finalizado.numeralesFinaliza || { items: [], resumen: "", texto: "" };
 
   return limpiarObjeto({
     guardia_fecha: finalizado.guardia_fecha,
@@ -29,34 +25,29 @@ export function mapearFinalizadoParaSupabase(finalizado) {
     datos: {
       fotos: normalizarFotos(finalizado.fotos),
       foto_prefijo: finalizado.foto_prefijo || "",
-      numerales: {
-        items: Array.isArray(numerales.items) ? numerales.items : [],
-        resumen: numerales.resumen || "",
-        texto: numerales.texto || ""
-      }
+      recursos_finalizado: {
+        personal: f.personal || "",
+        moviles_motos: f.moviles_motos || "",
+        elementos: f.elementos || "",
+        fuente_personal: f.mismo_personal ? "INICIO" : "FINALIZADO_MANUAL",
+        fuente_movilidad: f.mismo_moviles ? "INICIO" : "FINALIZADO_MANUAL",
+        fuente_elementos: f.mismos_elementos ? "INICIO" : "FINALIZADO_MANUAL"
+      },
+      resultados: {
+        vehiculos: numero(f.vehiculos), personas: numero(f.personas), test_alometro: numero(f.test_alometro),
+        test_alcoholimetro: numero(f.test_alcoholimetro), actas: numero(f.actas), requisas: numero(f.requisas),
+        qrz: numero(f.qrz), dominio: numero(f.dominio)
+      },
+      medidas_cautelares: {
+        remision: numero(f.remision), retencion: numero(f.retencion), prohibicion_circulacion: numero(f.prohibicion_circulacion), cesion_conduccion: numero(f.cesion_conduccion)
+      },
+      detalles: f.detalles || "",
+      numerales: { items: Array.isArray(numerales.items) ? numerales.items : [], resumen: numerales.resumen || "", texto: numerales.texto || "" }
     },
     origen: "Informes_GP",
     fecha_evento: finalizado.fecha
   });
 }
-
-function normalizarFotos(fotos = []) {
-  if (!Array.isArray(fotos)) return [];
-
-  return fotos.map((foto) => ({
-    indice: foto.indice,
-    nombre: foto.nombre,
-    urlTemporal: foto.urlTemporal || null
-  }));
-}
-
-function numero(valor) {
-  const n = Number(valor || 0);
-  return Number.isFinite(n) && n >= 0 ? n : 0;
-}
-
-function limpiarObjeto(obj) {
-  return Object.fromEntries(
-    Object.entries(obj).filter(([, valor]) => valor !== undefined)
-  );
-}
+function normalizarFotos(fotos = []) { return Array.isArray(fotos) ? fotos.map((foto) => ({ indice: foto.indice, nombre: foto.nombre, urlTemporal: foto.urlTemporal || null })) : []; }
+function numero(valor) { const n = Number(valor || 0); return Number.isFinite(n) && n >= 0 ? n : 0; }
+function limpiarObjeto(obj) { return Object.fromEntries(Object.entries(obj).filter(([, valor]) => valor !== undefined)); }

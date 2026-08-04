@@ -1,88 +1,16 @@
 import { supabaseDisponible } from "../../infraestructura/supabase/supabase-client.js";
 import {
-  listarOperativosPublicadosActuales,
   listarOperativosEnCursoActuales,
   listarOperativosFinalizadosActuales
 } from "../../infraestructura/supabase/operativos-produccion-lectura-repo.js";
+import { listarOperativosProgramadosV2 } from "../../infraestructura/supabase/operativos-programados-v2-repo.js";
+import { operativosProgramadosDisponibles } from "../../infraestructura/supabase/supabase-operativos-programados-client.js";
 import { obtenerContextoOperativos, registrarFuenteOperativos } from "./operativos-contexto.js";
 import { guardarOperativosEnCache } from "./operativos-cache.js";
 import { obtenerGuardiaFecha0600 } from "../../dominio/compartido/fechas/guardia-0600.js";
+import { modoEnsayoActivo } from "../../infraestructura/ensayo/modo-ensayo.js";
+import { obtenerOperativosEnsayoPorModo } from "../../infraestructura/ensayo/operativos-ensayo.js";
 
-const OPERATIVOS_PROGRAMADOS_DEMO = [
-  {
-    operativo_key: "demo-ocv-rn168-rp1-0630",
-    guardia_fecha: "",
-    hora_inicio: "06:30",
-    hora_fin: "08:00",
-    lugar: "RN 168 Y RP 1",
-    tipo_operativo: "OCV",
-    tipo_nombre: "OCV",
-    estado: "PROGRAMADO"
-  },
-  {
-    operativo_key: "demo-ocv-dicep-tunel-0700",
-    guardia_fecha: "",
-    hora_inicio: "07:00",
-    hora_fin: "09:30",
-    lugar: "RN 168 KM18 TÚNEL SUBFLUVIAL",
-    tipo_operativo: "OCV_DICEP",
-    tipo_nombre: "OCV + DICEP",
-    estado: "PROGRAMADO"
-  },
-  {
-    operativo_key: "demo-presencia-puente-0000",
-    guardia_fecha: "",
-    hora_inicio: "00:00",
-    hora_fin: "06:00",
-    lugar: "PUENTE CARRETERO",
-    tipo_operativo: "PRESENCIA_ACTIVA",
-    tipo_nombre: "PRESENCIA ACTIVA",
-    estado: "PROGRAMADO"
-  },
-  {
-    operativo_key: "demo-patrullaje-rp1-1600",
-    guardia_fecha: "",
-    hora_inicio: "16:00",
-    hora_fin: "18:00",
-    lugar: "RP 1 DEL KM 00 AL 25",
-    tipo_operativo: "PATRULLAJE",
-    tipo_nombre: "PATRULLAJE",
-    estado: "PROGRAMADO"
-  },
-  {
-    operativo_key: "demo-control-peso-tunel-0700",
-    guardia_fecha: "",
-    hora_inicio: "07:00",
-    hora_fin: "10:00",
-    lugar: "RN 168 KM18 PEAJE TÚNEL SUBFLUVIAL",
-    tipo_operativo: "CONTROL_PESO",
-    tipo_nombre: "CONTROL DE PESO",
-    estado: "PROGRAMADO"
-  }
-];
-
-const OPERATIVOS_INICIADOS_DEMO = [
-  {
-    operativo_key: "demo-ocv-rn168-rp1-0630",
-    guardia_fecha: "",
-    hora_inicio: "06:30",
-    hora_fin: "08:00",
-    lugar: "RN 168 Y RP 1",
-    tipo_operativo: "OCV",
-    tipo_nombre: "OCV",
-    estado: "EN_CURSO"
-  },
-  {
-    operativo_key: "demo-ocv-dicep-tunel-0700",
-    guardia_fecha: "",
-    hora_inicio: "07:00",
-    hora_fin: "09:30",
-    lugar: "RN 168 KM18 TÚNEL SUBFLUVIAL",
-    tipo_operativo: "OCV_DICEP",
-    tipo_nombre: "OCV + DICEP",
-    estado: "EN_CURSO"
-  }
-];
 
 export async function obtenerOperativosPorModo(modo, opciones = {}) {
   const modoNormalizado = normalizarModo(modo);
@@ -94,14 +22,37 @@ export async function obtenerOperativosPorModo(modo, opciones = {}) {
     return [];
   }
 
-  if (supabaseDisponible()) {
+  if (modoEnsayoActivo(opciones)) {
+    const ensayoNormalizado = normalizarOperativos(
+      obtenerOperativosEnsayoPorModo(modoNormalizado, guardiaFecha)
+    );
+    const ensayo = filtrarSegunModo(modoNormalizado, ensayoNormalizado);
+
+    guardarOperativosEnCache({
+      modo: modoNormalizado,
+      guardiaFecha,
+      operativos: ensayo
+    });
+
+    registrarFuenteOperativos({ modo: modoNormalizado, fuente: "ENSAYO_LOCAL" });
+    return ensayo;
+  }
+
+  const fuenteDisponible = modoNormalizado === "INICIA"
+    ? operativosProgramadosDisponibles()
+    : supabaseDisponible();
+
+  if (fuenteDisponible) {
     try {
       const operativos = await obtenerOperativosDesdeSupabase({
         modo: modoNormalizado,
         guardiaFecha
       });
 
-      const normalizados = normalizarOperativos(operativos);
+      const normalizados = filtrarSegunModo(
+        modoNormalizado,
+        normalizarOperativos(operativos)
+      );
 
       guardarOperativosEnCache({
         modo: modoNormalizado,
@@ -109,7 +60,12 @@ export async function obtenerOperativosPorModo(modo, opciones = {}) {
         operativos: normalizados
       });
 
-      registrarFuenteOperativos({ modo: modoNormalizado, fuente: "SUPABASE_ACTUAL" });
+      registrarFuenteOperativos({
+        modo: modoNormalizado,
+        fuente: modoNormalizado === "INICIA"
+          ? "SUPABASE_NUEVO_PROGRAMADOS_V2"
+          : "SUPABASE_ACTUAL"
+      });
 
       return normalizados;
     } catch (error) {
@@ -119,19 +75,6 @@ export async function obtenerOperativosPorModo(modo, opciones = {}) {
   } else {
     console.error("[Informes_GP] Supabase no está disponible. No se usarán contadores de demostración.");
     registrarFuenteOperativos({ modo: modoNormalizado, fuente: "SIN_SUPABASE" });
-  }
-
-  if (modoDemoHabilitado(opciones)) {
-    const demo = obtenerOperativosDemoPorModo(modoNormalizado, guardiaFecha);
-
-    guardarOperativosEnCache({
-      modo: modoNormalizado,
-      guardiaFecha,
-      operativos: demo
-    });
-
-    registrarFuenteOperativos({ modo: modoNormalizado, fuente: "DEMO_EXPLICITO" });
-    return demo;
   }
 
   guardarOperativosEnCache({
@@ -145,23 +88,35 @@ export async function obtenerOperativosPorModo(modo, opciones = {}) {
 
 async function obtenerOperativosDesdeSupabase({ modo, guardiaFecha }) {
   if (modo === "INICIA") {
-    const programados = await listarOperativosPublicadosActuales({
-      guardia_fecha: guardiaFecha
+    const programados = await listarOperativosProgramadosV2({
+      guardia_fecha: guardiaFecha,
+      activo: true,
+      excluir_sin_efecto: true
     });
 
-    const enCurso = await listarOperativosEnCursoActuales({
-      guardia_fecha: guardiaFecha
-    });
-
+    // Durante esta primera etapa de migración, los PROGRAMADOS vienen
+    // exclusivamente del proyecto nuevo. El estado histórico se consulta solo
+    // como compatibilidad para no volver a ofrecer un operativo ya iniciado.
+    // Si esa lectura histórica falla, NO se bloquea la lista del Supabase nuevo.
+    let enCurso = [];
     let finalizados = [];
 
-    try {
-      finalizados = await listarOperativosFinalizadosActuales({
-        guardia_fecha: guardiaFecha
-      });
-    } catch (error) {
-      console.warn("[Informes_GP] No se pudieron leer finalizados para filtrar INICIA:", error);
-      finalizados = [];
+    if (supabaseDisponible()) {
+      try {
+        enCurso = await listarOperativosEnCursoActuales({
+          guardia_fecha: guardiaFecha
+        });
+      } catch (error) {
+        console.warn("[Informes_GP] No se pudo leer EN CURSO histórico para filtrar INICIA:", error);
+      }
+
+      try {
+        finalizados = await listarOperativosFinalizadosActuales({
+          guardia_fecha: guardiaFecha
+        });
+      } catch (error) {
+        console.warn("[Informes_GP] No se pudieron leer FINALIZADOS históricos para filtrar INICIA:", error);
+      }
     }
 
     return filtrarProgramadosPendientes({
@@ -171,13 +126,61 @@ async function obtenerOperativosDesdeSupabase({ modo, guardiaFecha }) {
     });
   }
 
-  if (modo === "FINALIZA" || modo === "INFORMES") {
+  if (modo === "FINALIZA") {
+    const enCurso = await listarOperativosEnCursoActuales({
+      guardia_fecha: guardiaFecha
+    });
+
+    // FINALIZA conserva el estado del circuito actual, pero la fecha que se
+    // imprime debe ser la fecha programada del nuevo Supabase. Solo se
+    // enriquece fecha_operativo por operativo_key; no se cambia ningún otro dato.
+    if (operativosProgramadosDisponibles()) {
+      try {
+        const programados = await listarOperativosProgramadosV2({
+          guardia_fecha: guardiaFecha,
+          activo: true,
+          excluir_sin_efecto: false
+        });
+        return enriquecerFechaOperativoDesdeProgramacion(enCurso, programados);
+      } catch (error) {
+        console.warn("[Informes_GP] No se pudo recuperar fecha_operativo del Supabase nuevo para FINALIZA:", error);
+      }
+    }
+
+    return enCurso;
+  }
+
+  if (modo === "INFORMES") {
     return listarOperativosEnCursoActuales({
       guardia_fecha: guardiaFecha
     });
   }
 
   return [];
+}
+
+
+export function filtrarOperativosIniciadosParaFinalizar(operativos = []) {
+  return normalizarOperativos(operativos).filter((op) => {
+    const estado = String(op?.estado || "")
+      .trim()
+      .toUpperCase()
+      .replace(/\s+/g, "_");
+
+    if (op?.finalizado_evento_id) return false;
+    if (["FINALIZADO", "CERRADO"].includes(estado)) return false;
+
+    return ["EN_CURSO", "INICIADO", "ACTIVO"].includes(estado) ||
+      Boolean(op?.inicio_evento_id);
+  });
+}
+
+function filtrarSegunModo(modo, operativos = []) {
+  if (modo === "FINALIZA") {
+    return filtrarOperativosIniciadosParaFinalizar(operativos);
+  }
+
+  return normalizarOperativos(operativos);
 }
 
 export function filtrarProgramadosPendientes({
@@ -195,23 +198,29 @@ export function filtrarProgramadosPendientes({
 }
 
 export function obtenerOperativosDemoPorModo(modo, guardiaFecha = obtenerGuardiaFecha0600()) {
-  const modoNormalizado = normalizarModo(modo);
+  return normalizarOperativos(obtenerOperativosEnsayoPorModo(modo, guardiaFecha));
+}
 
-  if (modoNormalizado === "INICIA") {
-    return normalizarOperativos(conGuardiaFecha(OPERATIVOS_PROGRAMADOS_DEMO, guardiaFecha));
-  }
+export function enriquecerFechaOperativoDesdeProgramacion(enCurso = [], programados = []) {
+  const fechasPorKey = new Map(
+    normalizarOperativos(programados)
+      .filter((op) => op.operativo_key && op.fecha_operativo)
+      .map((op) => [op.operativo_key, String(op.fecha_operativo).trim()])
+  );
 
-  if (modoNormalizado === "FINALIZA" || modoNormalizado === "INFORMES") {
-    return normalizarOperativos(conGuardiaFecha(OPERATIVOS_INICIADOS_DEMO, guardiaFecha));
-  }
-
-  return [];
+  return normalizarOperativos(enCurso).map((op) => ({
+    ...op,
+    fecha_operativo: fechasPorKey.get(op.operativo_key) || String(op.fecha_operativo || "").trim()
+  }));
 }
 
 export function formatearOperativoParaSelector(operativo) {
   if (!operativo) return "";
 
-  const hora = `${operativo.hora_inicio || "--:--"} A ${operativo.hora_fin || "--:--"}`;
+  const fin = String(operativo.hora_fin || "--:--").trim();
+  const hora = /FINALIZAR/i.test(fin)
+    ? `${operativo.hora_inicio || "--:--"} A FINALIZAR`
+    : `${operativo.hora_inicio || "--:--"} A ${fin}`;
   const lugar = operativo.lugar || "SIN LUGAR";
   const tipo = operativo.tipo_nombre || operativo.tipo_operativo || "OPERATIVO";
 
@@ -257,7 +266,7 @@ export function normalizarOperativo(op) {
     operativo_key: String(operativoKey || "").trim(),
     guardia_fecha: String(op?.guardia_fecha || op?.fecha_guardia || op?.fecha || "").trim(),
     hora_inicio: String(horaInicio || "").trim(),
-    hora_fin: String(horaFin || "").trim(),
+    hora_fin: normalizarHoraFinAbierta(horaFin),
     lugar: String(op?.lugar || op?.qth || op?.ubicacion || "SIN LUGAR").trim(),
     tipo_operativo: String(tipoOperativo || "GENERICO").trim().toUpperCase(),
     tipo_nombre: String(op?.tipo_nombre || op?.tipo_descripcion || tipoOperativo || "OPERATIVO").trim(),
@@ -279,12 +288,6 @@ function normalizarModo(modo) {
   return String(modo || "").trim().toUpperCase();
 }
 
-function conGuardiaFecha(operativos, guardiaFecha) {
-  return operativos.map((op) => ({
-    ...op,
-    guardia_fecha: guardiaFecha || op.guardia_fecha || obtenerGuardiaFecha0600()
-  }));
-}
 
 function construirKeyFallback(op) {
   const partes = [
@@ -310,15 +313,11 @@ function extraerHoraInicioDesdeFranja(franja) {
 function extraerHoraFinDesdeFranja(franja) {
   const texto = String(franja || "");
   const matches = [...texto.matchAll(/(\d{1,2}:\d{2})/g)];
-  return matches.length >= 2 ? matches[1][1] : "";
+  if (matches.length >= 2) return matches[1][1];
+  return /A\s+FINALIZAR/i.test(texto) ? "FINALIZAR" : "";
 }
-function modoDemoHabilitado(opciones = {}) {
-  if (opciones.modoDemo === true || opciones.demo === true) return true;
 
-  try {
-    if (window.InformesGP?.modoDemo === true) return true;
-    return new URLSearchParams(window.location.search).get("demo") === "1";
-  } catch {
-    return false;
-  }
+function normalizarHoraFinAbierta(valor) {
+  const limpio = String(valor || "").trim();
+  return /FINALIZAR/i.test(limpio) ? "FINALIZAR" : limpio;
 }

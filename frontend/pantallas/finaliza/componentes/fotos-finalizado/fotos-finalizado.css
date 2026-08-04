@@ -1,0 +1,9 @@
+.finaliza-fotos { margin-top: 14px; padding: 12px; border: 1px solid #565d68; border-radius: 14px; background: #353a42; box-shadow: none; }
+.finaliza-fotos h3 { margin: 0 0 10px; color: #f1cf52; font-size: 17px; font-weight: 900; text-transform: none; }
+.finaliza-fotos .fotos-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 10px; }
+.finaliza-fotos .foto-slot { display: grid; gap: 5px; }
+.finaliza-fotos .foto-chip { min-height: 52px; border: 1px solid #6d747d; border-radius: 14px; background: #555a62; color: #fff; font-size: 16px; box-shadow: none; }
+.finaliza-fotos .foto-chip span { font-size: 24px; }
+.finaliza-fotos .foto-galeria { min-height: 42px; margin: 0; padding: 8px; border: 1px solid #8b929b; border-radius: 10px; background: #d7dce3; color: #0d1117; font-size: 15px; box-shadow: none; }
+.finaliza-fotos .foto-estado { min-height: 18px; padding: 0 2px; background: transparent; color: #151a20; font-size: 12px; }
+.finaliza-fotos .foto-estado.foto-cargada { padding: 4px 6px; background: #d1fae5; color: #065f46; }

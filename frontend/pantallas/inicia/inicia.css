@@ -1,41 +1,118 @@
-.formulario-inicia h2,
-.formulario-operativo.formulario-inicia h2 {
-  margin: 0 0 8px 0;
-  color: var(--blue-strong-2);
-  font-size: 19px;
-  font-weight: 900;
-  text-transform: uppercase;
+@import url("./componentes/personal-policial/personal-policial.css");
+@import url("./componentes/movilidad/movilidad.css");
+@import url("./componentes/elementos/elementos.css");
+@import url("./componentes/agregar-elementos-presencia-activa/agregar-elementos-presencia-activa.css");
+@import url("./componentes/observaciones/observaciones.css");
+@import url("./componentes/fotos-inicio/fotos-inicio.css");
+
+.formulario-inicia {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
-.formulario-inicia p {
-  color: var(--text-2);
-  font-weight: 700;
+.inicio-seccion {
+  width: 100%;
+  padding: 12px;
+  border: 3px solid var(--danger);
+  border-radius: 14px;
+  background: #d8dde5;
+  box-shadow: 0 7px 16px rgba(0, 0, 0, 0.22);
 }
 
-.bloque-formulario {
-  margin-bottom: 10px;
-}
-
-.bloque-formulario label {
-  display: block;
+.inicio-seccion-titulo {
   width: fit-content;
-  margin: 0 0 5px 0;
-  padding: 2px 6px;
+  margin: 0 0 12px;
+  padding: 2px 7px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.72);
   color: var(--blue-strong-2);
-  background: rgba(255,255,255,0.45);
-  border-radius: 6px;
-  font-size: 14px;
+  font-size: 18px;
+  line-height: 1.1;
   font-weight: 900;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
-.bloque-formulario input,
-.bloque-formulario textarea,
-.bloque-formulario select {
+.inicio-opcion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  border: 1px solid #929aa6;
+  border-radius: 14px;
   background: #eef1f6;
-  border: 2px solid var(--border);
-  border-radius: 12px;
-  color: var(--text);
-  font-size: 15px;
-  font-weight: 700;
+  color: #1d2632;
+  font-weight: 800;
+  box-shadow: 0 7px 12px rgba(0, 0, 0, 0.17);
+  cursor: pointer;
+  user-select: none;
+}
+
+.inicio-opcion span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inicio-opcion input[type="checkbox"] {
+  flex: 0 0 auto;
+  width: 23px;
+  height: 23px;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--blue-strong);
+  cursor: pointer;
+}
+
+.formulario-inicia .fotos-formulario-host {
+  margin: 0;
+}
+
+.salida-whatsapp-panel.salida-whatsapp-inicia-compacta {
+  margin-top: 14px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.salida-whatsapp-inicia-compacta .salida-whatsapp-ensayo,
+.salida-whatsapp-inicia-compacta .salida-whatsapp-preview-header,
+.salida-whatsapp-inicia-compacta .salida-whatsapp-fotos-info,
+.salida-whatsapp-inicia-compacta .salida-whatsapp-errores,
+.salida-whatsapp-inicia-compacta .salida-whatsapp-preview {
+  display: none !important;
+}
+
+.salida-whatsapp-inicia-compacta #botonEnviarWhatsapp {
+  min-height: 58px;
+  margin: 0;
+  border-radius: 13px;
+  background: #0647ad;
+  font-size: 18px;
+  box-shadow: none;
+}
+
+.salida-whatsapp-inicia-compacta #botonEnviarWhatsapp:disabled {
+  opacity: 0.8;
+  background: #0647ad;
+}
+
+@media (max-width: 520px) {
+  .formulario-inicia {
+    gap: 11px;
+  }
+
+  .inicio-seccion {
+    padding: 10px;
+  }
+
+  .inicio-seccion-titulo {
+    margin-bottom: 10px;
+    font-size: 16px;
+  }
 }
