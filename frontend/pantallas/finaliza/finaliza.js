@@ -10,6 +10,8 @@ import { renderElementosFinaliza, obtenerElementosFinaliza, aplicarElementosFina
 import { iniciarDetallesFinaliza } from "./componentes/detalles/detalles.js";
 import { iniciarResultadosDinamicosFinaliza } from "./componentes/resultados-dinamicos/resultados-dinamicos.js";
 import { usaControladosOpcionalesFinaliza } from "../../../backend/dominio/compartido/tipos/operativos-elementos-controlados-opcionales.js";
+import { esOperativoPatrullaje } from "../../../backend/dominio/compartido/tipos/patrullaje.js";
+import { usaResultadosAssalControlArmas } from "../../../backend/dominio/compartido/tipos/resultados-especiales-finaliza.js";
 import { iniciarAgregarControladosPresenciaActiva } from "./componentes/agregar-controlados-presencia-activa/agregar-controlados-presencia-activa.js";
 
 let ultimoFormularioFinaliza = null;
@@ -32,6 +34,7 @@ export async function iniciarFormularioFinaliza({
   }
 
   configurarFormularioSegunOperativo(form, ultimoOperativoFinaliza);
+  configurarResultadosEspeciales(form, ultimoOperativoFinaliza);
   configurarMismosPorDefecto(form);
 
   const catalogo = obtenerCatalogoRecursosOperativos();
@@ -205,6 +208,25 @@ function configurarFormularioSegunOperativo(form, operativo) {
   const tipo = normalizarTipo(operativo?.tipo_operativo || operativo?.tipo_codigo || "GENERICO");
   form.dataset.tipoOperativo = tipo;
   form.dataset.operativoSeleccionado = operativo?.operativo_key || "";
+}
+
+function configurarResultadosEspeciales(form, operativo) {
+  const esPatrullaje = esOperativoPatrullaje(operativo, form.dataset.tipoOperativo);
+  const conAssalArmas = usaResultadosAssalControlArmas(operativo, form.dataset.tipoOperativo);
+
+  configurarCampoResultadoEspecial(form, "#finalizaWrapDecreto460", "decreto_460_22", esPatrullaje);
+  configurarCampoResultadoEspecial(form, "#finalizaWrapAssal", "assal", conAssalArmas);
+  configurarCampoResultadoEspecial(form, "#finalizaWrapControlArmas", "control_armas", conAssalArmas);
+}
+
+function configurarCampoResultadoEspecial(form, wrapSelector, nombreCampo, visible) {
+  const wrap = form.querySelector(wrapSelector);
+  const input = form.querySelector(`[name="${nombreCampo}"]`);
+
+  wrap?.classList.toggle("hidden", !visible);
+
+  // Evita que un valor residual de otro operativo se publique por error.
+  if (!visible && input) input.value = "";
 }
 
 function resolverContexto(getContexto) {

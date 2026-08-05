@@ -4,6 +4,7 @@ import {
   hayControladosFinaliza
 } from "../compartido/tipos/operativos-elementos-controlados-opcionales.js";
 import { esOperativoPatrullaje } from "../compartido/tipos/patrullaje.js";
+import { usaResultadosAssalControlArmas } from "../compartido/tipos/resultados-especiales-finaliza.js";
 
 export function construirTextoFinalizadoBase(finalizado) {
   if (!finalizado) return "";
@@ -48,7 +49,11 @@ export function construirTextoFinalizadoBase(finalizado) {
     }
     lineas.push(`Actas Labradas: (${cantidad(f.actas)})`);
     if (esOperativoPatrullaje(operativo, finalizado?.tipo_operativo) && numero(f.decreto_460_22) > 0) {
-      lineas.push(`Decto. 460/22: (${cantidad(f.decreto_460_22)})`);
+      lineas.push(`460/22: (${cantidad(f.decreto_460_22)})`);
+    }
+    if (usaResultadosAssalControlArmas(operativo, finalizado?.tipo_operativo)) {
+      if (numero(f.assal) > 0) lineas.push(`Assal: (${cantidad(f.assal)})`);
+      if (numero(f.control_armas) > 0) lineas.push(`Control de Armas: (${cantidad(f.control_armas)})`);
     }
     lineas.push(`Requisas: (${cantidad(f.requisas)})`);
     lineas.push(...construirBloqueListaVertical("Qrz", f.qrz, f.qrz_documentos));

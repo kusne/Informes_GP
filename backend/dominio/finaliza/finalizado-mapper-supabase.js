@@ -35,8 +35,9 @@ export function mapearFinalizadoParaSupabase(finalizado) {
       },
       resultados: {
         vehiculos: numero(f.vehiculos), personas: numero(f.personas), test_alometro: numero(f.test_alometro),
-        test_alcoholimetro: numero(f.test_alcoholimetro), actas: numero(f.actas), requisas: numero(f.requisas),
-        qrz: numero(f.qrz), dominio: numero(f.dominio)
+        test_alcoholimetro: numero(f.test_alcoholimetro), actas: numero(f.actas),
+        decreto_460_22: numero(f.decreto_460_22), assal: numero(f.assal), control_armas: numero(f.control_armas),
+        requisas: numero(f.requisas), qrz: numero(f.qrz), dominio: numero(f.dominio)
       },
       medidas_cautelares: {
         remision: numero(f.remision), retencion: numero(f.retencion), prohibicion_circulacion: numero(f.prohibicion_circulacion), cesion_conduccion: numero(f.cesion_conduccion)

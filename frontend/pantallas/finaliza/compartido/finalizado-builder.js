@@ -114,7 +114,7 @@ export function leerDatosFormularioBase(form) {
     }
   }
 
-  normalizarNumericos(datos, ["actas", "personas", "vehiculos", "test_alometro", "test_alcoholimetro", "positiva_sancionable", "positiva_no_sancionable", "requisas", "qrz", "dominio", "remision", "retencion", "prohibicion_circulacion", "cesion_conduccion"]);
+  normalizarNumericos(datos, ["actas", "personas", "vehiculos", "test_alometro", "test_alcoholimetro", "positiva_sancionable", "positiva_no_sancionable", "assal", "control_armas", "requisas", "qrz", "dominio", "remision", "retencion", "prohibicion_circulacion", "cesion_conduccion"]);
   normalizarEnteroNoNegativo(datos, "decreto_460_22");
   normalizarJsonArrays(datos, ["graduaciones_sancionable", "graduaciones_no_sancionable", "qrz_documentos", "dominio_items"]);
 

@@ -33,7 +33,11 @@ function registrarServiceWorkerSinBloquear() {
       const scopeUrl = new URL("../../", import.meta.url);
 
       navigator.serviceWorker
-        .register(swUrl.href, { scope: scopeUrl.pathname })
+        .register(swUrl.href, {
+          scope: scopeUrl.pathname,
+          updateViaCache: "none"
+        })
+        .then((registro) => registro.update().catch(() => {}))
         .catch((error) => {
           console.warn("[Informes_GP] Service Worker no disponible:", error);
         });

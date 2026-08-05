@@ -122,7 +122,7 @@ export async function manejarEnvioWhatsapp({ boton = null, getContexto } = {}) {
     return;
   }
 
-  const texto = String(salida.texto || "").trim();
+  const texto = limpiarBloqueLegacyFotos(String(salida.texto || ""));
 
   if (!texto) {
     alert("No hay texto generado para enviar por WhatsApp.");
@@ -331,7 +331,7 @@ function actualizarVistaPreviaSalida({ host, getContexto } = {}) {
     return;
   }
 
-  const texto = String(salida.texto || "").trim();
+  const texto = limpiarBloqueLegacyFotos(String(salida.texto || ""));
   const errores = Array.isArray(salida.errores) ? salida.errores.filter(Boolean) : [];
 
   preview.textContent = texto || "Complete el formulario para generar el texto.";
@@ -587,6 +587,17 @@ function marcarEstadoEnvio(texto) {
 
   estadoBox.textContent = texto;
   estadoBox.className = "salida-whatsapp-estado salida-whatsapp-estado-ok";
+}
+
+function limpiarBloqueLegacyFotos(valor) {
+  const texto = String(valor || "").trim();
+  if (!texto) return "";
+
+  // Compatibilidad defensiva: versiones antiguas agregaban las URLs de Storage
+  // bajo este encabezado. Nunca deben formar parte del mensaje de WhatsApp.
+  return texto
+    .replace(/\n{1,2}FOTOS\s+ADJUNTAS\s*:[\s\S]*$/i, "")
+    .trim();
 }
 
 function escapeHtml(valor) {
