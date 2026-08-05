@@ -5,7 +5,7 @@
   window.IGP = window.IGP || {};
   window.IGP.pantallaPrincipal = window.IGP.pantallaPrincipal || {};
 
-  const VERSION = "pantalla-principal-flujo-20260704";
+  const VERSION = "pantalla-principal-flujo-20260805-modelos-5";
 
   const MODELOS_INFORMES = [
     {
@@ -22,6 +22,16 @@
       id: "decreto-460-22",
       titulo: "Decreto 460/22",
       descripcion: "Informe por procedimiento Decreto 460/22",
+    },
+    {
+      id: "control-armas",
+      titulo: "Control de Armas",
+      descripcion: "Informe de control de armamento",
+    },
+    {
+      id: "retencion-licencia",
+      titulo: "Retención de Licencia",
+      descripcion: "Informe de retención de licencia",
     },
   ];
 
@@ -105,15 +115,9 @@
   }
 
   function buscarSelectorOperativo() {
-    const selects = Array.from(document.querySelectorAll("select")).filter((select) => {
-      if (select === selectorPrincipal) return false;
-      if (select.closest("#" + ID_PANEL_MODELOS)) return false;
-      if (select.closest("#" + ID_CONTROL_MOUNT)) return false;
-      if (esSelectorPrincipal(select)) return false;
-      return true;
-    });
-
-    return selects[0] || null;
+    const contextual = document.querySelector("#selectorOperativoContextualHost select");
+    if (contextual && contextual !== selectorPrincipal) return contextual;
+    return null;
   }
 
   function contenedorDe(elemento) {
@@ -246,8 +250,6 @@
           </button>
         `).join("")}
       </div>
-      <div class="igp-modelo-seleccionado" data-modelo-seleccionado hidden></div>
-      <div class="igp-slot-operativo-informe" data-slot-operativo-informe></div>
     `;
 
     const contenedorPrincipal = contenedorDe(selectorPrincipal);
@@ -314,17 +316,6 @@
     panel.querySelectorAll("[data-modelo-informe]").forEach((btn) => {
       btn.classList.toggle("activo", btn.dataset.modeloInforme === modeloSeleccionado?.id);
     });
-
-    const resumen = panel.querySelector("[data-modelo-seleccionado]");
-    if (!resumen) return;
-
-    if (modeloSeleccionado) {
-      resumen.hidden = false;
-      resumen.textContent = "Modelo seleccionado: " + modeloSeleccionado.titulo + ". Ahora seleccioná el operativo.";
-    } else {
-      resumen.hidden = true;
-      resumen.textContent = "";
-    }
   }
 
   function aplicarLogo() {
@@ -395,11 +386,11 @@
         mountControl.hidden = true;
         window.WSP?.modules?.controlMoviles?.setActiva?.(false);
 
-        moverOperativoAlPanelInformes(panelModelos);
         pintarModelo(panelModelos);
 
-        // Corrección principal: en INFORMES no aparece operativo hasta elegir modelo.
-        setVisible(contenedorOperativo, !!modeloSeleccionado);
+        // En INFORMES la selección se hace exclusivamente con las tarjetas.
+        // El selector de operativo pertenece al formulario del modelo elegido.
+        setVisible(contenedorOperativo, false);
       } else if (esControlMoviles) {
         panelModelos.hidden = true;
         mountControl.hidden = false;

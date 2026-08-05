@@ -1,11 +1,6 @@
 import { iniciarModeloInformeEspecial } from "../../compartido/informe-especial-builder.js";
 
-export async function iniciarControlSuperior({
-  operativoSeleccionado,
-  getContexto
-} = {}) {
-  const form = document.querySelector('[data-modelo-informe="CONTROL_SUPERIOR"]');
-
+export async function iniciarModeloInformeUI({ form } = {}) {
   if (!form) return;
 
   const autoridad = form.querySelector('[name="autoridad"]');
@@ -13,7 +8,6 @@ export async function iniciarControlSuperior({
 
   const completarAutoridad = () => {
     const valor = String(autoridad?.value || "").trim().toUpperCase();
-
     if (!nombre) return;
 
     if (valor === "JEFE") {
@@ -28,7 +22,16 @@ export async function iniciarControlSuperior({
   };
 
   autoridad?.addEventListener("change", completarAutoridad);
+}
 
+export async function iniciarControlSuperior({
+  operativoSeleccionado,
+  getContexto
+} = {}) {
+  const form = document.querySelector('[data-modelo-informe="CONTROL_SUPERIOR"]');
+  if (!form) return;
+
+  await iniciarModeloInformeUI({ form });
   await iniciarModeloInformeEspecial({
     form,
     modelo: "CONTROL_SUPERIOR",

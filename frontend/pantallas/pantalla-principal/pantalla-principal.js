@@ -13,6 +13,7 @@ const estadoPantalla = {
 
 let listenerEnvioRegistrado = false;
 let listenerRealtimeRegistrado = false;
+let listenerModeloInformeRegistrado = false;
 let timeoutRefresco = null;
 
 export async function iniciarPantallaPrincipal({ hostSelector }) {
@@ -37,6 +38,7 @@ export async function iniciarPantallaPrincipal({ hostSelector }) {
   await iniciarSelectorModoSeguro();
 
   registrarListenerPostEnvio();
+  registrarListenerModeloInforme();
 
   // INICIA es el modo operativo por defecto. Así el contador y el selector
   // se cargan apenas abre la aplicación, sin exigir una selección previa.
@@ -108,25 +110,38 @@ async function recargarItemsPantalla({
 
   estadoPantalla.cantidadOperativos = items.length;
 
+  aplicarPresentacionSegunModo(modo);
+
   await registrarOperativosDisponiblesSeguro({
     modo,
     operativos: modo === "INFORMES" ? [] : items
   });
 
   actualizarTituloContador(modo);
-  await renderContadorSeguro(estadoPantalla.cantidadOperativos);
 
-  await renderSelectorOperativoSeguro({
-    modo,
-    items
-  });
+  if (modo !== "INFORMES") {
+    await renderContadorSeguro(estadoPantalla.cantidadOperativos);
+
+    await renderSelectorOperativoSeguro({
+      modo,
+      items
+    });
+  } else {
+    const selectorHost = document.querySelector("#selectorOperativoContextualHost");
+    if (selectorHost) selectorHost.innerHTML = "";
+  }
 
   if (!renderLocalInicial) {
-    await renderContenedorSeguro({
-      modo,
-      operativoSeleccionado: null,
-      modeloInformeSeleccionado: null
-    });
+    if (modo === "INFORMES") {
+      const hostDinamico = document.querySelector("#contenedorDinamicoHost");
+      if (hostDinamico) hostDinamico.innerHTML = "";
+    } else {
+      await renderContenedorSeguro({
+        modo,
+        operativoSeleccionado: null,
+        modeloInformeSeleccionado: null
+      });
+    }
   }
 
   if (motivo) {
@@ -454,6 +469,60 @@ function iniciarRealtimeSeguro() {
     .catch((error) => {
       console.warn("[Informes_GP] Realtime desactivado por error:", error);
     });
+}
+
+function aplicarPresentacionSegunModo(modo) {
+  const esInformes = normalizarModo(modo) === "INFORMES";
+  const tituloContador = document.querySelector(".operativos-title-row");
+  const selectorContextual = document.querySelector("#selectorOperativoContextualHost");
+
+  if (tituloContador) {
+    if (esInformes) tituloContador.style.setProperty("display", "none", "important");
+    else tituloContador.style.removeProperty("display");
+  }
+
+  if (selectorContextual) {
+    if (esInformes) selectorContextual.style.setProperty("display", "none", "important");
+    else selectorContextual.style.removeProperty("display");
+  }
+}
+
+function registrarListenerModeloInforme() {
+  if (listenerModeloInformeRegistrado) return;
+  listenerModeloInformeRegistrado = true;
+
+  document.addEventListener("igp:modelo-informe-seleccionado", async (event) => {
+    if (estadoPantalla.modo !== "INFORMES") return;
+
+    const id = normalizarModeloDesdeTarjeta(event?.detail?.id || event?.detail?.modelo_key || event?.detail?.codigo || "");
+    const item = estadoPantalla.modelosInformesDisponibles.find((modelo) => {
+      const key = normalizarModeloDesdeTarjeta(modelo?.modelo_key || modelo?.codigo || "");
+      return key === id;
+    }) || null;
+
+    if (!item) {
+      console.warn("[Informes_GP] Tarjeta de informe sin modelo registrado:", event?.detail);
+      return;
+    }
+
+    estadoPantalla.modeloInformeSeleccionado = item;
+    estadoPantalla.operativoSeleccionado = null;
+
+    await renderContenedorSeguro({
+      modo: "INFORMES",
+      operativoSeleccionado: null,
+      modeloInformeSeleccionado: item
+    });
+  });
+}
+
+function normalizarModeloDesdeTarjeta(valor) {
+  return String(valor || "")
+    .trim()
+    .toUpperCase()
+    .replaceAll("-", "_")
+    .replace(/\s+/g, "_")
+    .replace("DECTO_460_22", "DECRETO_460_22");
 }
 
 function registrarListenerRealtime() {

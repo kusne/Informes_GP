@@ -24,6 +24,8 @@ export async function iniciarModeloInformeEspecial({
     return;
   }
 
+  autocompletarDesdeOperativo(form, operativoSeleccionado);
+
   await cargarFotosDeFormulario({
     form,
     contexto: {
@@ -140,6 +142,45 @@ export function leerDatosFormulario(form) {
   }
 
   return datos;
+}
+
+function autocompletarDesdeOperativo(form, operativo = {}) {
+  if (!form || !operativo) return;
+
+  const datos = operativo?.datos && typeof operativo.datos === "object" ? operativo.datos : {};
+  const fecha = fechaOperativoISO(operativo);
+  const lugar = primerValor(operativo.lugar, operativo.qth, operativo.ubicacion, datos.lugar, datos.qth, datos.ubicacion);
+  const personal = primerValor(operativo.personal, datos.personal, datos.personal_policial);
+  const moviles = primerValor(operativo.moviles_motos, datos.moviles_motos, datos.moviles, datos.movilidad);
+
+  completarCampoSiVacio(form, ["fecha_hecho", "fecha_operativo", "fecha"], fecha);
+  completarCampoSiVacio(form, ["lugar_hecho", "lugar"], lugar);
+  completarCampoSiVacio(form, ["personal", "personal_policial"], personal);
+  completarCampoSiVacio(form, ["moviles", "moviles_motos", "movilidad"], moviles);
+}
+
+function completarCampoSiVacio(form, nombres, valor) {
+  if (!valor) return;
+  for (const nombre of nombres) {
+    const campo = form.querySelector(`[name="${nombre}"]`);
+    if (!campo || String(campo.value || "").trim()) continue;
+    campo.value = String(valor).trim();
+    break;
+  }
+}
+
+function fechaOperativoISO(operativo = {}) {
+  const valor = primerValor(operativo.fecha_operativo, operativo.guardia_fecha, operativo.fecha);
+  const match = String(valor || "").match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return match ? `${match[1]}-${match[2]}-${match[3]}` : "";
+}
+
+function primerValor(...valores) {
+  for (const valor of valores) {
+    const limpio = String(valor ?? "").trim();
+    if (limpio) return limpio;
+  }
+  return "";
 }
 
 function calcularDatosModelo(modelo, formulario) {
