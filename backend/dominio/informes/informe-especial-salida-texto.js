@@ -1,3 +1,5 @@
+const ENCABEZADO_INFORMES = "*POLICÍA DE LA PROVINCIA DE SANTA FE- DIRECCION GENERAL GUARDIA PROVINCIAL - BRIGADA MOTORIZADA ZONA CENTRO NORTE*";
+
 export function construirTextoInformeEspecial(informe) {
   if (!informe) return "";
 
@@ -28,6 +30,8 @@ function construirControlSuperior(informe) {
   const f = informe.formulario || {};
   const lineas = [];
 
+  lineas.push(ENCABEZADO_INFORMES);
+  lineas.push("");
   lineas.push("INFORME CONTROL SUPERIOR");
   agregarLinea(lineas, "AUTORIDAD", f.autoridad);
   agregarLinea(lineas, "NOMBRE / CARGO", f.nombre_autoridad);
@@ -42,6 +46,8 @@ function construirAlcoholemia(informe) {
   const c = informe.calculos || {};
   const lineas = [];
 
+  lineas.push(ENCABEZADO_INFORMES);
+  lineas.push("");
   lineas.push("INFORME ALCOHOLEMIA POSITIVA");
   agregarLinea(lineas, "OPERATIVO", resumenOperativo(informe));
   agregarLinea(lineas, "CONDUCTOR", f.conductor);
@@ -77,6 +83,8 @@ function construirDecreto46022(informe) {
   const f = informe.formulario || {};
   const lineas = [];
 
+  lineas.push(ENCABEZADO_INFORMES);
+  lineas.push("");
   lineas.push("INFORME DECRETO 460/22");
   agregarLinea(lineas, "OPERATIVO", resumenOperativo(informe));
   agregarLinea(lineas, "CONDUCTOR / INVOLUCRADO", f.conductor);
@@ -95,7 +103,7 @@ function construirControlArmas(informe) {
   const f = informe.formulario || {};
   const lineas = [];
 
-  lineas.push("*POLICIA DE LA PROVINCIA DE SANTA FE - GUARDIA PROVINCIAL - BRIGADA MOTORIZADA (SANTA FE)*");
+  lineas.push(ENCABEZADO_INFORMES);
   lineas.push("");
   lineas.push("*HECHO:* Requisa de vehículo y Transporte de armas de fuego");
   lineas.push("");
@@ -164,7 +172,7 @@ function construirRetencionLicencia(informe) {
   const motivo = resolverMotivoLicencia(f.motivo_licencia);
   const codigo = texto(f.codigo) || motivo.codigo || "";
 
-  lineas.push("*POLICÍA DE LA PROVINCIA DE SANTA FE - GUARDIA PROVINCIAL - BRIGADA MOTORIZADA ZONA CENTRO NORTE*");
+  lineas.push(ENCABEZADO_INFORMES);
   lineas.push("");
   lineas.push(`*HECHO:* ${motivo.hecho}${codigo ? ` (CÓD. ${codigo})` : ""}.`);
   lineas.push("");
@@ -201,7 +209,6 @@ function construirRelatoRetencionLicencia(f, motivo, codigo) {
   const clase = texto(f.clase_licencia);
   const fechaVto = formatearFechaDocumento(f.fecha_vencimiento);
   const numeroActa = texto(f.numero_acta);
-  const detalleMotivo = texto(f.detalle_motivo);
 
   let licenciaDetalle = motivo.relato;
   if (motivo.requiereVencimiento && fechaVto) {
@@ -209,7 +216,6 @@ function construirRelatoRetencionLicencia(f, motivo, codigo) {
   } else if (motivo.key === "CADUCA_CAMBIO_DATOS" && fechaVto) {
     licenciaDetalle = `VTO con fecha ${fechaVto}, la cual se constata que está caduca por cambio de datos`;
   }
-  if (detalleMotivo) licenciaDetalle += `, ${detalleMotivo}`;
 
   const vehiculo = [
     tipo ? `TIPO: ${tipo}` : "",

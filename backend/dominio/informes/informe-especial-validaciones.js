@@ -111,9 +111,6 @@ function validarRetencionLicencia(informe, errores) {
     errores.push("Debe completar fecha de vencimiento / VTO de la licencia.");
   }
 
-  if (motivo === "MAL_OTORGADA" && !texto(f.detalle_motivo)) {
-    errores.push("Para licencia mal otorgada debe completar el detalle / aclaración.");
-  }
 }
 
 function texto(valor) {

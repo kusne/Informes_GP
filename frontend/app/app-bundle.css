@@ -1359,6 +1359,74 @@ label.top-label,
     grid-template-columns: 1fr;
   }
 }
+/* INFORMES: superficie clara para lectura en teléfono. */
+.informes-modulo {
+  width: 100%;
+  padding: 10px;
+  border-radius: 14px;
+  background: #d7dce3;
+  color: #0b1220;
+}
+
+.informe-operativo-interno,
+.formulario-informe-especial {
+  color: #0b1220;
+}
+
+.formulario-informe-especial {
+  padding: 12px;
+  border-radius: 14px;
+  background: #e3e7ed;
+  border: 1px solid #aab3c0;
+}
+
+.formulario-informe-especial h2,
+.formulario-informe-especial p,
+.formulario-informe-especial .bloque-formulario label,
+.formulario-informe-especial .checkbox-linea {
+  opacity: 1;
+}
+
+.formulario-informe-especial h2,
+.formulario-informe-especial .bloque-formulario label,
+.formulario-informe-especial .checkbox-linea {
+  color: #0b3d91;
+}
+
+.formulario-informe-especial p {
+  color: #1f2937;
+}
+
+/* En INFORMES solo queda el botón de envío: no se muestra Vista previa WhatsApp. */
+.salida-whatsapp-panel.salida-whatsapp-informes-compacta {
+  margin-top: 14px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.salida-whatsapp-informes-compacta .salida-whatsapp-ensayo,
+.salida-whatsapp-informes-compacta .salida-whatsapp-preview-header,
+.salida-whatsapp-informes-compacta .salida-whatsapp-fotos-info,
+.salida-whatsapp-informes-compacta .salida-whatsapp-errores,
+.salida-whatsapp-informes-compacta .salida-whatsapp-preview {
+  display: none !important;
+}
+
+.salida-whatsapp-informes-compacta #botonEnviarWhatsapp {
+  min-height: 58px;
+  margin: 0;
+  border-radius: 13px;
+  background: #0647ad;
+  font-size: 18px;
+  box-shadow: none;
+}
+
+.salida-whatsapp-informes-compacta #botonEnviarWhatsapp:disabled {
+  opacity: .8;
+  background: #0647ad;
+}
 /* === FIN frontend/pantallas/informes/informes.css === */
 
 

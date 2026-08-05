@@ -244,7 +244,9 @@ async function renderInformes({
 
   renderBotonEnviarWhatsapp({
     hostSelector: "#salidaWhatsappHost",
-    getContexto
+    getContexto,
+    panelClass: "salida-whatsapp-informes-compacta",
+    buttonLabel: "Enviar por WhatsApp"
   });
 }
 
