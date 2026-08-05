@@ -514,7 +514,7 @@ async function guardarSegunModoSiCorresponde({ modo, payload }) {
         data,
         payloadFinal,
         fotos: resultadoFotos?.fotos || [],
-        mensaje: data?.mensaje || "Informe sin persistencia Supabase."
+        mensaje: data?.mensaje || "Informe guardado en Supabase V2."
       };
     }
 

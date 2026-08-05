@@ -74,10 +74,14 @@ export function construirInformeEspecialDesdeFormulario({
   const fotoPrefijo = form?.dataset?.fotoPrefijo || "";
   const fotos = fotoPrefijo ? (window.InformesGP?.fotos?.[fotoPrefijo] || []) : [];
 
+  const ahora = new Date();
+
   const base = {
     modo: "INFORMES",
     modelo: modeloNormalizado,
-    fecha: new Date().toISOString(),
+    fecha: ahora.toISOString(),
+    fecha_informe: formatearFechaLocalISO(ahora),
+    hora_informe: formatearHoraLocal(ahora),
     guardia_fecha: resolverGuardiaFecha({
       operativoSeleccionado,
       contexto
@@ -239,6 +243,18 @@ function resolverContexto(getContexto) {
   } catch {
     return {};
   }
+}
+
+function formatearFechaLocalISO(fecha) {
+  return `${fecha.getFullYear()}-${pad2(fecha.getMonth() + 1)}-${pad2(fecha.getDate())}`;
+}
+
+function formatearHoraLocal(fecha) {
+  return `${pad2(fecha.getHours())}:${pad2(fecha.getMinutes())}`;
+}
+
+function pad2(valor) {
+  return String(valor).padStart(2, "0");
 }
 
 function limpiarValor(valor) {

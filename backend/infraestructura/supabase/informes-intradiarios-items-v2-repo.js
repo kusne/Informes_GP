@@ -29,6 +29,31 @@ export async function guardarItemsInformeIntradiarioV2(items = []) {
   return crearResultadoSupabaseOk(data || []);
 }
 
+export async function reemplazarItemsInformeIntradiarioV2(informe_id, items = []) {
+  if (!informe_id) {
+    throw new Error("No se pueden reemplazar items intradiarios: falta informe_id.");
+  }
+
+  if (!supabaseDisponible()) {
+    return crearResultadoSupabaseSaltado("Supabase no configurado. Items intradiarios no persistidos.");
+  }
+
+  const supabase = obtenerSupabaseClient();
+
+  const { error: deleteError } = await supabase
+    .from(TABLAS_SUPABASE.informesIntradiariosItems)
+    .delete()
+    .eq("informe_id", informe_id);
+
+  if (deleteError) throw deleteError;
+
+  if (!Array.isArray(items) || !items.length) {
+    return crearResultadoSupabaseOk([]);
+  }
+
+  return guardarItemsInformeIntradiarioV2(items);
+}
+
 export async function listarItemsInformeIntradiarioV2({ informe_id } = {}) {
   if (!supabaseDisponible()) {
     return [];
@@ -43,7 +68,8 @@ export async function listarItemsInformeIntradiarioV2({ informe_id } = {}) {
   const { data, error } = await supabase
     .from(TABLAS_SUPABASE.informesIntradiariosItems)
     .select("*")
-    .eq("informe_id", informe_id);
+    .eq("informe_id", informe_id)
+    .order("orden", { ascending: true });
 
   if (error) {
     throw error;

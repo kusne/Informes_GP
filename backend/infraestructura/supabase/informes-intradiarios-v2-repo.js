@@ -16,12 +16,30 @@ export async function guardarInformeIntradiarioV2(payload) {
   }
 
   const supabase = obtenerSupabaseClient();
+  const informeKey = String(payload.informe_key || "").trim();
+
+  if (informeKey) {
+    const existente = await buscarInformePorKey(informeKey);
+
+    if (existente?.id) {
+      const { data, error } = await supabase
+        .from(TABLAS_SUPABASE.informesIntradiarios)
+        .update(payload)
+        .eq("id", existente.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return crearResultadoSupabaseOk(data);
+    }
+  }
 
   const { data, error } = await supabase
     .from(TABLAS_SUPABASE.informesIntradiarios)
     .insert(payload)
     .select()
-    .maybeSingle();
+    .single();
 
   if (error) {
     throw error;
@@ -30,7 +48,27 @@ export async function guardarInformeIntradiarioV2(payload) {
   return crearResultadoSupabaseOk(data);
 }
 
-export async function listarInformesIntradiariosV2({ guardia_fecha } = {}) {
+export async function buscarInformePorKey(informe_key) {
+  if (!supabaseDisponible() || !informe_key) return null;
+
+  const supabase = obtenerSupabaseClient();
+  const { data, error } = await supabase
+    .from(TABLAS_SUPABASE.informesIntradiarios)
+    .select("*")
+    .eq("informe_key", informe_key)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data || null;
+}
+
+export async function listarInformesIntradiariosV2({
+  guardia_fecha,
+  operativo_key,
+  tipo_informe,
+  activo = true,
+  limite = 100
+} = {}) {
   if (!supabaseDisponible()) {
     return [];
   }
@@ -40,11 +78,13 @@ export async function listarInformesIntradiariosV2({ guardia_fecha } = {}) {
   let query = supabase
     .from(TABLAS_SUPABASE.informesIntradiarios)
     .select("*")
-    .order("created_at", { ascending: false });
+    .order("fecha_evento", { ascending: false })
+    .limit(Math.max(1, Number(limite || 100)));
 
-  if (guardia_fecha) {
-    query = query.eq("guardia_fecha", guardia_fecha);
-  }
+  if (guardia_fecha) query = query.eq("guardia_fecha", guardia_fecha);
+  if (operativo_key) query = query.eq("operativo_key", operativo_key);
+  if (tipo_informe) query = query.eq("tipo_informe", tipo_informe);
+  if (activo !== null && activo !== undefined) query = query.eq("activo", Boolean(activo));
 
   const { data, error } = await query;
 
