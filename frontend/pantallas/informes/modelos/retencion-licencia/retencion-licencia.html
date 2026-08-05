@@ -1,0 +1,139 @@
+<section class="formulario-informe-especial" data-modelo-informe="RETENCION_LICENCIA" data-foto-prefijo="retencion-licencia">
+  <h2>RETENCIÓN DE LICENCIA</h2>
+  <p>Informe de retención de licencia vinculado al operativo seleccionado.</p>
+
+  <div class="grilla-doble">
+    <div class="bloque-formulario">
+      <label for="licMotivo">Motivo</label>
+      <select id="licMotivo" name="motivo_licencia">
+        <option value="">Seleccionar</option>
+        <option value="VENCIDA_MAS_6_MESES">VENCIDA MÁS DE 6 MESES</option>
+        <option value="VENCIDA_MENOS_6_MESES">VENCIDA MENOS DE 6 MESES</option>
+        <option value="CADUCA_CAMBIO_DATOS">CADUCA POR CAMBIO DE DATOS</option>
+        <option value="MAL_OTORGADA">MAL OTORGADA</option>
+      </select>
+    </div>
+    <div class="bloque-formulario">
+      <label for="licCodigo">Código</label>
+      <input id="licCodigo" name="codigo" type="text" placeholder="Automático cuando está confirmado">
+    </div>
+  </div>
+
+  <div class="grilla-doble">
+    <div class="bloque-formulario">
+      <label for="licFecha">Fecha</label>
+      <input id="licFecha" name="fecha_hecho" type="date">
+    </div>
+    <div class="bloque-formulario">
+      <label for="licHora">Hora</label>
+      <input id="licHora" name="hora_hecho" type="time">
+    </div>
+  </div>
+
+  <div class="grilla-doble">
+    <div class="bloque-formulario">
+      <label for="licLugar">Lugar</label>
+      <input id="licLugar" name="lugar_hecho" type="text" placeholder="Lugar del procedimiento">
+    </div>
+    <div class="bloque-formulario">
+      <label for="licLocalidad">Localidad</label>
+      <input id="licLocalidad" name="localidad" type="text" value="Santa Fe">
+    </div>
+  </div>
+
+  <div class="bloque-formulario">
+    <label for="licPersonal">Personal policial</label>
+    <textarea id="licPersonal" name="personal" placeholder="Un efectivo por línea"></textarea>
+  </div>
+
+  <div class="bloque-formulario">
+    <label for="licMoviles">Móvil/es</label>
+    <input id="licMoviles" name="moviles" type="text" placeholder="Ej: 10139/12502">
+  </div>
+
+  <div class="grilla-doble">
+    <div class="bloque-formulario">
+      <label for="licConductor">Conductor</label>
+      <input id="licConductor" name="conductor" type="text" placeholder="Apellido y nombre">
+    </div>
+    <div class="bloque-formulario">
+      <label for="licDni">DNI</label>
+      <input id="licDni" name="dni" type="text" inputmode="numeric" placeholder="DNI (opcional)">
+    </div>
+  </div>
+
+  <div class="grilla-doble">
+    <div class="bloque-formulario">
+      <label for="licTipoVehiculo">Tipo de vehículo</label>
+      <select id="licTipoVehiculo" name="tipo_vehiculo">
+        <option value="">Seleccionar</option>
+        <option value="MOTOVEHÍCULO">MOTOVEHÍCULO</option>
+        <option value="AUTOMÓVIL">AUTOMÓVIL</option>
+        <option value="PICK-UP">PICK-UP</option>
+        <option value="CAMIONETA">CAMIONETA</option>
+        <option value="CAMIÓN">CAMIÓN</option>
+        <option value="OTRO">OTRO</option>
+      </select>
+    </div>
+    <div class="bloque-formulario">
+      <label for="licDominio">Dominio</label>
+      <input id="licDominio" name="dominio" type="text" placeholder="Patente / dominio">
+    </div>
+  </div>
+
+  <div class="grilla-doble">
+    <div class="bloque-formulario">
+      <label for="licMarca">Marca</label>
+      <input id="licMarca" name="marca" type="text" placeholder="Marca del vehículo">
+    </div>
+    <div class="bloque-formulario">
+      <label for="licModeloVehiculo">Modelo</label>
+      <input id="licModeloVehiculo" name="modelo_vehiculo" type="text" placeholder="Modelo del vehículo">
+    </div>
+  </div>
+
+  <div class="grilla-doble">
+    <div class="bloque-formulario">
+      <label for="licClase">Clase de licencia</label>
+      <input id="licClase" name="clase_licencia" type="text" placeholder="Ej: A2.2 B1">
+    </div>
+    <div class="bloque-formulario">
+      <label for="licVencimiento">Fecha de vencimiento / VTO</label>
+      <input id="licVencimiento" name="fecha_vencimiento" type="date">
+    </div>
+  </div>
+
+  <div class="bloque-formulario">
+    <label for="licActa">N° Acta / Cédula de notificación</label>
+    <input id="licActa" name="numero_acta" type="text" placeholder="Ej: 070544758">
+  </div>
+
+  <div class="bloque-formulario checkbox-linea">
+    <input id="licRetencion" name="retencion_licencia" type="checkbox" value="SI" checked>
+    <label for="licRetencion">Retención de Licencia Nacional de Conducir</label>
+  </div>
+
+  <div class="bloque-formulario checkbox-linea">
+    <input id="licRemision" name="remision_rodado" type="checkbox" value="SI">
+    <label for="licRemision">Remisión del rodado</label>
+  </div>
+
+  <div class="bloque-formulario checkbox-linea">
+    <input id="licProhibicion" name="prohibicion_circular" type="checkbox" value="SI">
+    <label for="licProhibicion">Prohibición de circular</label>
+  </div>
+
+  <div class="bloque-formulario">
+    <label for="licDetalle">Detalle / aclaración</label>
+    <textarea id="licDetalle" name="detalle_motivo" placeholder="Usar especialmente para licencia mal otorgada u otra aclaración"></textarea>
+  </div>
+
+  <div class="bloque-formulario">
+    <label for="licObservaciones">Observaciones</label>
+    <textarea id="licObservaciones" name="observaciones" placeholder="Información adicional"></textarea>
+  </div>
+
+  <div class="fotos-formulario-host"
+       data-fotos-html="/frontend/pantallas/informes/modelos/retencion-licencia/fotos/fotos-retencion-licencia.html"
+       data-fotos-module="/frontend/pantallas/informes/modelos/retencion-licencia/fotos/fotos-retencion-licencia.js"></div>
+</section>

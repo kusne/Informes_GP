@@ -1,4 +1,4 @@
-const CACHE_VERSION = "informes-gp-v20260804-tipos-resultados-final";
+const CACHE_VERSION = "informes-gp-v20260805-nuevos-informes-control-armas-licencias";
 const CACHE_ESTATICO = `${CACHE_VERSION}-static`;
 
 const PRECACHE = [
@@ -9,7 +9,7 @@ const PRECACHE = [
   "./frontend/assets/logo-bmzcn-gold-black.png",
   "./frontend/assets/icon-192.png",
   "./frontend/assets/icon-512.png",
-  "./frontend/app/app-bootstrap.js?v=20260804-tipos-resultados-final",
+  "./frontend/app/app-bootstrap.js?v=20260805-nuevos-informes-control-armas-licencias",
   "./frontend/app/app.js",
   "./frontend/servicios/navegacion/instancia-unica.js",
   "./frontend/servicios/ui/cargar-componente-html.js",
@@ -47,10 +47,10 @@ const PRECACHE = [
   "./frontend/servicios/fotos/comprimir-foto.js",
   "./backend/dominio/inicia/recursos-inicio.js",
   "./backend/dominio/compartido/recursos/catalogo-recursos-operativos.js",
-  "./frontend/compatibilidad/control-moviles/wsp-control-moviles-flujo-ui.js?v=20260804-tipos-resultados-final",
-  "./frontend/compatibilidad/control-moviles/wsp-control-moviles-ui.js?v=20260804-tipos-resultados-final",
-  "./frontend/compatibilidad/control-moviles/control-moviles.js?v=20260804-tipos-resultados-final",
-  "./frontend/compatibilidad/pantalla-principal/pantalla-principal-flujo.js?v=20260804-tipos-resultados-final",
+  "./frontend/compatibilidad/control-moviles/wsp-control-moviles-flujo-ui.js?v=20260805-nuevos-informes-control-armas-licencias",
+  "./frontend/compatibilidad/control-moviles/wsp-control-moviles-ui.js?v=20260805-nuevos-informes-control-armas-licencias",
+  "./frontend/compatibilidad/control-moviles/control-moviles.js?v=20260805-nuevos-informes-control-armas-licencias",
+  "./frontend/compatibilidad/pantalla-principal/pantalla-principal-flujo.js?v=20260805-nuevos-informes-control-armas-licencias",
   "./backend/aplicacion/estado/fotos-estado.js",
   "./backend/dominio/compartido/tipos/operativos-elementos-controlados-opcionales.js",
   "./backend/dominio/compartido/tipos/presencia-activa-puente.js",
@@ -66,6 +66,12 @@ const PRECACHE = [
   "./backend/dominio/whatsapp/whatsapp-config.js",
   "./backend/infraestructura/ensayo/operativos-ensayo.js",
   "./frontend/pantallas/informes/modelos-informes.js",
+  "./frontend/pantallas/informes/informes.js",
+  "./frontend/pantallas/informes/compartido/informe-especial-builder.js",
+  "./frontend/pantallas/informes/modelos/control-armas/control-armas.html",
+  "./frontend/pantallas/informes/modelos/control-armas/control-armas.js",
+  "./frontend/pantallas/informes/modelos/retencion-licencia/retencion-licencia.html",
+  "./frontend/pantallas/informes/modelos/retencion-licencia/retencion-licencia.js",
   "./frontend/servicios/whatsapp/abrir-whatsapp.js",
   "./frontend/servicios/whatsapp/salida-whatsapp.js"
 ];
@@ -115,7 +121,7 @@ self.addEventListener("fetch", (event) => {
 
 async function recargarClientesConVersionActual() {
   const clientes = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
-  const version = "20260804-tipos-resultados-final";
+  const version = "20260805-nuevos-informes-control-armas-licencias";
 
   await Promise.all(clientes.map(async (cliente) => {
     try {

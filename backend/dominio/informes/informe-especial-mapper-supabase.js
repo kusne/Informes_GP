@@ -9,6 +9,7 @@ export function mapearInformeEspecialParaSupabase(informe) {
     hora_inicio: informe.hora_inicio,
     hora_fin: informe.hora_fin,
     lugar: informe.lugar,
+    foto_prefijo: informe.foto_prefijo || "",
     datos: {
       ...(informe.formulario || {}),
       fotos: normalizarFotos(informe.fotos),

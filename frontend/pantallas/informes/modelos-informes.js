@@ -19,6 +19,22 @@ export const MODELOS_INFORMES_GP = [
     nombre: "DECTO 460/22",
     label: "DECTO 460/22",
     html: "/frontend/pantallas/informes/modelos/decreto-460-22/decreto-460-22.html"
+  },
+  {
+    modelo_key: "CONTROL_ARMAS",
+    codigo: "CONTROL_ARMAS",
+    nombre: "CONTROL DE ARMAS",
+    label: "CONTROL DE ARMAS",
+    html: "/frontend/pantallas/informes/modelos/control-armas/control-armas.html",
+    modulo: "/frontend/pantallas/informes/modelos/control-armas/control-armas.js"
+  },
+  {
+    modelo_key: "RETENCION_LICENCIA",
+    codigo: "RETENCION_LICENCIA",
+    nombre: "RETENCIÓN DE LICENCIA",
+    label: "RETENCIÓN DE LICENCIA",
+    html: "/frontend/pantallas/informes/modelos/retencion-licencia/retencion-licencia.html",
+    modulo: "/frontend/pantallas/informes/modelos/retencion-licencia/retencion-licencia.js"
   }
 ];
 

@@ -1,4 +1,5 @@
 import { cargarComponenteHtml } from "../../servicios/ui/cargar-componente-html.js";
+import { resolverRutaApp } from "../../servicios/rutas/rutas-app.js";
 import { obtenerOperativosPorModo } from "../../../backend/aplicacion/operativos/operativos.js";
 import {
   obtenerModeloInformeGP,
@@ -156,6 +157,21 @@ async function renderFormularioInforme({
       </section>
     `;
     return;
+  }
+
+  if (modelo.modulo) {
+    try {
+      const moduloUI = await import(resolverRutaApp(modelo.modulo));
+      if (typeof moduloUI.iniciarModeloInformeUI === "function") {
+        await moduloUI.iniciarModeloInformeUI({
+          form,
+          operativoSeleccionado: estadoInforme.operativoSeleccionado,
+          getContexto
+        });
+      }
+    } catch (error) {
+      console.error(`[Informes_GP] No se pudo iniciar UI de ${modelo.codigo}:`, error);
+    }
   }
 
   await iniciarModeloInformeEspecial({

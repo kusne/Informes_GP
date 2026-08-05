@@ -1,0 +1,113 @@
+<section class="formulario-informe-especial" data-modelo-informe="CONTROL_ARMAS" data-foto-prefijo="control-armas">
+  <h2>CONTROL DE ARMAS</h2>
+  <p>Informe de requisa de vehículo y control / transporte de armas de fuego vinculado al operativo seleccionado.</p>
+
+  <div class="grilla-doble">
+    <div class="bloque-formulario">
+      <label for="armasFecha">Fecha del hecho</label>
+      <input id="armasFecha" name="fecha_hecho" type="date">
+    </div>
+    <div class="bloque-formulario">
+      <label for="armasHora">Hora del hecho</label>
+      <input id="armasHora" name="hora_hecho" type="time">
+    </div>
+  </div>
+
+  <div class="bloque-formulario">
+    <label for="armasLugar">Lugar</label>
+    <input id="armasLugar" name="lugar_hecho" type="text" placeholder="Lugar del procedimiento">
+  </div>
+
+  <div class="grilla-doble">
+    <div class="bloque-formulario">
+      <label for="armasMoviles">Móvil/es</label>
+      <input id="armasMoviles" name="moviles" type="text" placeholder="Ej: 12502/12428">
+    </div>
+    <div class="bloque-formulario">
+      <label for="armasTipoVehiculo">Tipo de vehículo</label>
+      <select id="armasTipoVehiculo" name="tipo_vehiculo">
+        <option value="">Seleccionar</option>
+        <option value="MOTOVEHÍCULO">MOTOVEHÍCULO</option>
+        <option value="AUTOMÓVIL">AUTOMÓVIL</option>
+        <option value="PICK-UP">PICK-UP</option>
+        <option value="CAMIONETA">CAMIONETA</option>
+        <option value="CAMIÓN">CAMIÓN</option>
+        <option value="OTRO">OTRO</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="bloque-formulario">
+    <label for="armasPersonal">Personal policial</label>
+    <textarea id="armasPersonal" name="personal" placeholder="Un efectivo por línea"></textarea>
+  </div>
+
+  <div class="grilla-doble">
+    <div class="bloque-formulario">
+      <label for="armasConductor">Conductor</label>
+      <input id="armasConductor" name="conductor" type="text" placeholder="Apellido y nombre">
+    </div>
+    <div class="bloque-formulario">
+      <label for="armasDni">DNI</label>
+      <input id="armasDni" name="dni" type="text" inputmode="numeric" placeholder="DNI (opcional)">
+    </div>
+  </div>
+
+  <div class="grilla-doble">
+    <div class="bloque-formulario">
+      <label for="armasDominio">Dominio</label>
+      <input id="armasDominio" name="dominio" type="text" placeholder="Patente / dominio">
+    </div>
+    <div class="bloque-formulario">
+      <label for="armasCantidad">Cantidad de armas</label>
+      <input id="armasCantidad" name="cantidad_armas" type="number" min="1" step="1" placeholder="Ej: 1">
+    </div>
+  </div>
+
+  <div class="grilla-doble">
+    <div class="bloque-formulario">
+      <label for="armasTipoArma">Tipo de arma</label>
+      <select id="armasTipoArma" name="tipo_arma">
+        <option value="">Seleccionar</option>
+        <option value="ESCOPETA">ESCOPETA</option>
+        <option value="PISTOLA">PISTOLA</option>
+        <option value="REVÓLVER">REVÓLVER</option>
+        <option value="CARABINA">CARABINA</option>
+        <option value="RIFLE">RIFLE</option>
+        <option value="OTRA">OTRA</option>
+      </select>
+    </div>
+    <div class="bloque-formulario">
+      <label for="armasDocumentacion">Documentación del armamento</label>
+      <select id="armasDocumentacion" name="documentacion_armas">
+        <option value="">Seleccionar</option>
+        <option value="SIN NOVEDAD">SIN NOVEDAD</option>
+        <option value="CON OBSERVACIONES">CON OBSERVACIONES</option>
+        <option value="NO POSEE / NO EXHIBE">NO POSEE / NO EXHIBE</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="bloque-formulario">
+    <label for="armasDetalle">Detalle del armamento</label>
+    <textarea id="armasDetalle" name="detalle_armas" placeholder="Marca, calibre, número, cantidad por tipo u otro detalle"></textarea>
+  </div>
+
+  <div class="bloque-formulario">
+    <label for="armasResultado">Resultado del procedimiento</label>
+    <select id="armasResultado" name="resultado_procedimiento">
+      <option value="CONTINÚA SU MARCHA">CONTINÚA SU MARCHA</option>
+      <option value="SE ADOPTAN MEDIDAS">SE ADOPTAN MEDIDAS</option>
+      <option value="OTRO">OTRO</option>
+    </select>
+  </div>
+
+  <div class="bloque-formulario">
+    <label for="armasObservaciones">Observaciones / ampliación</label>
+    <textarea id="armasObservaciones" name="observaciones" placeholder="Información adicional del procedimiento"></textarea>
+  </div>
+
+  <div class="fotos-formulario-host"
+       data-fotos-html="/frontend/pantallas/informes/modelos/control-armas/fotos/fotos-control-armas.html"
+       data-fotos-module="/frontend/pantallas/informes/modelos/control-armas/fotos/fotos-control-armas.js"></div>
+</section>

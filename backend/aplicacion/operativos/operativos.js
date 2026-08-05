@@ -145,11 +145,33 @@ async function obtenerOperativosDesdeSupabase({ modo, guardiaFecha }) {
   }
 
   if (modo === "INFORMES") {
-    const estados = await listarEstadosOperativosRestRapido({
-      guardia_fecha: guardiaFecha
-    });
+    const [estadosResultado, programadosResultado] = await Promise.allSettled([
+      listarEstadosOperativosRestRapido({
+        guardia_fecha: guardiaFecha
+      }),
+      listarOperativosProgramadosRestRapido({
+        guardia_fecha: guardiaFecha,
+        activo: true,
+        excluir_sin_efecto: false
+      })
+    ]);
 
-    return estados.filter((op) => normalizarEstado(op?.estado) === "EN_CURSO");
+    if (estadosResultado.status !== "fulfilled") {
+      throw estadosResultado.reason;
+    }
+
+    const enCurso = (estadosResultado.value || [])
+      .filter((op) => normalizarEstado(op?.estado) === "EN_CURSO");
+
+    if (programadosResultado.status === "fulfilled") {
+      return enriquecerFechaOperativoDesdeProgramacion(
+        enCurso,
+        programadosResultado.value || []
+      );
+    }
+
+    console.warn("[Informes_GP] No se pudo recuperar fecha_operativo para INFORMES:", programadosResultado.reason);
+    return enCurso;
   }
 
   return [];

@@ -89,6 +89,7 @@ export function construirInformeEspecialDesdeFormulario({
     hora_fin: operativoSeleccionado?.hora_fin || "",
     lugar: operativoSeleccionado?.lugar || "",
     formulario,
+    foto_prefijo: fotoPrefijo,
     fotos,
     calculos: calcularDatosModelo(modeloNormalizado, formulario)
   };
@@ -161,7 +162,29 @@ function calcularDatosModelo(modelo, formulario) {
     };
   }
 
+  if (modelo === "CONTROL_ARMAS") {
+    return {
+      control_armas: true,
+      cantidad_armas: Number(formulario.cantidad_armas || 0)
+    };
+  }
+
+  if (modelo === "RETENCION_LICENCIA") {
+    return {
+      retencion_licencia: true,
+      motivo_licencia: formulario.motivo_licencia || "",
+      codigo: formulario.codigo || resolverCodigoLicencia(formulario.motivo_licencia)
+    };
+  }
+
   return {};
+}
+
+function resolverCodigoLicencia(motivo) {
+  const key = String(motivo || "").trim().toUpperCase();
+  if (key === "VENCIDA_MAS_6_MESES") return "9136";
+  if (key === "CADUCA_CAMBIO_DATOS") return "9140";
+  return "";
 }
 
 function resolverLimiteAlcoholemia(tipoVehiculo) {
