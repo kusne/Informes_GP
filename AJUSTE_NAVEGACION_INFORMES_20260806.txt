@@ -1,9 +1,0 @@
-AJUSTE NAVEGACION INFORMES - 2026-08-06
-
-1. Al presionar una tarjeta, el formulario se abre como vista/pagina propia de pantalla completa.
-2. La pantalla de tarjetas queda oculta mientras el modelo esta abierto.
-3. Flecha izquierda arriba para volver a las tarjetas.
-4. Al completarse el flujo de envio WhatsApp, vuelve automaticamente a la seleccion de tarjetas.
-5. CONTROL DE ARMAS: fecha del hecho, hora del hecho, moviles y personal policial no aparecen en la interfaz.
-6. Esos cuatro datos se conservan en campos ocultos y se completan desde el operativo en curso; la hora corresponde al momento de confeccion del informe.
-7. Se incremento la version de cache/PWA y JS/HTML se fuerzan por red para evitar ejecutar la interfaz anterior.

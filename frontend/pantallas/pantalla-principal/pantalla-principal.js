@@ -511,13 +511,17 @@ function registrarListenerModeloInforme() {
     estadoPantalla.modeloInformeSeleccionado = item;
     estadoPantalla.operativoSeleccionado = null;
 
+    // La navegación debe ocurrir ANTES de montar/cargar el informe.
+    // renderContenedorSeguro() espera módulos y operativos (Supabase); si la
+    // vista detalle se activa después de ese await, el formulario aparece
+    // transitoriamente debajo de las tarjetas y expande la pantalla principal.
+    entrarVistaDetalleInformes();
+
     await renderContenedorSeguro({
       modo: "INFORMES",
       operativoSeleccionado: null,
       modeloInformeSeleccionado: item
     });
-
-    entrarVistaDetalleInformes();
   });
 }
 
