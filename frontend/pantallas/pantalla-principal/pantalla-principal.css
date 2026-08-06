@@ -143,3 +143,39 @@ label.top-label,
     font-size: 18px;
   }
 }
+
+/* INFORMES: una tarjeta abre una VISTA/PÁGINA propia; nunca se despliega debajo. */
+.pantalla-principal.informe-detalle-activo > .brand,
+.pantalla-principal.informe-detalle-activo > #avisoModoEnsayoHost,
+.pantalla-principal.informe-detalle-activo > #selectorModoInformeHost,
+.pantalla-principal.informe-detalle-activo > .operativos-title-row,
+.pantalla-principal.informe-detalle-activo > #selectorOperativoContextualHost {
+  display: none !important;
+}
+
+body.informe-detalle-activo {
+  overflow: hidden !important;
+}
+
+.pantalla-principal.informe-detalle-activo {
+  padding: 0;
+}
+
+.pantalla-principal.informe-detalle-activo #contenedorDinamicoHost {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  width: 100vw;
+  height: 100dvh;
+  margin: 0 !important;
+  padding: 10px 12px 24px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: #cfd5dd;
+}
+
+.pantalla-principal.informe-detalle-activo #contenedorDinamicoHost > .informe-pagina-detalle {
+  width: min(100%, 520px);
+  min-height: calc(100dvh - 34px);
+  margin: 0 auto;
+}

@@ -146,6 +146,41 @@ label.top-label,
   }
 }
 
+/* INFORMES: una tarjeta abre una VISTA/PÁGINA propia; nunca se despliega debajo. */
+.pantalla-principal.informe-detalle-activo > .brand,
+.pantalla-principal.informe-detalle-activo > #avisoModoEnsayoHost,
+.pantalla-principal.informe-detalle-activo > #selectorModoInformeHost,
+.pantalla-principal.informe-detalle-activo > .operativos-title-row,
+.pantalla-principal.informe-detalle-activo > #selectorOperativoContextualHost {
+  display: none !important;
+}
+
+body.informe-detalle-activo {
+  overflow: hidden !important;
+}
+
+.pantalla-principal.informe-detalle-activo {
+  padding: 0;
+}
+
+.pantalla-principal.informe-detalle-activo #contenedorDinamicoHost {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  width: 100vw;
+  height: 100dvh;
+  margin: 0 !important;
+  padding: 10px 12px 24px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: #cfd5dd;
+}
+
+.pantalla-principal.informe-detalle-activo #contenedorDinamicoHost > .informe-pagina-detalle {
+  width: min(100%, 520px);
+  min-height: calc(100dvh - 34px);
+  margin: 0 auto;
+}
 /* === FIN frontend/pantallas/pantalla-principal/pantalla-principal.css === */
 
 
@@ -1459,6 +1494,41 @@ label.top-label,
 .checkbox-opcion input {
   width: auto !important;
   margin: 0;
+}
+
+/* Pantalla independiente de cada modelo de INFORMES. */
+.informe-pagina-detalle {
+  position: relative;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.informe-volver-modelos {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 52px !important;
+  min-width: 52px;
+  min-height: 48px !important;
+  margin: 0 0 10px 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+  background: #eef1f6 !important;
+  color: #0b3d91 !important;
+  font-size: 34px !important;
+  line-height: 1 !important;
+  font-weight: 900 !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,.16) !important;
+}
+
+.informe-volver-modelos:hover,
+.informe-volver-modelos:active {
+  background: #d7dce3 !important;
+  color: #072e6d !important;
 }
 /* === FIN frontend/pantallas/informes/informes.css === */
 

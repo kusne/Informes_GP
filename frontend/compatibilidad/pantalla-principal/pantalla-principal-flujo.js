@@ -5,7 +5,7 @@
   window.IGP = window.IGP || {};
   window.IGP.pantallaPrincipal = window.IGP.pantallaPrincipal || {};
 
-  const VERSION = "pantalla-principal-flujo-20260805-modelos-5";
+  const VERSION = "pantalla-principal-flujo-20260806-informes-pagina-v2";
 
   const MODELOS_INFORMES = [
     {
@@ -382,7 +382,8 @@
       }
 
       if (esInformes) {
-        panelModelos.hidden = false;
+        // Si un modelo está abierto como página propia, las tarjetas deben permanecer ocultas.
+        panelModelos.hidden = document.body.classList.contains("informe-detalle-activo");
         mountControl.hidden = true;
         window.WSP?.modules?.controlMoviles?.setActiva?.(false);
 
@@ -432,6 +433,12 @@
       }));
 
       aplicarFlujo();
+    });
+
+    document.addEventListener("igp:modelo-informe-limpiado", () => {
+      modeloSeleccionado = null;
+      const panel = document.getElementById(ID_PANEL_MODELOS);
+      if (panel) pintarModelo(panel);
     });
 
     // La arquitectura actual ya controla sus renders. El observer global de

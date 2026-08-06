@@ -205,3 +205,38 @@
   width: auto !important;
   margin: 0;
 }
+
+/* Pantalla independiente de cada modelo de INFORMES. */
+.informe-pagina-detalle {
+  position: relative;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.informe-volver-modelos {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 52px !important;
+  min-width: 52px;
+  min-height: 48px !important;
+  margin: 0 0 10px 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+  background: #eef1f6 !important;
+  color: #0b3d91 !important;
+  font-size: 34px !important;
+  line-height: 1 !important;
+  font-weight: 900 !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,.16) !important;
+}
+
+.informe-volver-modelos:hover,
+.informe-volver-modelos:active {
+  background: #d7dce3 !important;
+  color: #072e6d !important;
+}

@@ -2,44 +2,28 @@
   <h2>CONTROL DE ARMAS</h2>
   <p>Informe de requisa de vehículo y control / transporte de armas de fuego vinculado al operativo seleccionado.</p>
 
-  <div class="grilla-doble">
-    <div class="bloque-formulario">
-      <label for="armasFecha">Fecha del hecho</label>
-      <input id="armasFecha" name="fecha_hecho" type="date">
-    </div>
-    <div class="bloque-formulario">
-      <label for="armasHora">Hora del hecho</label>
-      <input id="armasHora" name="hora_hecho" type="time">
-    </div>
-  </div>
+  <!-- Datos de contexto: no se muestran ni se editan. Se completan desde el operativo en curso. -->
+  <input id="armasFecha" name="fecha_hecho" type="hidden" data-contexto-operativo="fecha">
+  <input id="armasHora" name="hora_hecho" type="hidden" data-contexto-operativo="hora">
+  <input id="armasMoviles" name="moviles" type="hidden" data-contexto-operativo="moviles">
+  <input id="armasPersonal" name="personal" type="hidden" data-contexto-operativo="personal">
 
   <div class="bloque-formulario">
     <label for="armasLugar">Lugar</label>
     <input id="armasLugar" name="lugar_hecho" type="text" placeholder="Lugar del procedimiento">
   </div>
 
-  <div class="grilla-doble">
-    <div class="bloque-formulario">
-      <label for="armasMoviles">Móvil/es</label>
-      <input id="armasMoviles" name="moviles" type="text" placeholder="Ej: 12502/12428">
-    </div>
-    <div class="bloque-formulario">
-      <label for="armasTipoVehiculo">Tipo de vehículo</label>
-      <select id="armasTipoVehiculo" name="tipo_vehiculo">
-        <option value="">Seleccionar</option>
-        <option value="MOTOVEHÍCULO">MOTOVEHÍCULO</option>
-        <option value="AUTOMÓVIL">AUTOMÓVIL</option>
-        <option value="PICK-UP">PICK-UP</option>
-        <option value="CAMIONETA">CAMIONETA</option>
-        <option value="CAMIÓN">CAMIÓN</option>
-        <option value="OTRO">OTRO</option>
-      </select>
-    </div>
-  </div>
-
   <div class="bloque-formulario">
-    <label for="armasPersonal">Personal policial</label>
-    <textarea id="armasPersonal" name="personal" placeholder="Un efectivo por línea"></textarea>
+    <label for="armasTipoVehiculo">Tipo de vehículo</label>
+    <select id="armasTipoVehiculo" name="tipo_vehiculo">
+      <option value="">Seleccionar</option>
+      <option value="MOTOVEHÍCULO">MOTOVEHÍCULO</option>
+      <option value="AUTOMÓVIL">AUTOMÓVIL</option>
+      <option value="PICK-UP">PICK-UP</option>
+      <option value="CAMIONETA">CAMIONETA</option>
+      <option value="CAMIÓN">CAMIÓN</option>
+      <option value="OTRO">OTRO</option>
+    </select>
   </div>
 
   <div class="grilla-doble">

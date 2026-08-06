@@ -1,4 +1,4 @@
-const CACHE_VERSION = "informes-gp-v20260805-modelos-ajuste-v7";
+const CACHE_VERSION = "informes-gp-v20260806-informes-pagina-v2";
 const CACHE_ESTATICO = `${CACHE_VERSION}-static`;
 
 const PRECACHE = [
@@ -9,7 +9,7 @@ const PRECACHE = [
   "./frontend/assets/logo-bmzcn-gold-black.png",
   "./frontend/assets/icon-192.png",
   "./frontend/assets/icon-512.png",
-  "./frontend/app/app-bootstrap.js?v=20260805-modelos-ajuste-v7",
+  "./frontend/app/app-bootstrap.js?v=20260806-informes-pagina-v2",
   "./frontend/app/app.js",
   "./frontend/servicios/navegacion/instancia-unica.js",
   "./frontend/servicios/ui/cargar-componente-html.js",
@@ -47,10 +47,10 @@ const PRECACHE = [
   "./frontend/servicios/fotos/comprimir-foto.js",
   "./backend/dominio/inicia/recursos-inicio.js",
   "./backend/dominio/compartido/recursos/catalogo-recursos-operativos.js",
-  "./frontend/compatibilidad/control-moviles/wsp-control-moviles-flujo-ui.js?v=20260805-modelos-ajuste-v7",
-  "./frontend/compatibilidad/control-moviles/wsp-control-moviles-ui.js?v=20260805-modelos-ajuste-v7",
-  "./frontend/compatibilidad/control-moviles/control-moviles.js?v=20260805-modelos-ajuste-v7",
-  "./frontend/compatibilidad/pantalla-principal/pantalla-principal-flujo.js?v=20260805-modelos-ajuste-v7",
+  "./frontend/compatibilidad/control-moviles/wsp-control-moviles-flujo-ui.js?v=20260806-informes-pagina-v2",
+  "./frontend/compatibilidad/control-moviles/wsp-control-moviles-ui.js?v=20260806-informes-pagina-v2",
+  "./frontend/compatibilidad/control-moviles/control-moviles.js?v=20260806-informes-pagina-v2",
+  "./frontend/compatibilidad/pantalla-principal/pantalla-principal-flujo.js?v=20260806-informes-pagina-v2",
   "./backend/aplicacion/estado/fotos-estado.js",
   "./backend/dominio/compartido/tipos/operativos-elementos-controlados-opcionales.js",
   "./backend/dominio/compartido/tipos/presencia-activa-puente.js",
@@ -109,9 +109,12 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // JS/HTML deben pasar por la red (usando el cache HTTP normal del navegador)
-  // para que una publicación nueva de GitHub no ejecute código viejo del SW.
-  if (/\.(?:js|html)$/i.test(url.pathname)) return;
+  // JS/HTML siempre por red y sin cache HTTP: evita que GitHub/PWA ejecute
+  // una versión anterior después de publicar una corrección de interfaz.
+  if (/\.(?:js|html)$/i.test(url.pathname)) {
+    event.respondWith(fetch(request, { cache: "no-store" }));
+    return;
+  }
 
   if (esRecursoEstatico(url.pathname)) {
     event.respondWith(cacheFirst(request));
@@ -121,7 +124,7 @@ self.addEventListener("fetch", (event) => {
 
 async function recargarClientesConVersionActual() {
   const clientes = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
-  const version = "20260805-modelos-ajuste-v7";
+  const version = "20260806-informes-pagina-v2";
 
   await Promise.all(clientes.map(async (cliente) => {
     try {

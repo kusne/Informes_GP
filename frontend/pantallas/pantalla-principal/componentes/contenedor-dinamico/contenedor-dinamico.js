@@ -215,11 +215,24 @@ async function renderInformes({
   }
 
   host.innerHTML = `
-    <section class="contenedor-dinamico-card">
-      <div id="informesModuloHost"></div>
-      <div id="salidaWhatsappHost"></div>
+    <section class="informe-pagina-detalle" data-informe-pagina-detalle role="region" aria-label="Informe ${escapeHtml(modeloInformeSeleccionado.nombre || modeloInformeSeleccionado.titulo || modeloInformeSeleccionado.codigo || "")}">
+      <button
+        id="btnVolverModelosInformes"
+        class="informe-volver-modelos"
+        type="button"
+        aria-label="Volver a modelos de informes"
+        title="Volver a modelos de informes"
+      >←</button>
+      <main class="informe-pagina-contenido">
+        <div id="informesModuloHost"></div>
+        <div id="salidaWhatsappHost"></div>
+      </main>
     </section>
   `;
+
+  host.querySelector("#btnVolverModelosInformes")?.addEventListener("click", () => {
+    window.dispatchEvent(new CustomEvent("informesgp:volver-modelos-informes"));
+  });
 
   const moduloHost = host.querySelector("#informesModuloHost");
   moduloHost.innerHTML = await cargarComponenteHtml("/frontend/pantallas/informes/informes.html");

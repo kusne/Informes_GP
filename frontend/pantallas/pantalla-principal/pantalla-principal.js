@@ -14,6 +14,7 @@ const estadoPantalla = {
 let listenerEnvioRegistrado = false;
 let listenerRealtimeRegistrado = false;
 let listenerModeloInformeRegistrado = false;
+let listenerVolverInformesRegistrado = false;
 let timeoutRefresco = null;
 
 export async function iniciarPantallaPrincipal({ hostSelector }) {
@@ -39,6 +40,7 @@ export async function iniciarPantallaPrincipal({ hostSelector }) {
 
   registrarListenerPostEnvio();
   registrarListenerModeloInforme();
+  registrarListenerVolverInformes();
 
   // INICIA es el modo operativo por defecto. Así el contador y el selector
   // se cargan apenas abre la aplicación, sin exigir una selección previa.
@@ -57,6 +59,7 @@ export async function iniciarPantallaPrincipal({ hostSelector }) {
 }
 
 async function cambiarModoPantalla(modo) {
+  salirVistaDetalleInformes();
   estadoPantalla.modo = normalizarModo(modo);
   estadoPantalla.operativoSeleccionado = null;
   estadoPantalla.modeloInformeSeleccionado = null;
@@ -513,7 +516,61 @@ function registrarListenerModeloInforme() {
       operativoSeleccionado: null,
       modeloInformeSeleccionado: item
     });
+
+    entrarVistaDetalleInformes();
   });
+}
+
+function registrarListenerVolverInformes() {
+  if (listenerVolverInformesRegistrado) return;
+  listenerVolverInformesRegistrado = true;
+
+  window.addEventListener("informesgp:volver-modelos-informes", async () => {
+    if (estadoPantalla.modo !== "INFORMES") return;
+    await volverATarjetasInformes();
+  });
+}
+
+function entrarVistaDetalleInformes() {
+  const pantalla = document.querySelector(".pantalla-principal");
+  const panelModelos = document.getElementById("igp-panel-modelos-informes");
+
+  // Ocultado explícito además del CSS: la tarjeta elegida nunca queda arriba del formulario.
+  if (panelModelos) panelModelos.hidden = true;
+
+  pantalla?.classList.add("informe-detalle-activo");
+  document.body.classList.add("informe-detalle-activo");
+  document.documentElement.classList.add("informe-detalle-activo");
+  window.scrollTo({ top: 0, behavior: "auto" });
+}
+
+function salirVistaDetalleInformes() {
+  document.querySelector(".pantalla-principal")?.classList.remove("informe-detalle-activo");
+  document.body.classList.remove("informe-detalle-activo");
+  document.documentElement.classList.remove("informe-detalle-activo");
+}
+
+async function volverATarjetasInformes() {
+  estadoPantalla.modeloInformeSeleccionado = null;
+  estadoPantalla.operativoSeleccionado = null;
+
+  const host = document.querySelector("#contenedorDinamicoHost");
+  if (host) host.innerHTML = "";
+
+  salirVistaDetalleInformes();
+
+  document.dispatchEvent(new CustomEvent("igp:modelo-informe-limpiado"));
+
+  const panelModelos = document.getElementById("igp-panel-modelos-informes");
+  if (panelModelos) panelModelos.hidden = false;
+
+  try {
+    await window.IGP?.pantallaPrincipal?.aplicarFlujo?.();
+  } catch (error) {
+    console.warn("[Informes_GP] No se pudo repintar tarjetas al volver:", error);
+  }
+
+  window.scrollTo({ top: 0, behavior: "auto" });
 }
 
 function normalizarModeloDesdeTarjeta(valor) {
@@ -553,11 +610,14 @@ function registrarListenerPostEnvio() {
   listenerEnvioRegistrado = true;
 
   window.addEventListener("informesgp:envio-whatsapp-ok", async () => {
-    if (estadoPantalla.modo !== "INFORMES") {
-      await recargarItemsPantalla({
-        motivo: "post-envio"
-      });
+    if (estadoPantalla.modo === "INFORMES") {
+      await volverATarjetasInformes();
+      return;
     }
+
+    await recargarItemsPantalla({
+      motivo: "post-envio"
+    });
   });
 }
 
