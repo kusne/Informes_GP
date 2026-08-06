@@ -5,7 +5,7 @@
   window.IGP = window.IGP || {};
   window.IGP.pantallaPrincipal = window.IGP.pantallaPrincipal || {};
 
-  const VERSION = "pantalla-principal-flujo-20260806-informes-pagina-v3";
+  const VERSION = "pantalla-principal-flujo-20260806-informes-pagina-v4";
 
   const MODELOS_INFORMES = [
     {
@@ -38,6 +38,8 @@
   const ID_PANEL_MODELOS = "igp-panel-modelos-informes";
   const ID_CONTROL_MOUNT = "igp-control-moviles-mount";
   const ID_STYLE = "igp-pantalla-principal-flujo-style";
+  const ID_HOST_PRINCIPAL = "pantallaPrincipalHost";
+  const ID_HOST_DETALLE = "informeDetallePaginaHost";
   const LOGO_PATH = new URL("frontend/assets/logo-bmzcn-gold-black.png", document.baseURI).href;
 
   let modeloSeleccionado = null;
@@ -352,6 +354,37 @@
     mount.dataset.controlMovilesInit = "1";
   }
 
+  function abrirSuperficieDetalleInforme() {
+    const principal = document.getElementById(ID_HOST_PRINCIPAL);
+    const detalle = document.getElementById(ID_HOST_DETALLE);
+    const panel = document.getElementById(ID_PANEL_MODELOS);
+
+    if (panel) panel.hidden = true;
+
+    // Cambio físico de página en el mismo manejador que recibe el clic.
+    if (principal) {
+      principal.hidden = true;
+      principal.setAttribute("aria-hidden", "true");
+      principal.style.setProperty("display", "none", "important");
+    }
+
+    if (detalle) {
+      detalle.hidden = false;
+      detalle.removeAttribute("aria-hidden");
+      detalle.style.setProperty("display", "block", "important");
+    }
+
+    document.body.classList.add("informe-detalle-activo");
+    document.documentElement.classList.add("informe-detalle-activo");
+    document.body.dataset.igpVista = "informe-detalle";
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }
+
+  function detalleInformeActivo() {
+    return document.body.dataset.igpVista === "informe-detalle" ||
+      document.body.classList.contains("informe-detalle-activo");
+  }
+
   async function aplicarFlujo() {
     if (aplicando) return;
     aplicando = true;
@@ -383,7 +416,7 @@
 
       if (esInformes) {
         // Si un modelo está abierto como página propia, las tarjetas deben permanecer ocultas.
-        panelModelos.hidden = document.body.classList.contains("informe-detalle-activo");
+        panelModelos.hidden = detalleInformeActivo();
         mountControl.hidden = true;
         window.WSP?.modules?.controlMoviles?.setActiva?.(false);
 
@@ -427,6 +460,10 @@
       if (!btn) return;
 
       modeloSeleccionado = MODELOS_INFORMES.find((modelo) => modelo.id === btn.dataset.modeloInforme) || null;
+      if (!modeloSeleccionado) return;
+
+      // Primero cambia de página; después solicita el render del informe.
+      abrirSuperficieDetalleInforme();
 
       document.dispatchEvent(new CustomEvent("igp:modelo-informe-seleccionado", {
         detail: modeloSeleccionado,

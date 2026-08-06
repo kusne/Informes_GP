@@ -17,6 +17,7 @@ let listenerModeloInformeRegistrado = false;
 let listenerVolverInformesRegistrado = false;
 let timeoutRefresco = null;
 
+const ID_HOST_PANTALLA_PRINCIPAL = "pantallaPrincipalHost";
 const ID_PAGINA_DETALLE_INFORME = "informeDetallePaginaHost";
 
 export async function iniciarPantallaPrincipal({ hostSelector }) {
@@ -401,12 +402,12 @@ async function renderContenedorSeguro({
   operativoSeleccionado,
   modeloInformeSeleccionado
 }) {
-  const esPaginaInforme = normalizarModo(modo) === "INFORMES" && Boolean(modeloInformeSeleccionado);
-  const hostSelector = esPaginaInforme
+  const esDetalleInforme = normalizarModo(modo) === "INFORMES" && Boolean(modeloInformeSeleccionado);
+  const hostSelector = esDetalleInforme
     ? `#${ID_PAGINA_DETALLE_INFORME}`
     : "#contenedorDinamicoHost";
 
-  if (esPaginaInforme) {
+  if (esDetalleInforme) {
     asegurarPaginaDetalleInformes();
   }
 
@@ -516,16 +517,16 @@ function registrarListenerModeloInforme() {
 
     if (!item) {
       console.warn("[Informes_GP] Tarjeta de informe sin modelo registrado:", event?.detail);
+      // Si compatibilidad ya cambió de superficie pero el modelo no coincide,
+      // restauramos la página de tarjetas para no dejar una pantalla vacía.
+      salirVistaDetalleInformes();
       return;
     }
 
     estadoPantalla.modeloInformeSeleccionado = item;
     estadoPantalla.operativoSeleccionado = null;
 
-    // La navegación debe ocurrir ANTES de montar/cargar el informe.
-    // renderContenedorSeguro() espera módulos y operativos (Supabase); si la
-    // vista detalle se activa después de ese await, el formulario aparece
-    // transitoriamente debajo de las tarjetas y expande la pantalla principal.
+    // CAMBIO DE PÁGINA ANTES DE CUALQUIER await.
     entrarVistaDetalleInformes();
 
     await renderContenedorSeguro({
@@ -554,68 +555,73 @@ function asegurarPaginaDetalleInformes() {
   pagina.id = ID_PAGINA_DETALLE_INFORME;
   pagina.className = "informe-detalle-pagina-host";
   pagina.hidden = true;
-  pagina.setAttribute("aria-live", "polite");
+  pagina.setAttribute("aria-hidden", "true");
 
-  const destino = document.getElementById("app") || document.body;
-  destino.appendChild(pagina);
-
+  const principal = document.getElementById(ID_HOST_PANTALLA_PRINCIPAL);
+  const shell = principal?.parentElement || document.getElementById("app") || document.body;
+  shell.appendChild(pagina);
   return pagina;
 }
 
 function entrarVistaDetalleInformes() {
-  const pantalla = document.querySelector(".pantalla-principal");
+  const principal = document.getElementById(ID_HOST_PANTALLA_PRINCIPAL);
   const pagina = asegurarPaginaDetalleInformes();
   const panelModelos = document.getElementById("igp-panel-modelos-informes");
 
-  // La pantalla de tarjetas y la pantalla del informe son superficies DOM distintas.
-  // Se oculta toda la principal para que ninguna capa de compatibilidad pueda dejar
-  // selector/tarjetas por encima del formulario elegido.
   if (panelModelos) panelModelos.hidden = true;
-  if (pantalla) {
-    pantalla.hidden = true;
-    pantalla.setAttribute("aria-hidden", "true");
+
+  // No ocultamos partes: se apaga COMPLETO el host de selector/tarjetas.
+  if (principal) {
+    principal.hidden = true;
+    principal.setAttribute("aria-hidden", "true");
+    principal.style.setProperty("display", "none", "important");
   }
 
   pagina.hidden = false;
   pagina.removeAttribute("aria-hidden");
+  pagina.style.setProperty("display", "block", "important");
 
   document.body.classList.add("informe-detalle-activo");
   document.documentElement.classList.add("informe-detalle-activo");
+  document.body.dataset.igpVista = "informe-detalle";
+
   pagina.scrollTop = 0;
   window.scrollTo({ top: 0, behavior: "auto" });
 }
 
 function salirVistaDetalleInformes() {
-  const pantalla = document.querySelector(".pantalla-principal");
+  const principal = document.getElementById(ID_HOST_PANTALLA_PRINCIPAL);
   const pagina = document.getElementById(ID_PAGINA_DETALLE_INFORME);
 
   if (pagina) {
     pagina.hidden = true;
     pagina.setAttribute("aria-hidden", "true");
+    pagina.style.setProperty("display", "none", "important");
   }
 
-  if (pantalla) {
-    pantalla.hidden = false;
-    pantalla.removeAttribute("aria-hidden");
-    pantalla.classList.remove("informe-detalle-activo");
+  if (principal) {
+    principal.hidden = false;
+    principal.removeAttribute("aria-hidden");
+    principal.style.removeProperty("display");
   }
 
   document.body.classList.remove("informe-detalle-activo");
   document.documentElement.classList.remove("informe-detalle-activo");
+  delete document.body.dataset.igpVista;
 }
 
 async function volverATarjetasInformes() {
   estadoPantalla.modeloInformeSeleccionado = null;
   estadoPantalla.operativoSeleccionado = null;
 
-  const host = document.querySelector("#contenedorDinamicoHost");
-  if (host) host.innerHTML = "";
+  // El host viejo se conserva vacío. Los informes jamás se montan aquí.
+  const hostViejo = document.querySelector("#contenedorDinamicoHost");
+  if (hostViejo) hostViejo.innerHTML = "";
 
   const paginaDetalle = document.getElementById(ID_PAGINA_DETALLE_INFORME);
   if (paginaDetalle) paginaDetalle.innerHTML = "";
 
   salirVistaDetalleInformes();
-
   document.dispatchEvent(new CustomEvent("igp:modelo-informe-limpiado"));
 
   const panelModelos = document.getElementById("igp-panel-modelos-informes");

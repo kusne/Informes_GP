@@ -1,4 +1,4 @@
-import { iniciarApp } from "./app.js";
+import { iniciarApp } from "./app.js?v=20260806-informes-pagina-v4";
 import { iniciarInstanciaUnicaInformesGP } from "../servicios/navegacion/instancia-unica.js";
 
 iniciarInstanciaUnicaInformesGP();
