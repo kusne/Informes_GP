@@ -2203,10 +2203,39 @@ label.check input[type="checkbox"],
   font-weight: 800;
 }
 
+
+/* INFORMES v3: página DOM independiente para el modelo seleccionado. */
+.informe-detalle-pagina-host[hidden] {
+  display: none !important;
+}
+
+.informe-detalle-pagina-host {
+  position: fixed;
+  inset: 0;
+  z-index: 20000;
+  width: 100%;
+  height: 100dvh;
+  margin: 0;
+  padding: 10px 12px 24px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: #cfd5dd;
+}
+
+.informe-detalle-pagina-host > .informe-pagina-detalle {
+  width: min(100%, 520px);
+  min-height: calc(100dvh - 34px);
+  margin: 0 auto;
+}
+
+.pantalla-principal[hidden] {
+  display: none !important;
+}
+
   </style>
 
   <!-- Descarga anticipada de los árboles JS que forman la pantalla inicial. -->
-  <link rel="modulepreload" href="./frontend/app/app-bootstrap.js?v=20260806-informes-pagina-v2">
+  <link rel="modulepreload" href="./frontend/app/app-bootstrap.js?v=20260806-informes-pagina-v3">
   <link rel="modulepreload" href="./frontend/pantallas/inicia/inicia.js">
   <link rel="modulepreload" href="./backend/aplicacion/operativos/operativos.js">
   <link rel="preload" href="./frontend/assets/logo-bmzcn-gold-black.png" as="image" fetchpriority="high">
@@ -2271,12 +2300,12 @@ label.check input[type="checkbox"],
     </div>
   </div>
 
-  <script type="module" src="./frontend/app/app-bootstrap.js?v=20260806-informes-pagina-v2"></script>
+  <script type="module" src="./frontend/app/app-bootstrap.js?v=20260806-informes-pagina-v3"></script>
 
   <!-- Compatibilidad temporal: conserva los parches activos de la versión recibida. -->
   <script src="./frontend/compatibilidad/control-moviles/wsp-control-moviles-flujo-ui.js?v=20260804-speed2"></script>
   <script src="./frontend/compatibilidad/control-moviles/wsp-control-moviles-ui.js?v=20260804-speed2"></script>
   <script src="./frontend/compatibilidad/control-moviles/control-moviles.js?v=20260804-speed2"></script>
-  <script src="./frontend/compatibilidad/pantalla-principal/pantalla-principal-flujo.js?v=20260806-informes-pagina-v2"></script>
+  <script src="./frontend/compatibilidad/pantalla-principal/pantalla-principal-flujo.js?v=20260806-informes-pagina-v3"></script>
 </body>
 </html>

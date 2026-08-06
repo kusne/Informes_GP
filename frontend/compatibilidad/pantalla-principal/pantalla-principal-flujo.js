@@ -5,7 +5,7 @@
   window.IGP = window.IGP || {};
   window.IGP.pantallaPrincipal = window.IGP.pantallaPrincipal || {};
 
-  const VERSION = "pantalla-principal-flujo-20260806-informes-pagina-v2";
+  const VERSION = "pantalla-principal-flujo-20260806-informes-pagina-v3";
 
   const MODELOS_INFORMES = [
     {

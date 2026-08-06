@@ -17,6 +17,8 @@ let listenerModeloInformeRegistrado = false;
 let listenerVolverInformesRegistrado = false;
 let timeoutRefresco = null;
 
+const ID_PAGINA_DETALLE_INFORME = "informeDetallePaginaHost";
+
 export async function iniciarPantallaPrincipal({ hostSelector }) {
   const host = document.querySelector(hostSelector);
 
@@ -399,6 +401,15 @@ async function renderContenedorSeguro({
   operativoSeleccionado,
   modeloInformeSeleccionado
 }) {
+  const esPaginaInforme = normalizarModo(modo) === "INFORMES" && Boolean(modeloInformeSeleccionado);
+  const hostSelector = esPaginaInforme
+    ? `#${ID_PAGINA_DETALLE_INFORME}`
+    : "#contenedorDinamicoHost";
+
+  if (esPaginaInforme) {
+    asegurarPaginaDetalleInformes();
+  }
+
   try {
     const modulo = await import("./componentes/contenedor-dinamico/contenedor-dinamico.js");
 
@@ -407,7 +418,7 @@ async function renderContenedorSeguro({
     }
 
     await modulo.renderContenedorDinamico({
-      hostSelector: "#contenedorDinamicoHost",
+      hostSelector,
       modo,
       operativoSeleccionado,
       modeloInformeSeleccionado,
@@ -416,7 +427,7 @@ async function renderContenedorSeguro({
   } catch (error) {
     console.error("[Informes_GP] Error cargando contenedor dinámico:", error);
 
-    const host = document.querySelector("#contenedorDinamicoHost");
+    const host = document.querySelector(hostSelector);
     if (!host) return;
 
     host.innerHTML = `
@@ -535,21 +546,60 @@ function registrarListenerVolverInformes() {
   });
 }
 
+function asegurarPaginaDetalleInformes() {
+  let pagina = document.getElementById(ID_PAGINA_DETALLE_INFORME);
+  if (pagina) return pagina;
+
+  pagina = document.createElement("section");
+  pagina.id = ID_PAGINA_DETALLE_INFORME;
+  pagina.className = "informe-detalle-pagina-host";
+  pagina.hidden = true;
+  pagina.setAttribute("aria-live", "polite");
+
+  const destino = document.getElementById("app") || document.body;
+  destino.appendChild(pagina);
+
+  return pagina;
+}
+
 function entrarVistaDetalleInformes() {
   const pantalla = document.querySelector(".pantalla-principal");
+  const pagina = asegurarPaginaDetalleInformes();
   const panelModelos = document.getElementById("igp-panel-modelos-informes");
 
-  // Ocultado explícito además del CSS: la tarjeta elegida nunca queda arriba del formulario.
+  // La pantalla de tarjetas y la pantalla del informe son superficies DOM distintas.
+  // Se oculta toda la principal para que ninguna capa de compatibilidad pueda dejar
+  // selector/tarjetas por encima del formulario elegido.
   if (panelModelos) panelModelos.hidden = true;
+  if (pantalla) {
+    pantalla.hidden = true;
+    pantalla.setAttribute("aria-hidden", "true");
+  }
 
-  pantalla?.classList.add("informe-detalle-activo");
+  pagina.hidden = false;
+  pagina.removeAttribute("aria-hidden");
+
   document.body.classList.add("informe-detalle-activo");
   document.documentElement.classList.add("informe-detalle-activo");
+  pagina.scrollTop = 0;
   window.scrollTo({ top: 0, behavior: "auto" });
 }
 
 function salirVistaDetalleInformes() {
-  document.querySelector(".pantalla-principal")?.classList.remove("informe-detalle-activo");
+  const pantalla = document.querySelector(".pantalla-principal");
+  const pagina = document.getElementById(ID_PAGINA_DETALLE_INFORME);
+
+  if (pagina) {
+    pagina.hidden = true;
+    pagina.setAttribute("aria-hidden", "true");
+  }
+
+  if (pantalla) {
+    pantalla.hidden = false;
+    pantalla.removeAttribute("aria-hidden");
+    pantalla.classList.remove("informe-detalle-activo");
+  }
+
   document.body.classList.remove("informe-detalle-activo");
   document.documentElement.classList.remove("informe-detalle-activo");
 }
@@ -560,6 +610,9 @@ async function volverATarjetasInformes() {
 
   const host = document.querySelector("#contenedorDinamicoHost");
   if (host) host.innerHTML = "";
+
+  const paginaDetalle = document.getElementById(ID_PAGINA_DETALLE_INFORME);
+  if (paginaDetalle) paginaDetalle.innerHTML = "";
 
   salirVistaDetalleInformes();
 
