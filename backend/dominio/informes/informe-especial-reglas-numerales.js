@@ -1,3 +1,5 @@
+import { extraerCodigosFalta, getNomencladorFalta } from "../finaliza/numerales/nomenclador.js";
+
 export function construirNumeralesSugeridosInforme(informe) {
   if (!informe) return [];
 
@@ -93,8 +95,8 @@ function construirNumeralesAlcoholemia(informe) {
   return consolidarItems(items);
 }
 
-function construirNumeralesDecreto46022() {
-  return [
+function construirNumeralesDecreto46022(informe) {
+  const items = [
     {
       codigo: "460/22",
       cantidad: 1,
@@ -102,6 +104,19 @@ function construirNumeralesDecreto46022() {
       categoria: "DECRETO"
     }
   ];
+
+  for (const codigo of extraerCodigosFalta(informe?.formulario?.codigos_infraccion)) {
+    const item = getNomencladorFalta(codigo);
+    if (!item) continue;
+    items.push({
+      codigo,
+      cantidad: 1,
+      detalle: String(item.referencia || "INFRACCIÓN").toUpperCase(),
+      categoria: "INFRACCION"
+    });
+  }
+
+  return consolidarItems(items);
 }
 
 function debeSugerirRetencionLicencia(informe) {

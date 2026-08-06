@@ -1,3 +1,5 @@
+import { extraerCodigosFalta, getNomencladorFalta } from "../finaliza/numerales/nomenclador.js";
+
 const ENCABEZADO_INFORMES = "*POLICÍA DE LA PROVINCIA DE SANTA FE- DIRECCION GENERAL GUARDIA PROVINCIAL - BRIGADA MOTORIZADA ZONA CENTRO NORTE*";
 
 export function construirTextoInformeEspecial(informe) {
@@ -29,16 +31,36 @@ export function construirTextoInformeEspecial(informe) {
 function construirControlSuperior(informe) {
   const f = informe.formulario || {};
   const lineas = [];
+  const autoridades = [];
+
+  if (Boolean(f.autoridad_jefe)) autoridades.push("JEFE");
+  if (Boolean(f.autoridad_subjefe)) autoridades.push("SUBJEFE");
+  if (Boolean(f.autoridad_otros)) autoridades.push("OTROS");
 
   lineas.push(ENCABEZADO_INFORMES);
   lineas.push("");
   lineas.push("INFORME CONTROL SUPERIOR");
-  agregarLinea(lineas, "AUTORIDAD", f.autoridad);
-  agregarLinea(lineas, "NOMBRE / CARGO", f.nombre_autoridad);
+  agregarLinea(lineas, "AUTORIDAD", autoridades.join(" / "));
+  if (Boolean(f.autoridad_otros)) agregarLinea(lineas, "NOMBRE / CARGO", f.nombre_autoridad);
+  agregarLinea(lineas, "MÓVIL/ES", construirMovilesControlSuperior(f));
   agregarLinea(lineas, "OPERATIVO", resumenOperativo(informe));
-  agregarLinea(lineas, "OBSERVACIONES", f.observaciones || "Se hace presente en el operativo y realiza control superior.");
 
-  return lineas.join("\n");
+  return lineas.filter(Boolean).join("\n");
+}
+
+function construirMovilesControlSuperior(f = {}) {
+  const moviles = [];
+  if (Boolean(f.movil_12428)) moviles.push("12428");
+  if (Boolean(f.movil_otro)) {
+    const otros = texto(f.moviles_otros)
+      .split(/[\s,;/]+/)
+      .map((v) => v.trim())
+      .filter(Boolean);
+    for (const movil of otros) {
+      if (!moviles.includes(movil)) moviles.push(movil);
+    }
+  }
+  return moviles.join("/");
 }
 
 function construirAlcoholemia(informe) {
@@ -82,6 +104,7 @@ function construirAlcoholemia(informe) {
 function construirDecreto46022(informe) {
   const f = informe.formulario || {};
   const lineas = [];
+  const codigos = extraerCodigosFalta(f.codigos_infraccion);
 
   lineas.push(ENCABEZADO_INFORMES);
   lineas.push("");
@@ -90,11 +113,10 @@ function construirDecreto46022(informe) {
   agregarLinea(lineas, "CONDUCTOR / INVOLUCRADO", f.conductor);
   agregarLinea(lineas, "DNI", f.dni);
   agregarLinea(lineas, "DOMINIO", f.dominio);
-  agregarLinea(lineas, "TIPO VEHÍCULO", f.tipo_vehiculo);
-  agregarLinea(lineas, "MOTIVO", f.motivo);
-  lineas.push("OBSERVACIÓN: Se realizó (01) Procedimiento por Dcto 460/22.");
+  agregarLinea(lineas, "TIPO VEHÍCULO", "MOTOVEHÍCULO");
+  agregarLinea(lineas, "INFRACCIÓN/ES", codigos.map((codigo) => `CÓD. ${codigo}`).join(" / "));
+  lineas.push("Se realizó (01) Procedimiento por Dcto 460/22.");
   agregarNumeralesSugeridos(lineas, informe);
-  agregarLinea(lineas, "AMPLIACIÓN", f.observaciones);
 
   return lineas.filter(Boolean).join("\n");
 }
@@ -119,7 +141,7 @@ function construirControlArmas(informe) {
   lineas.push("");
   lineas.push(`*CONTROL DE ARMAMENTO:* ${construirRelatoControlArmas(f)}`);
 
-  if (texto(f.observaciones)) {
+  if (texto(f.documentacion_armas).toUpperCase() !== "SIN NOVEDAD" && texto(f.observaciones)) {
     lineas.push("");
     lineas.push(`*OBSERVACIONES:* ${texto(f.observaciones)}`);
   }
@@ -139,8 +161,9 @@ function construirRelatoControlArmas(f) {
   const dominio = texto(f.dominio);
   const cantidad = Number(f.cantidad_armas || 0);
   const tipoArma = texto(f.tipo_arma);
-  const detalle = texto(f.detalle_armas);
   const documentacion = texto(f.documentacion_armas);
+  const hayNovedadDocumental = documentacion.toUpperCase() !== "SIN NOVEDAD";
+  const detalle = hayNovedadDocumental ? texto(f.detalle_armas) : "";
   const resultado = texto(f.resultado_procedimiento);
 
   const partes = [
@@ -259,7 +282,7 @@ function resolverMotivoLicencia(valor) {
       key: "VENCIDA_MENOS_6_MESES",
       hecho: "Retención de licencia por vencimiento por menos de 6 meses",
       relato: "VENCIDA",
-      codigo: "",
+      codigo: "9123",
       requiereVencimiento: true
     },
     CADUCA_CAMBIO_DATOS: {
@@ -273,7 +296,7 @@ function resolverMotivoLicencia(valor) {
       key: "MAL_OTORGADA",
       hecho: "Retención de licencia mal otorgada",
       relato: "MAL OTORGADA",
-      codigo: "",
+      codigo: "9153",
       requiereVencimiento: false
     }
   };

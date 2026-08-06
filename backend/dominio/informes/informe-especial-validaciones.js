@@ -1,3 +1,5 @@
+import { extraerCodigosFalta, getNomencladorFalta } from "../finaliza/numerales/nomenclador.js";
+
 export function validarInformeEspecial(informe) {
   const errores = [];
 
@@ -42,13 +44,14 @@ export function validarInformeEspecial(informe) {
 
 function validarControlSuperior(informe, errores) {
   const f = informe.formulario || {};
+  const hayAutoridad = Boolean(f.autoridad_jefe || f.autoridad_subjefe || f.autoridad_otros);
 
-  if (!texto(f.autoridad)) {
-    errores.push("Debe seleccionar la autoridad de Control Superior.");
+  if (!hayAutoridad) errores.push("Debe tildar al menos una autoridad de Control Superior.");
+  if (Boolean(f.autoridad_otros) && !texto(f.nombre_autoridad)) {
+    errores.push("Si selecciona Otros, debe completar nombre/cargo de la autoridad.");
   }
-
-  if (!texto(f.nombre_autoridad)) {
-    errores.push("Debe completar nombre/cargo de la autoridad.");
+  if (Boolean(f.movil_otro) && !texto(f.moviles_otros)) {
+    errores.push("Si selecciona Otro móvil, debe completar el/los número/s.");
   }
 }
 
@@ -77,7 +80,17 @@ function validarDecreto46022(informe, errores) {
   if (!texto(f.conductor)) errores.push("Debe completar conductor/involucrado.");
   if (!texto(f.dni)) errores.push("Debe completar DNI.");
   if (!texto(f.dominio)) errores.push("Debe completar dominio.");
-  if (!texto(f.motivo)) errores.push("Debe completar motivo/infracción.");
+
+  const codigos = extraerCodigosFalta(f.codigos_infraccion);
+  if (!codigos.length) {
+    errores.push("Debe ingresar al menos un código de infracción del nomenclador.");
+    return;
+  }
+
+  const invalidos = codigos.filter((codigo) => !getNomencladorFalta(codigo));
+  if (invalidos.length) {
+    errores.push(`Código/s no encontrado/s en nomenclador: ${invalidos.join(", ")}.`);
+  }
 }
 
 
@@ -106,6 +119,7 @@ function validarRetencionLicencia(informe, errores) {
   if (!texto(f.modelo_vehiculo)) errores.push("Debe completar modelo del vehículo.");
   if (!texto(f.clase_licencia)) errores.push("Debe completar clase de licencia.");
   if (!texto(f.numero_acta)) errores.push("Debe completar N° de Acta / Cédula de notificación.");
+  if (texto(f.codigo) && !getNomencladorFalta(f.codigo)) errores.push("El código de licencia no existe en nomenclador.js.");
 
   if (["VENCIDA_MAS_6_MESES", "VENCIDA_MENOS_6_MESES", "CADUCA_CAMBIO_DATOS"].includes(motivo) && !texto(f.fecha_vencimiento)) {
     errores.push("Debe completar fecha de vencimiento / VTO de la licencia.");

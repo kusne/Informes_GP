@@ -80,15 +80,14 @@
     <div class="bloque-formulario">
       <label for="armasDocumentacion">Documentación del armamento</label>
       <select id="armasDocumentacion" name="documentacion_armas">
-        <option value="">Seleccionar</option>
-        <option value="SIN NOVEDAD">SIN NOVEDAD</option>
+        <option value="SIN NOVEDAD" selected>SIN NOVEDAD</option>
         <option value="CON OBSERVACIONES">CON OBSERVACIONES</option>
         <option value="NO POSEE / NO EXHIBE">NO POSEE / NO EXHIBE</option>
       </select>
     </div>
   </div>
 
-  <div class="bloque-formulario">
+  <div class="bloque-formulario" id="armasDetalleBloque" hidden>
     <label for="armasDetalle">Detalle del armamento</label>
     <textarea id="armasDetalle" name="detalle_armas" placeholder="Marca, calibre, número, cantidad por tipo u otro detalle"></textarea>
   </div>
@@ -102,7 +101,7 @@
     </select>
   </div>
 
-  <div class="bloque-formulario">
+  <div class="bloque-formulario" id="armasObservacionesBloque" hidden>
     <label for="armasObservaciones">Observaciones / ampliación</label>
     <textarea id="armasObservaciones" name="observaciones" placeholder="Información adicional del procedimiento"></textarea>
   </div>

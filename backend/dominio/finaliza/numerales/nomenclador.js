@@ -116,7 +116,7 @@ export const NOMENCLADOR_CODIGOS = {
   "9123": { codigo: "9123", referencia: "licencia no mas de 6 meses" },
   "9136": { codigo: "9136", referencia: "licencia mas de 6 meses" },
   "9140": { codigo: "9140", referencia: "licencia caduca" },
-  "9153": { codigo: "9153", referencia: "licencia no valida" },
+  "9153": { codigo: "9153", referencia: "licencia mal otorgada" },
   "9167": { codigo: "9167", referencia: "licencia mal otorgada" },
   "10014": { codigo: "10014", referencia: "maquinaria en infracción" },
   "11029": { codigo: "11029", referencia: "sin las patentes" },
@@ -198,6 +198,18 @@ export function getNomencladorFalta(codigo) {
 export function getReferenciaFalta(codigo, fallback = "") {
   const item = getNomencladorFalta(codigo);
   return item ? item.referencia : fallback;
+}
+
+export function extraerCodigosFalta(valor) {
+  const encontrados = String(valor || "").match(/\b\d{4,5}\b/g) || [];
+  return [...new Set(encontrados.map(normalizeCodigoFalta).filter(Boolean))];
+}
+
+export function resolverCodigosFalta(valor) {
+  return extraerCodigosFalta(valor).map((codigo) => ({
+    codigo,
+    item: getNomencladorFalta(codigo)
+  }));
 }
 
 if (typeof window !== "undefined") {

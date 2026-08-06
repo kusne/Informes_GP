@@ -1,6 +1,10 @@
-const CODIGOS_CONFIRMADOS = {
+import { getNomencladorFalta } from "../../../../../backend/dominio/finaliza/numerales/nomenclador.js";
+
+const CODIGOS_POR_MOTIVO = {
   VENCIDA_MAS_6_MESES: "9136",
-  CADUCA_CAMBIO_DATOS: "9140"
+  VENCIDA_MENOS_6_MESES: "9123",
+  CADUCA_CAMBIO_DATOS: "9140",
+  MAL_OTORGADA: "9153"
 };
 
 export async function iniciarModeloInformeUI({ form, operativoSeleccionado } = {}) {
@@ -17,27 +21,13 @@ export async function iniciarModeloInformeUI({ form, operativoSeleccionado } = {
   if (!motivo || !codigo) return;
 
   const sincronizarCodigo = () => {
-    const sugerido = CODIGOS_CONFIRMADOS[String(motivo.value || "").trim()] || "";
-    const actual = String(codigo.value || "").trim();
-    const fueAuto = codigo.dataset.codigoAuto === "1";
-
-    if (sugerido && (!actual || fueAuto)) {
-      codigo.value = sugerido;
-      codigo.dataset.codigoAuto = "1";
-      codigo.dispatchEvent(new Event("input", { bubbles: true }));
-      return;
-    }
-
-    if (!sugerido && fueAuto) {
-      codigo.value = "";
-      codigo.dataset.codigoAuto = "0";
-      codigo.dispatchEvent(new Event("input", { bubbles: true }));
-    }
+    const codigoEsperado = CODIGOS_POR_MOTIVO[String(motivo.value || "").trim()] || "";
+    const itemNomenclador = codigoEsperado ? getNomencladorFalta(codigoEsperado) : null;
+    codigo.value = itemNomenclador?.codigo || "";
+    codigo.dataset.codigoAuto = itemNomenclador ? "1" : "0";
+    codigo.dispatchEvent(new Event("input", { bubbles: true }));
   };
 
-  codigo.addEventListener("input", () => {
-    if (document.activeElement === codigo) codigo.dataset.codigoAuto = "0";
-  });
   motivo.addEventListener("change", sincronizarCodigo);
   sincronizarCodigo();
 }

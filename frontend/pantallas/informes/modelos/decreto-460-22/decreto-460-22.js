@@ -1,8 +1,16 @@
 import { iniciarModeloInformeEspecial } from "../../compartido/informe-especial-builder.js";
+import { extraerCodigosFalta } from "../../../../../backend/dominio/finaliza/numerales/nomenclador.js";
 
-export async function iniciarModeloInformeUI() {
-  // Este modelo no requiere lógica visual adicional; los datos del operativo
-  // se resuelven en el builder compartido.
+export async function iniciarModeloInformeUI({ form } = {}) {
+  if (!form) return;
+
+  const codigos = form.querySelector('[name="codigos_infraccion"]');
+  codigos?.addEventListener("blur", () => {
+    const lista = extraerCodigosFalta(codigos.value);
+    if (!lista.length) return;
+    codigos.value = lista.join(", ");
+    codigos.dispatchEvent(new Event("input", { bubbles: true }));
+  });
 }
 
 export async function iniciarDecreto46022({

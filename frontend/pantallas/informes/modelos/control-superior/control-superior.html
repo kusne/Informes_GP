@@ -3,22 +3,29 @@
   <p>Informe especial vinculado al operativo seleccionado.</p>
 
   <div class="bloque-formulario">
-    <label for="controlSuperiorAutoridad">Autoridad</label>
-    <select id="controlSuperiorAutoridad" name="autoridad" class="obligatorio">
-      <option value="">Seleccionar</option>
-      <option value="JEFE">JEFE</option>
-      <option value="SUBJEFE">SUBJEFE</option>
-      <option value="OTROS">OTROS</option>
-    </select>
+    <span class="etiqueta-campo">Autoridad</span>
+    <div class="opciones-en-linea opciones-control-superior" role="group" aria-label="Autoridad">
+      <label class="checkbox-opcion"><input id="controlSuperiorJefe" name="autoridad_jefe" type="checkbox" value="SI"> Jefe</label>
+      <label class="checkbox-opcion"><input id="controlSuperiorSubjefe" name="autoridad_subjefe" type="checkbox" value="SI"> Subjefe</label>
+      <label class="checkbox-opcion"><input id="controlSuperiorOtros" name="autoridad_otros" type="checkbox" value="SI"> Otros</label>
+    </div>
   </div>
 
-  <div class="bloque-formulario">
+  <div class="bloque-formulario" id="controlSuperiorNombreBloque" hidden>
     <label for="controlSuperiorNombre">Nombre / cargo</label>
-    <input id="controlSuperiorNombre" name="nombre_autoridad" type="text" placeholder="Se completa automático para Jefe/Subjefe o manual para Otros">
+    <input id="controlSuperiorNombre" name="nombre_autoridad" type="text" placeholder="Nombre y cargo de la autoridad">
   </div>
 
   <div class="bloque-formulario">
-    <label for="controlSuperiorObservaciones">Observaciones</label>
-    <textarea id="controlSuperiorObservaciones" name="observaciones" placeholder="Detalle del control superior"></textarea>
+    <span class="etiqueta-campo">Móvil/es</span>
+    <div class="opciones-en-linea opciones-control-superior" role="group" aria-label="Móviles">
+      <label class="checkbox-opcion"><input id="controlSuperiorMovil12428" name="movil_12428" type="checkbox" value="SI" checked> Móvil 12428</label>
+      <label class="checkbox-opcion"><input id="controlSuperiorMovilOtro" name="movil_otro" type="checkbox" value="SI"> Otro</label>
+    </div>
+  </div>
+
+  <div class="bloque-formulario" id="controlSuperiorMovilOtroBloque" hidden>
+    <label for="controlSuperiorMovilesOtros">Otro/s móvil/es</label>
+    <input id="controlSuperiorMovilesOtros" name="moviles_otros" type="text" placeholder="Ej: 12502/10139">
   </div>
 </section>

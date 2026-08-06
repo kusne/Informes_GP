@@ -1427,6 +1427,39 @@ label.top-label,
   opacity: .8;
   background: #0647ad;
 }
+
+/* Control Superior: casillas compactas en la misma línea. */
+.etiqueta-campo {
+  display: block;
+  margin-bottom: 6px;
+  color: #0b3d91;
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.opciones-en-linea {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.checkbox-opcion {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  margin: 0 !important;
+  color: #0b3d91 !important;
+  font-size: 14px !important;
+  font-weight: 900 !important;
+  text-transform: none !important;
+}
+
+.checkbox-opcion input {
+  width: auto !important;
+  margin: 0;
+}
 /* === FIN frontend/pantallas/informes/informes.css === */
 
 

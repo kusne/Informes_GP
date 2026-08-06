@@ -3,25 +3,35 @@ import { iniciarModeloInformeEspecial } from "../../compartido/informe-especial-
 export async function iniciarModeloInformeUI({ form } = {}) {
   if (!form) return;
 
-  const autoridad = form.querySelector('[name="autoridad"]');
+  const otros = form.querySelector('[name="autoridad_otros"]');
+  const nombreBloque = form.querySelector("#controlSuperiorNombreBloque");
   const nombre = form.querySelector('[name="nombre_autoridad"]');
+  const movilOtro = form.querySelector('[name="movil_otro"]');
+  const movilOtroBloque = form.querySelector("#controlSuperiorMovilOtroBloque");
+  const movilesOtros = form.querySelector('[name="moviles_otros"]');
 
-  const completarAutoridad = () => {
-    const valor = String(autoridad?.value || "").trim().toUpperCase();
-    if (!nombre) return;
-
-    if (valor === "JEFE") {
-      nombre.value = "SubCrio Choque Jose Maria";
-    } else if (valor === "SUBJEFE") {
-      nombre.value = "Inspector Tramontini Ismael";
-    } else if (valor === "") {
+  const actualizarAutoridadOtros = () => {
+    const visible = Boolean(otros?.checked);
+    if (nombreBloque) nombreBloque.hidden = !visible;
+    if (!visible && nombre) {
       nombre.value = "";
+      nombre.dispatchEvent(new Event("input", { bubbles: true }));
     }
-
-    nombre.dispatchEvent(new Event("input", { bubbles: true }));
   };
 
-  autoridad?.addEventListener("change", completarAutoridad);
+  const actualizarMovilOtro = () => {
+    const visible = Boolean(movilOtro?.checked);
+    if (movilOtroBloque) movilOtroBloque.hidden = !visible;
+    if (!visible && movilesOtros) {
+      movilesOtros.value = "";
+      movilesOtros.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+  };
+
+  otros?.addEventListener("change", actualizarAutoridadOtros);
+  movilOtro?.addEventListener("change", actualizarMovilOtro);
+  actualizarAutoridadOtros();
+  actualizarMovilOtro();
 }
 
 export async function iniciarControlSuperior({

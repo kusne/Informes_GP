@@ -1,11 +1,38 @@
 export async function iniciarModeloInformeUI({ form, operativoSeleccionado } = {}) {
   if (!form) return;
   const op = operativoSeleccionado || {};
+
   completarSiVacio(form, "fecha_hecho", fechaOperativo(op));
   completarSiVacio(form, "hora_hecho", horaActual());
   completarSiVacio(form, "lugar_hecho", op.lugar || "");
   completarSiVacio(form, "personal", valorOperativo(op, "personal", "personal"));
   completarSiVacio(form, "moviles", valorOperativo(op, "moviles_motos", "moviles_motos"));
+
+  const documentacion = form.querySelector('[name="documentacion_armas"]');
+  const detalleBloque = form.querySelector("#armasDetalleBloque");
+  const observacionesBloque = form.querySelector("#armasObservacionesBloque");
+  const detalle = form.querySelector('[name="detalle_armas"]');
+  const observaciones = form.querySelector('[name="observaciones"]');
+
+  const actualizarNovedad = () => {
+    const sinNovedad = String(documentacion?.value || "").trim().toUpperCase() === "SIN NOVEDAD";
+    if (detalleBloque) detalleBloque.hidden = sinNovedad;
+    if (observacionesBloque) observacionesBloque.hidden = sinNovedad;
+
+    if (sinNovedad) {
+      limpiarCampo(detalle);
+      limpiarCampo(observaciones);
+    }
+  };
+
+  documentacion?.addEventListener("change", actualizarNovedad);
+  actualizarNovedad();
+}
+
+function limpiarCampo(campo) {
+  if (!campo || !String(campo.value || "").trim()) return;
+  campo.value = "";
+  campo.dispatchEvent(new Event("input", { bubbles: true }));
 }
 
 function completarSiVacio(form, nombre, valor) {

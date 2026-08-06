@@ -1442,6 +1442,39 @@ label.top-label,
   opacity: .8;
   background: #0647ad;
 }
+
+/* Control Superior: casillas compactas en la misma línea. */
+.etiqueta-campo {
+  display: block;
+  margin-bottom: 6px;
+  color: #0b3d91;
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.opciones-en-linea {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.checkbox-opcion {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  margin: 0 !important;
+  color: #0b3d91 !important;
+  font-size: 14px !important;
+  font-weight: 900 !important;
+  text-transform: none !important;
+}
+
+.checkbox-opcion input {
+  width: auto !important;
+  margin: 0;
+}
 /* === FIN frontend/pantallas/informes/informes.css === */
 
 
@@ -2103,7 +2136,7 @@ label.check input[type="checkbox"],
   </style>
 
   <!-- Descarga anticipada de los árboles JS que forman la pantalla inicial. -->
-  <link rel="modulepreload" href="./frontend/app/app-bootstrap.js?v=20260805-informes-ui-legible-v6">
+  <link rel="modulepreload" href="./frontend/app/app-bootstrap.js?v=20260805-modelos-ajuste-v7">
   <link rel="modulepreload" href="./frontend/pantallas/inicia/inicia.js">
   <link rel="modulepreload" href="./backend/aplicacion/operativos/operativos.js">
   <link rel="preload" href="./frontend/assets/logo-bmzcn-gold-black.png" as="image" fetchpriority="high">
@@ -2168,12 +2201,12 @@ label.check input[type="checkbox"],
     </div>
   </div>
 
-  <script type="module" src="./frontend/app/app-bootstrap.js?v=20260805-informes-ui-legible-v6"></script>
+  <script type="module" src="./frontend/app/app-bootstrap.js?v=20260805-modelos-ajuste-v7"></script>
 
   <!-- Compatibilidad temporal: conserva los parches activos de la versión recibida. -->
   <script src="./frontend/compatibilidad/control-moviles/wsp-control-moviles-flujo-ui.js?v=20260804-speed2"></script>
   <script src="./frontend/compatibilidad/control-moviles/wsp-control-moviles-ui.js?v=20260804-speed2"></script>
   <script src="./frontend/compatibilidad/control-moviles/control-moviles.js?v=20260804-speed2"></script>
-  <script src="./frontend/compatibilidad/pantalla-principal/pantalla-principal-flujo.js?v=20260805-informes-ui-legible-v6"></script>
+  <script src="./frontend/compatibilidad/pantalla-principal/pantalla-principal-flujo.js?v=20260805-modelos-ajuste-v7"></script>
 </body>
 </html>

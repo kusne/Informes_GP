@@ -18,8 +18,8 @@ export const MODELOS_INFORMES_GP = [
   {
     modelo_key: "DECRETO_460_22",
     codigo: "DECRETO_460_22",
-    nombre: "DECTO 460/22",
-    label: "DECTO 460/22",
+    nombre: "DECRETO 460/22",
+    label: "DECRETO 460/22",
     html: "/frontend/pantallas/informes/modelos/decreto-460-22/decreto-460-22.html",
     modulo: "/frontend/pantallas/informes/modelos/decreto-460-22/decreto-460-22.js"
   },

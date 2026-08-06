@@ -203,7 +203,9 @@ function calcularDatosModelo(modelo, formulario) {
 
   if (modelo === "DECRETO_460_22") {
     return {
-      procedimiento_460_22: true
+      procedimiento_460_22: true,
+      tipo_vehiculo: "MOTOVEHÍCULO",
+      codigos_infraccion: String(formulario.codigos_infraccion || "").trim()
     };
   }
 
@@ -228,7 +230,9 @@ function calcularDatosModelo(modelo, formulario) {
 function resolverCodigoLicencia(motivo) {
   const key = String(motivo || "").trim().toUpperCase();
   if (key === "VENCIDA_MAS_6_MESES") return "9136";
+  if (key === "VENCIDA_MENOS_6_MESES") return "9123";
   if (key === "CADUCA_CAMBIO_DATOS") return "9140";
+  if (key === "MAL_OTORGADA") return "9153";
   return "";
 }
 
