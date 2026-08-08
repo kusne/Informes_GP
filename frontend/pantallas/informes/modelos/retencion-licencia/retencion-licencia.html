@@ -19,37 +19,13 @@
     </div>
   </div>
 
-  <div class="grilla-doble">
-    <div class="bloque-formulario">
-      <label for="licFecha">Fecha</label>
-      <input id="licFecha" name="fecha_hecho" type="date">
-    </div>
-    <div class="bloque-formulario">
-      <label for="licHora">Hora</label>
-      <input id="licHora" name="hora_hecho" type="time">
-    </div>
-  </div>
-
-  <div class="grilla-doble">
-    <div class="bloque-formulario">
-      <label for="licLugar">Lugar</label>
-      <input id="licLugar" name="lugar_hecho" type="text" placeholder="Lugar del procedimiento">
-    </div>
-    <div class="bloque-formulario">
-      <label for="licLocalidad">Localidad</label>
-      <input id="licLocalidad" name="localidad" type="text" value="Santa Fe">
-    </div>
-  </div>
-
-  <div class="bloque-formulario">
-    <label for="licPersonal">Personal policial</label>
-    <textarea id="licPersonal" name="personal" placeholder="Un efectivo por línea"></textarea>
-  </div>
-
-  <div class="bloque-formulario">
-    <label for="licMoviles">Móvil/es</label>
-    <input id="licMoviles" name="moviles" type="text" placeholder="Ej: 10139/12502">
-  </div>
+  <!-- Datos de contexto: no se muestran ni se editan. Se completan desde el operativo en curso. -->
+  <input id="licFecha" name="fecha_hecho" type="hidden" data-contexto-operativo="fecha">
+  <input id="licHora" name="hora_hecho" type="hidden" data-contexto-operativo="hora">
+  <input id="licLugar" name="lugar_hecho" type="hidden" data-contexto-operativo="lugar">
+  <input id="licLocalidad" name="localidad" type="hidden" value="Santa Fe" data-contexto-operativo="localidad">
+  <input id="licPersonal" name="personal" type="hidden" data-contexto-operativo="personal">
+  <input id="licMoviles" name="moviles" type="hidden" data-contexto-operativo="moviles">
 
   <div class="grilla-doble">
     <div class="bloque-formulario">

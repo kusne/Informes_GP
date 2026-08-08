@@ -28,7 +28,7 @@ export const MODELOS_INFORMES_GP = [
     codigo: "CONTROL_ARMAS",
     nombre: "CONTROL DE ARMAS",
     label: "CONTROL DE ARMAS",
-    html: "/frontend/pantallas/informes/modelos/control-armas/control-armas.html",
+    html: "/frontend/pantallas/informes/modelos/control-armas/control-armas.html?v=20260808-contexto-oculto-v1",
     modulo: "/frontend/pantallas/informes/modelos/control-armas/control-armas.js"
   },
   {
@@ -36,7 +36,7 @@ export const MODELOS_INFORMES_GP = [
     codigo: "RETENCION_LICENCIA",
     nombre: "RETENCIÓN DE LICENCIA",
     label: "RETENCIÓN DE LICENCIA",
-    html: "/frontend/pantallas/informes/modelos/retencion-licencia/retencion-licencia.html",
+    html: "/frontend/pantallas/informes/modelos/retencion-licencia/retencion-licencia.html?v=20260808-contexto-oculto-v1",
     modulo: "/frontend/pantallas/informes/modelos/retencion-licencia/retencion-licencia.js"
   }
 ];

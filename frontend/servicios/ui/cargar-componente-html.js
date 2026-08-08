@@ -21,7 +21,7 @@ export async function cargarComponenteHtml(ruta) {
   // Se cachea también la promesa para que dos módulos que pidan el mismo
   // fragmento al mismo tiempo compartan una sola descarga.
   const carga = fetch(rutaResuelta, {
-    cache: "default"
+    cache: "no-store"
   }).then(async (respuesta) => {
     if (!respuesta.ok) {
       throw new Error(`No se pudo cargar componente HTML: ${path}`);
