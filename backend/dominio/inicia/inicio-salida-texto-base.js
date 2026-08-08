@@ -1,3 +1,4 @@
+import { anexarOrdenesAlTitulo, resolverOrdenesOrigenOperativo } from "../compartido/operativo-identidad.js";
 export function construirTextoInicioBase(inicio) {
   if (!inicio) return "";
 
@@ -57,7 +58,8 @@ function resolverTituloOperativo(inicio, operativo) {
     inicio?.tipo_operativo ||
     "Operativo";
 
-  return normalizarAcronimosTitulo(tituloLegible(fuente));
+  const titulo = normalizarAcronimosTitulo(tituloLegible(fuente));
+  return anexarOrdenesAlTitulo(titulo, resolverOrdenesOrigenOperativo(inicio, operativo));
 }
 
 function tituloLegible(valor) {

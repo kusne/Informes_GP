@@ -242,36 +242,53 @@ export async function borrarFinalizadoOperativoV2({
   });
 
   if (!existente) return null;
+  if (existente.estado !== "FINALIZADO") return existente;
 
-  if (existente.estado !== "FINALIZADO") {
-    return existente;
-  }
-
-  const datos = fusionarDatosJson(existente.datos, {
+  const datosActuales = normalizarJson(existente.datos);
+  const snapshot = normalizarJson(datosActuales.inicio_snapshot);
+  const marcaBorrado = {
     finalizado_borrado: true,
     finalizado_borrado_at: new Date().toISOString()
+  };
+  const datos = fusionarDatosJson(datosActuales, marcaBorrado);
+
+  const patch = limpiarObjeto({
+    estado: "EN_CURSO",
+    tipo_evento: "INICIO",
+    tipo_operativo: snapshot.tipo_operativo || existente.tipo_operativo,
+    tipo_nombre: snapshot.tipo_nombre || datosActuales.tipo_nombre || existente.tipo_nombre,
+    hora_inicio: snapshot.hora_inicio || existente.hora_inicio,
+    hora_fin: snapshot.hora_fin || existente.hora_fin,
+    lugar: snapshot.lugar || existente.lugar,
+    personal: snapshot.personal ?? existente.personal ?? "",
+    moviles_motos: snapshot.moviles_motos ?? existente.moviles_motos ?? "",
+    elementos: snapshot.elementos ?? existente.elementos ?? "",
+    observaciones: snapshot.observaciones ?? existente.observaciones ?? "",
+    texto_salida: snapshot.texto_salida || existente.texto_salida || "",
+    actas: 0,
+    personas: 0,
+    vehiculos: 0,
+    numerales_texto: "",
+    numerales_items: [],
+    numerales_resumen: "",
+    datos: {
+      ...datos,
+      tipo_nombre: snapshot.tipo_nombre || datosActuales.tipo_nombre || existente.tipo_nombre || "",
+      ordenes_origen: Array.isArray(snapshot.ordenes_origen)
+        ? snapshot.ordenes_origen
+        : (Array.isArray(datosActuales.ordenes_origen) ? datosActuales.ordenes_origen : [])
+    },
+    updated_at: new Date().toISOString()
   });
 
   const { data, error } = await cliente
     .from(TABLA_OPERATIVOS_ESTADO)
-    .update({
-      estado: "EN_CURSO",
-      tipo_evento: "INICIO",
-      actas: 0,
-      personas: 0,
-      vehiculos: 0,
-      numerales_texto: "",
-      numerales_items: [],
-      numerales_resumen: "",
-      datos,
-      updated_at: new Date().toISOString()
-    })
+    .update(patch)
     .eq("id", existente.id)
     .select()
     .single();
 
   if (error) throw error;
-
   return data;
 }
 
@@ -377,7 +394,10 @@ function normalizarEstado(op) {
     hora_fin: texto(op.hora_fin || op.hora_finalizacion || ""),
     lugar: texto(op.lugar || op.qth || op.ubicacion || "SIN LUGAR"),
     tipo_operativo: normalizarTipo(op.tipo_operativo || op.tipo || "GENERICO"),
-    tipo_nombre: texto(op.tipo_nombre || op.tipo_operativo || op.tipo || "OPERATIVO"),
+    tipo_nombre: texto(op.tipo_nombre || op.datos?.tipo_nombre || op.tipo_operativo || op.tipo || "OPERATIVO"),
+    ordenes_origen: Array.isArray(op.ordenes_origen)
+      ? op.ordenes_origen
+      : (Array.isArray(op.datos?.ordenes_origen) ? op.datos.ordenes_origen : []),
     estado: texto(op.estado).toUpperCase(),
     datos: normalizarJson(op.datos)
   };

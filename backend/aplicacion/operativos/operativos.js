@@ -227,16 +227,38 @@ export function obtenerOperativosDemoPorModo(modo, guardiaFecha = obtenerGuardia
 }
 
 export function enriquecerFechaOperativoDesdeProgramacion(enCurso = [], programados = []) {
-  const fechasPorKey = new Map(
+  const programadosPorKey = new Map(
     normalizarOperativos(programados)
-      .filter((op) => op.operativo_key && op.fecha_operativo)
-      .map((op) => [op.operativo_key, String(op.fecha_operativo).trim()])
+      .filter((op) => op.operativo_key)
+      .map((op) => [op.operativo_key, op])
   );
 
-  return normalizarOperativos(enCurso).map((op) => ({
-    ...op,
-    fecha_operativo: fechasPorKey.get(op.operativo_key) || String(op.fecha_operativo || "").trim()
-  }));
+  return normalizarOperativos(enCurso).map((op) => {
+    const programado = programadosPorKey.get(op.operativo_key) || null;
+    if (!programado) return op;
+
+    const ordenesProgramadas = Array.isArray(programado.ordenes_origen)
+      ? programado.ordenes_origen.filter(Boolean)
+      : [];
+
+    return {
+      ...op,
+      fecha_operativo: String(programado.fecha_operativo || op.fecha_operativo || "").trim(),
+      tipo_nombre: String(programado.tipo_nombre || programado.tipo_original || op.tipo_nombre || op.tipo_operativo || "OPERATIVO").trim(),
+      tipo_original: String(programado.tipo_original || programado.tipo_nombre || op.tipo_original || "").trim(),
+      ordenes_origen: ordenesProgramadas.length
+        ? ordenesProgramadas
+        : (Array.isArray(op.ordenes_origen) ? op.ordenes_origen : []),
+      datos: {
+        ...(op.datos && typeof op.datos === "object" ? op.datos : {}),
+        fecha_operativo: String(programado.fecha_operativo || op.fecha_operativo || "").trim(),
+        tipo_nombre: String(programado.tipo_nombre || programado.tipo_original || op.tipo_nombre || op.tipo_operativo || "OPERATIVO").trim(),
+        ordenes_origen: ordenesProgramadas.length
+          ? ordenesProgramadas
+          : (Array.isArray(op?.datos?.ordenes_origen) ? op.datos.ordenes_origen : [])
+      }
+    };
+  });
 }
 
 export function formatearOperativoParaSelector(operativo) {

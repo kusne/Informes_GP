@@ -1,4 +1,4 @@
-const CACHE_VERSION = "informes-gp-v20260808-arquitectura-aislada-v1";
+const CACHE_VERSION = "informes-gp-v20260808-flujo-stats-v2-193";
 const CACHE_ESTATICO = `${CACHE_VERSION}-static`;
 
 const PRECACHE = [
@@ -59,7 +59,7 @@ self.addEventListener("fetch", (event) => {
 
 async function recargarClientesConVersionActual() {
   const clientes = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
-  const version = "20260808-arquitectura-aislada-v1";
+  const version = "20260808-flujo-stats-v2-193";
 
   await Promise.all(clientes.map(async (cliente) => {
     try {

@@ -1,4 +1,5 @@
 import { normalizarPersonalSalidaFinaliza } from "./recursos-finaliza.js";
+import { anexarOrdenesAlTitulo, resolverOrdenesOrigenOperativo } from "../compartido/operativo-identidad.js";
 import {
   usaControladosOpcionalesFinaliza,
   hayControladosFinaliza
@@ -128,7 +129,8 @@ function array(valor) {
 function resolverTituloOperativo(finalizado, operativo) {
   const fuente = operativo?.tipo_nombre || operativo?.titulo || operativo?.tipo_descripcion || finalizado?.tipo_operativo || "Operativo";
   const limpio = String(fuente || "Operativo").replaceAll("_", " ").replace(/\s+/g, " ").trim().toLowerCase();
-  return normalizarAcronimosTitulo(limpio.replace(/\b\p{L}/gu, (letra) => letra.toUpperCase()));
+  const titulo = normalizarAcronimosTitulo(limpio.replace(/\b\p{L}/gu, (letra) => letra.toUpperCase()));
+  return anexarOrdenesAlTitulo(titulo, resolverOrdenesOrigenOperativo(finalizado, operativo));
 }
 function normalizarAcronimosTitulo(valor) {
   return String(valor || "")
