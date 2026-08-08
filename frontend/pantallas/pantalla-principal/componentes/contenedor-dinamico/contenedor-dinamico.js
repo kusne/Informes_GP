@@ -201,6 +201,17 @@ async function renderFormularioOperativo({
   });
 }
 
+function asegurarEstiloBotonVolverInformes() {
+  const id = "estiloBotonVolverInformes";
+  if (document.getElementById(id)) return;
+
+  const link = document.createElement("link");
+  link.id = id;
+  link.rel = "stylesheet";
+  link.href = new URL("./boton-volver-informes.css?v=20260808-v1", import.meta.url).href;
+  document.head.appendChild(link);
+}
+
 async function renderInformes({
   host,
   modeloInformeSeleccionado,
@@ -214,6 +225,8 @@ async function renderInformes({
     return;
   }
 
+  asegurarEstiloBotonVolverInformes();
+
   host.innerHTML = `
     <section class="informe-pagina-detalle" data-informe-pagina-detalle role="region" aria-label="Informe ${escapeHtml(modeloInformeSeleccionado.nombre || modeloInformeSeleccionado.titulo || modeloInformeSeleccionado.codigo || "")}">
       <button
@@ -222,7 +235,13 @@ async function renderInformes({
         type="button"
         aria-label="Volver a modelos de informes"
         title="Volver a modelos de informes"
-      >←</button>
+      >
+        <span class="informe-volver-modelos__icono" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+            <path d="M14.5 5.5 8 12l6.5 6.5" />
+          </svg>
+        </span>
+      </button>
       <main class="informe-pagina-contenido">
         <div id="informesModuloHost"></div>
         <div id="salidaWhatsappHost"></div>
