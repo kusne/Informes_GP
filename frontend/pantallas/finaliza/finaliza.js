@@ -1,6 +1,6 @@
-import { registrarFinalizadoModulo } from "../../../backend/aplicacion/estado/informes-coordinador.js";
-import { obtenerCatalogoRecursosOperativos, construirResumenRecursosOperativos } from "../../../backend/dominio/compartido/recursos/catalogo-recursos-operativos.js";
-import { resolverRecursosInicioParaFinaliza } from "../../../backend/dominio/finaliza/recursos-finaliza.js";
+import { registrarFinalizadoModulo } from "../../../api/app-api.js";
+import { obtenerCatalogoRecursosOperativos, construirResumenRecursosOperativos } from "../../../api/app-api.js";
+import { resolverRecursosInicioParaFinaliza } from "../../../api/app-api.js";
 import { cargarFotosDeFormulario } from "../../servicios/fotos/fotos-formulario-loader.js";
 import { cargarNumeralesFinaliza, limpiarNumeralesFinaliza } from "./numerales/numerales-finaliza.js";
 import { construirFinalizadoDesdeFormulario } from "./compartido/finalizado-builder.js";
@@ -9,9 +9,9 @@ import { renderMovilidadFinaliza, obtenerMovilidadFinaliza, aplicarMovilidadFina
 import { renderElementosFinaliza, obtenerElementosFinaliza, aplicarElementosFinaliza } from "./componentes/elementos/elementos.js";
 import { iniciarDetallesFinaliza } from "./componentes/detalles/detalles.js";
 import { iniciarResultadosDinamicosFinaliza } from "./componentes/resultados-dinamicos/resultados-dinamicos.js";
-import { usaControladosOpcionalesFinaliza } from "../../../backend/dominio/compartido/tipos/operativos-elementos-controlados-opcionales.js";
-import { esOperativoPatrullaje } from "../../../backend/dominio/compartido/tipos/patrullaje.js";
-import { usaResultadosAssalControlArmas } from "../../../backend/dominio/compartido/tipos/resultados-especiales-finaliza.js";
+import { usaControladosOpcionalesFinaliza } from "../../../api/app-api.js";
+import { esOperativoPatrullaje } from "../../../api/app-api.js";
+import { usaResultadosAssalControlArmas } from "../../../api/app-api.js";
 import { iniciarAgregarControladosPresenciaActiva } from "./componentes/agregar-controlados-presencia-activa/agregar-controlados-presencia-activa.js";
 
 let ultimoFormularioFinaliza = null;
@@ -171,7 +171,6 @@ function actualizarEstadoFinaliza({ form, operativoSeleccionado, getContexto }) 
     operativoSeleccionado,
     contexto: resolverContexto(getContexto)
   });
-  if (resultado?.supabasePayload) resultado.supabasePayload.texto_salida = resultado.texto || "";
   registrarFinalizadoModulo(resultado);
 }
 

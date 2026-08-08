@@ -19,11 +19,6 @@ export function contarFotosCargadasDesdeEstado({
 
   if (!prefijo) return 0;
 
-  const fotosWindow = window.InformesGP?.fotos?.[prefijo];
-  if (Array.isArray(fotosWindow)) {
-    return fotosWindow.length;
-  }
-
   const fotosEstado = estado?.fotos?.[prefijo];
   if (Array.isArray(fotosEstado)) {
     return fotosEstado.length;

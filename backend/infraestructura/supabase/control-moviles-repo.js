@@ -93,9 +93,6 @@ async function obtenerClienteSupabase() {
     return (
       modulo.supabase ||
       modulo.supabaseClient ||
-      window.supabase ||
-      window.supabaseClient ||
-      window.InformesGP?.supabase ||
       null
     );
   } catch (error) {

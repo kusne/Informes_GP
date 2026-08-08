@@ -1,8 +1,8 @@
-import { registrarInicioModulo } from "../../../backend/aplicacion/estado/informes-coordinador.js";
+import { registrarInicioModulo } from "../../../api/app-api.js";
 import {
   obtenerCatalogoRecursosInicio,
   construirResumenRecursosInicio
-} from "../../../backend/dominio/inicia/recursos-inicio.js";
+} from "../../../api/app-api.js";
 import { cargarFotosDeFormulario } from "../../servicios/fotos/fotos-formulario-loader.js";
 import { construirInicioDesdeFormulario } from "./compartido/inicio-builder.js";
 import {
@@ -18,7 +18,7 @@ import {
   obtenerElementosSeleccionados
 } from "./componentes/elementos/elementos.js";
 import { iniciarObservacionesInicio } from "./componentes/observaciones/observaciones.js";
-import { usaElementosOpcionalesInicio } from "../../../backend/dominio/compartido/tipos/operativos-elementos-controlados-opcionales.js";
+import { usaElementosOpcionalesInicio } from "../../../api/app-api.js";
 import {
   iniciarAgregarElementosPresenciaActiva,
   configurarAgregarElementosPresenciaActiva,
@@ -162,9 +162,6 @@ function actualizarEstadoInicio({
     contexto: resolverContexto(getContexto)
   });
 
-  if (resultado?.supabasePayload) {
-    resultado.supabasePayload.texto_salida = resultado.texto || "";
-  }
 
   registrarInicioModulo(resultado);
 }

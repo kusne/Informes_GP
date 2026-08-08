@@ -2,11 +2,11 @@ import { cargarComponenteHtml } from "../../../servicios/ui/cargar-componente-ht
 import {
   obtenerEstadoInformes,
   establecerEstadoInformes
-} from "../../../../backend/aplicacion/estado/informes-state.js";
+} from "../../../../api/app-api.js";
 import {
   buscarNumeralPorCodigo,
   normalizarCodigo
-} from "../../../../backend/dominio/finaliza/numerales/numerales-finaliza-data.js";
+} from "../../../../api/app-api.js";
 
 const estadoNumerales = {
   items: [],
@@ -107,13 +107,6 @@ export function limpiarNumeralesFinaliza({
   estadoNumerales.items = [];
   estadoNumerales.resumen = "";
   estadoNumerales.texto = "";
-
-  window.InformesGP = window.InformesGP || {};
-  window.InformesGP.numeralesFinaliza = {
-    items: [],
-    resumen: "",
-    texto: ""
-  };
 
   if (publicar) {
     publicarNumeralesFinaliza();
@@ -250,9 +243,6 @@ function publicarNumeralesFinaliza() {
   estadoNumerales.texto = construirTextoNumerales();
 
   const payload = obtenerNumeralesFinaliza();
-
-  window.InformesGP = window.InformesGP || {};
-  window.InformesGP.numeralesFinaliza = payload;
 
   const estado = obtenerEstadoInformes();
 

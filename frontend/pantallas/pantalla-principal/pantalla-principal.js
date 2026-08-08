@@ -1,6 +1,6 @@
 import { listarModelosInformesGP } from "../informes/modelos-informes.js";
 import { renderAvisoModoEnsayo } from "./componentes/aviso-modo-ensayo/aviso-modo-ensayo.js";
-import { modoEnsayoActivo } from "../../../backend/infraestructura/ensayo/modo-ensayo.js";
+import { modoEnsayoActivo, obtenerGuardiaFechaActual } from "../../../api/app-api.js";
 
 const estadoPantalla = {
   modo: "",
@@ -447,7 +447,7 @@ async function obtenerOperativosSeguro(modo) {
   }
 
   try {
-    const modulo = await import("../../../backend/aplicacion/operativos/operativos.js");
+    const modulo = await import("../../../api/app-api.js");
 
     if (typeof modulo.obtenerOperativosPorModo !== "function") {
       throw new Error("06_Operativos/operativos.js no exporta obtenerOperativosPorModo.");
@@ -472,11 +472,11 @@ function programarRealtimeSeguro() {
 }
 
 function iniciarRealtimeSeguro() {
-  import("../../../backend/infraestructura/supabase/supabase-realtime.js")
+  import("../../../api/persistencia-api.js")
     .then((modulo) => {
       if (typeof modulo.iniciarRealtimeInformesGP === "function") {
         modulo.iniciarRealtimeInformesGP({
-          guardia_fecha: window.InformesGP?.guardiaFecha || "",
+          guardia_fecha: obtenerGuardiaFechaActual(),
           onCambio: (detalle) => manejarCambioSupabase(detalle)
         });
       }
@@ -686,14 +686,14 @@ function registrarListenerPostEnvio() {
 
 async function iniciarCoordinadorSeguro() {
   try {
-    const modulo = await import("../../../backend/aplicacion/estado/informes-coordinador.js");
+    const modulo = await import("../../../api/app-api.js");
 
     if (typeof modulo.iniciarCoordinadorInformes === "function") {
       modulo.iniciarCoordinadorInformes();
     }
 
-    if (window.InformesGP?.guardiaFecha && typeof modulo.registrarGuardiaFecha === "function") {
-      modulo.registrarGuardiaFecha(window.InformesGP.guardiaFecha);
+    if (obtenerGuardiaFechaActual() && typeof modulo.registrarGuardiaFecha === "function") {
+      modulo.registrarGuardiaFecha(obtenerGuardiaFechaActual());
     }
   } catch (error) {
     console.warn("[Informes_GP] Coordinador no disponible:", error);
@@ -702,7 +702,7 @@ async function iniciarCoordinadorSeguro() {
 
 async function registrarModoSeguro(modo) {
   try {
-    const modulo = await import("../../../backend/aplicacion/estado/informes-coordinador.js");
+    const modulo = await import("../../../api/app-api.js");
 
     if (typeof modulo.registrarModoActual === "function") {
       modulo.registrarModoActual(modo);
@@ -712,7 +712,7 @@ async function registrarModoSeguro(modo) {
 
 async function registrarOperativoSeguro(operativo) {
   try {
-    const modulo = await import("../../../backend/aplicacion/estado/informes-coordinador.js");
+    const modulo = await import("../../../api/app-api.js");
 
     if (typeof modulo.registrarOperativoSeleccionado === "function") {
       modulo.registrarOperativoSeleccionado(operativo);
@@ -725,7 +725,7 @@ async function registrarOperativosDisponiblesSeguro({
   operativos
 }) {
   try {
-    const modulo = await import("../../../backend/aplicacion/estado/informes-coordinador.js");
+    const modulo = await import("../../../api/app-api.js");
 
     if (typeof modulo.registrarOperativosDisponibles === "function") {
       modulo.registrarOperativosDisponibles({
@@ -739,8 +739,8 @@ async function registrarOperativosDisponiblesSeguro({
 function getContexto() {
   return {
     ...estadoPantalla,
-    guardiaFecha: window.InformesGP?.guardiaFecha || "",
-    guardia_fecha: window.InformesGP?.guardiaFecha || ""
+    guardiaFecha: obtenerGuardiaFechaActual(),
+    guardia_fecha: obtenerGuardiaFechaActual()
   };
 }
 

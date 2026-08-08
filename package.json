@@ -6,6 +6,8 @@
   "main": "backend/servidor/server.js",
   "scripts": {
     "start": "node backend/servidor/server.js",
-    "check:arquitectura": "node backend/servidor/verificar-arquitectura.js"
+    "check:arquitectura": "node backend/servidor/verificar-arquitectura.js",
+    "check:modulos": "node --experimental-vm-modules backend/servidor/verificar-modulos.js",
+    "check:todo": "npm run check:arquitectura && npm run check:modulos"
   }
 }

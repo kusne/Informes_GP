@@ -7,9 +7,7 @@
 
   <!-- Acelera los dos orígenes externos críticos sin cambiar la aplicación. -->
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <link rel="preconnect" href="https://hbnxvwrqxhurdteirsyl.supabase.co" crossorigin>
   <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
-  <link rel="dns-prefetch" href="//hbnxvwrqxhurdteirsyl.supabase.co">
 
   <!-- CSS crítico inline: elimina una ida y vuelta de red antes del primer pintado. -->
   <style>
@@ -2241,9 +2239,9 @@ body.informe-detalle-activo {
   </style>
 
   <!-- Descarga anticipada de los árboles JS que forman la pantalla inicial. -->
-  <link rel="modulepreload" href="./frontend/app/app-bootstrap.js?v=20260806-informes-pagina-v4">
+  <link rel="modulepreload" href="./frontend/app/app-bootstrap.js?v=20260808-arquitectura-aislada-v1">
   <link rel="modulepreload" href="./frontend/pantallas/inicia/inicia.js">
-  <link rel="modulepreload" href="./backend/aplicacion/operativos/operativos.js">
+  <link rel="modulepreload" href="./api/app-api.js?v=20260808-arquitectura-aislada-v1">
   <link rel="preload" href="./frontend/assets/logo-bmzcn-gold-black.png" as="image" fetchpriority="high">
   <link rel="manifest" href="./manifest.webmanifest">
 </head>
@@ -2307,12 +2305,12 @@ body.informe-detalle-activo {
     </div>
   </div>
 
-  <script type="module" src="./frontend/app/app-bootstrap.js?v=20260806-informes-pagina-v4"></script>
+  <script type="module" src="./frontend/app/app-bootstrap.js?v=20260808-arquitectura-aislada-v1"></script>
 
   <!-- Compatibilidad temporal: conserva los parches activos de la versión recibida. -->
   <script src="./frontend/compatibilidad/control-moviles/wsp-control-moviles-flujo-ui.js?v=20260804-speed2"></script>
   <script src="./frontend/compatibilidad/control-moviles/wsp-control-moviles-ui.js?v=20260804-speed2"></script>
   <script src="./frontend/compatibilidad/control-moviles/control-moviles.js?v=20260804-speed2"></script>
-  <script src="./frontend/compatibilidad/pantalla-principal/pantalla-principal-flujo.js?v=20260806-informes-pagina-v4"></script>
+  <script src="./frontend/compatibilidad/pantalla-principal/pantalla-principal-flujo.js?v=20260808-arquitectura-aislada-v1"></script>
 </body>
 </html>

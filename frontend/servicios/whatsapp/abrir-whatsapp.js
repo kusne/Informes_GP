@@ -2,7 +2,7 @@ import {
   WHATSAPP_CONFIG,
   obtenerTelefonoWhatsappDestino,
   normalizarTelefonoWhatsapp
-} from "../../../backend/dominio/whatsapp/whatsapp-config.js";
+} from "../../../api/app-api.js";
 
 const NOMBRE_VENTANA_WHATSAPP = "InformesGPWhatsApp";
 

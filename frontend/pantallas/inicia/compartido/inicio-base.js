@@ -1,3 +1,4 @@
+import { obtenerFotosPorPrefijo } from "../../../../api/app-api.js";
 export function leerFormularioInicio(root = document) {
   const form = root.querySelector(".formulario-inicia");
   if (!form) return null;
@@ -69,7 +70,7 @@ function construirPrefijoFotos(tipoOperativo) {
 }
 
 function obtenerResumenFotos(prefijo) {
-  const fotos = window.InformesGP?.fotos?.[prefijo] || [];
+  const fotos = obtenerFotosPorPrefijo(prefijo);
 
   if (!Array.isArray(fotos)) {
     return [];

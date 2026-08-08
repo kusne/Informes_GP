@@ -1,15 +1,9 @@
 import {
   obtenerEstadoInformes,
-  establecerEstadoInformes,
-  sincronizarWindowInformesGP,
-  tomarEstadoDesdeWindowInformesGP
+  establecerEstadoInformes
 } from "./informes-state.js";
 
 export function iniciarCoordinadorInformes() {
-  window.InformesGP = window.InformesGP || {};
-  tomarEstadoDesdeWindowInformesGP();
-  sincronizarWindowInformesGP();
-
   return obtenerEstadoInformes();
 }
 

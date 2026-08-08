@@ -24,81 +24,45 @@ export const TABLAS_REALTIME_INFORMES_GP = Object.freeze([
   TABLAS_SUPABASE.informesIntradiariosItems
 ]);
 
-const configSupabase = resolverConfigSupabase();
+let configSupabase = { url: SUPABASE_URL_FIJA, anonKey: SUPABASE_ANON_KEY_FIJA };
+export let supabase = crearClienteSupabaseSeguro(configSupabase);
+export let supabaseClient = supabase;
+export let client = supabase;
 
-export const supabase = crearClienteSupabaseSeguro(configSupabase);
-export const supabaseClient = supabase;
-export const client = supabase;
-
-export function obtenerSupabaseClient() {
-  return supabase;
-}
-
-export function obtenerConfigSupabase() {
-  return {
-    ...configSupabase,
-    configurado: supabaseDisponible()
+export function configurarSupabase({ url, anonKey } = {}) {
+  const siguiente = {
+    url: limpiar(url) || configSupabase.url || SUPABASE_URL_FIJA,
+    anonKey: limpiar(anonKey) || configSupabase.anonKey || SUPABASE_ANON_KEY_FIJA
   };
+
+  if (siguiente.url === configSupabase.url && siguiente.anonKey === configSupabase.anonKey && supabase) {
+    return obtenerConfigSupabase();
+  }
+
+  configSupabase = siguiente;
+  supabase = crearClienteSupabaseSeguro(configSupabase);
+  supabaseClient = supabase;
+  client = supabase;
+  return obtenerConfigSupabase();
 }
 
-export function supabaseDisponible() {
-  return Boolean(supabase);
-}
-
-function resolverConfigSupabase() {
-  const metaUrl = leerMeta("supabase-url");
-  const metaAnon = leerMeta("supabase-anon-key");
-
-  const desdeWindow =
-    window.InformesGP?.supabaseConfig ||
-    window.SUPABASE_CONFIG ||
-    {};
-
-  const url = limpiar(
-    desdeWindow.url ||
-    desdeWindow.supabaseUrl ||
-    window.SUPABASE_URL ||
-    metaUrl ||
-    SUPABASE_URL_FIJA
-  );
-
-  const anonKey = limpiar(
-    desdeWindow.anonKey ||
-    desdeWindow.supabaseAnonKey ||
-    window.SUPABASE_ANON_KEY ||
-    metaAnon ||
-    SUPABASE_ANON_KEY_FIJA
-  );
-
-  return {
-    url,
-    anonKey
-  };
-}
+export function obtenerSupabaseClient() { return supabase; }
+export function obtenerConfigSupabase() { return { ...configSupabase, configurado: supabaseDisponible() }; }
+export function supabaseDisponible() { return Boolean(supabase); }
 
 function crearClienteSupabaseSeguro({ url, anonKey }) {
   if (!url || !anonKey) {
-    console.warn("[Informes_GP] Supabase no configurado. No se cargarán operativos hasta configurar la conexión.");
+    console.warn("[Informes_GP] Supabase no configurado.");
     return null;
   }
-
   if (!/^https:\/\/[a-zA-Z0-9-]+\.supabase\.co$/.test(url)) {
     console.warn("[Informes_GP] URL de Supabase inválida:", url);
     return null;
   }
-
   try {
     return createClient(url, anonKey, {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-        detectSessionInUrl: false
-      },
-      realtime: {
-        params: {
-          eventsPerSecond: 10
-        }
-      }
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+      realtime: { params: { eventsPerSecond: 10 } }
     });
   } catch (error) {
     console.error("[Informes_GP] No se pudo crear cliente Supabase:", error);
@@ -106,27 +70,11 @@ function crearClienteSupabaseSeguro({ url, anonKey }) {
   }
 }
 
-function leerMeta(nombre) {
-  return document.querySelector(`meta[name="${nombre}"]`)?.content || "";
-}
-
-function limpiar(valor) {
-  return String(valor || "").trim();
-}
+function limpiar(valor) { return String(valor || "").trim(); }
 
 export function crearResultadoSupabaseSaltado(mensaje = "Supabase no configurado.") {
-  return {
-    ok: false,
-    saltado: true,
-    mensaje,
-    data: null
-  };
+  return { ok: false, saltado: true, mensaje, data: null };
 }
-
 export function crearResultadoSupabaseOk(data = null) {
-  return {
-    ok: true,
-    saltado: false,
-    data
-  };
+  return { ok: true, saltado: false, data };
 }

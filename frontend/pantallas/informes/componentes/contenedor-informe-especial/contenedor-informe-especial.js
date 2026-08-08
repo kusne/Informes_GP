@@ -1,6 +1,6 @@
 import { cargarComponenteHtml } from "../../../../servicios/ui/cargar-componente-html.js";
 import { resolverRutaApp } from "../../../../servicios/rutas/rutas-app.js";
-import { registrarInformeModulo } from "../../../../../backend/aplicacion/estado/informes-coordinador.js";
+import { registrarInformeModulo } from "../../../../../api/app-api.js";
 
 const MODELOS = {
   CONTROL_SUPERIOR: {

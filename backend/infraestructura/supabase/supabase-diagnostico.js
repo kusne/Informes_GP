@@ -16,7 +16,7 @@ export async function ejecutarDiagnosticoSupabase({
 } = {}) {
   const resultado = {
     fecha: new Date().toISOString(),
-    guardia_fecha: String(guardia_fecha || window.InformesGP?.guardiaFecha || "").trim(),
+    guardia_fecha: String(guardia_fecha || "").trim(),
     supabase: {
       configurado: false,
       url: "",

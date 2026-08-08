@@ -182,7 +182,7 @@ function construirContextoRuta({
 }) {
   return {
     modo: limpiarSegmentoPath(modo || "sin_modo"),
-    guardia_fecha: limpiarSegmentoPath(payload?.guardia_fecha || window.InformesGP?.guardiaFecha || "sin_guardia"),
+    guardia_fecha: limpiarSegmentoPath(payload?.guardia_fecha || "sin_guardia"),
     operativo_key: limpiarSegmentoPath(payload?.operativo_key || "sin_operativo"),
     prefijo: limpiarSegmentoPath(prefijo || "fotos")
   };

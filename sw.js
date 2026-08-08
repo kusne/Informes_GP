@@ -1,4 +1,4 @@
-const CACHE_VERSION = "informes-gp-v20260808-contexto-oculto-v1";
+const CACHE_VERSION = "informes-gp-v20260808-arquitectura-aislada-v1";
 const CACHE_ESTATICO = `${CACHE_VERSION}-static`;
 
 const PRECACHE = [
@@ -8,72 +8,7 @@ const PRECACHE = [
   "./frontend/app/app-bundle.css",
   "./frontend/assets/logo-bmzcn-gold-black.png",
   "./frontend/assets/icon-192.png",
-  "./frontend/assets/icon-512.png",
-  "./frontend/app/app-bootstrap.js?v=20260806-informes-pagina-v4",
-  "./frontend/app/app.js?v=20260806-informes-pagina-v4",
-  "./frontend/servicios/navegacion/instancia-unica.js",
-  "./frontend/servicios/ui/cargar-componente-html.js",
-  "./frontend/servicios/rutas/rutas-app.js",
-  "./frontend/pantallas/pantalla-principal/pantalla-principal.js?v=20260806-informes-pagina-v4",
-  "./frontend/pantallas/pantalla-principal/componentes/aviso-modo-ensayo/aviso-modo-ensayo.js",
-  "./frontend/pantallas/pantalla-principal/componentes/selector-modo-informe/selector-modo-informe.js",
-  "./frontend/pantallas/pantalla-principal/componentes/contador-operativos/contador-operativos.js",
-  "./frontend/pantallas/pantalla-principal/componentes/selector-operativo-contextual/selector-operativo-contextual.js",
-  "./frontend/pantallas/pantalla-principal/componentes/contenedor-dinamico/contenedor-dinamico.js",
-  "./backend/dominio/compartido/fechas/guardia-0600.js",
-  "./backend/aplicacion/operativos/operativos-contexto.js",
-  "./backend/aplicacion/operativos/operativos.js",
-  "./backend/aplicacion/operativos/operativos-cache.js",
-  "./backend/aplicacion/estado/informes-coordinador.js",
-  "./backend/aplicacion/estado/informes-state.js",
-  "./backend/infraestructura/ensayo/modo-ensayo.js",
-  "./backend/infraestructura/supabase/supabase-client.js",
-  "./backend/infraestructura/supabase/operativos-programados-v2-repo.js",
-  "./backend/infraestructura/supabase/operativos-programados-v2-mapper.js",
-  "./backend/infraestructura/supabase/supabase-operativos-programados-client.js",
-  "./backend/infraestructura/supabase/operativos-estado-v2-repo.js",
-  "./backend/infraestructura/supabase/supabase-rest-rapido.js",
-  "./frontend/pantallas/inicia/inicia.html",
-  "./frontend/pantallas/inicia/inicia.js",
-  "./frontend/pantallas/inicia/compartido/inicio-builder.js",
-  "./frontend/pantallas/inicia/componentes/personal-policial/personal-policial.js",
-  "./frontend/pantallas/inicia/componentes/movilidad/movilidad.js",
-  "./frontend/pantallas/inicia/componentes/elementos/elementos.js",
-  "./frontend/pantallas/inicia/componentes/observaciones/observaciones.js",
-  "./frontend/pantallas/inicia/componentes/agregar-elementos-presencia-activa/agregar-elementos-presencia-activa.js",
-  "./frontend/pantallas/inicia/componentes/fotos-inicio/fotos-inicio.html",
-  "./frontend/pantallas/inicia/componentes/fotos-inicio/fotos-inicio.js",
-  "./frontend/servicios/fotos/fotos-formulario-loader.js",
-  "./frontend/servicios/fotos/comprimir-foto.js",
-  "./backend/dominio/inicia/recursos-inicio.js",
-  "./backend/dominio/compartido/recursos/catalogo-recursos-operativos.js",
-  "./frontend/compatibilidad/control-moviles/wsp-control-moviles-flujo-ui.js?v=20260806-informes-pagina-v4",
-  "./frontend/compatibilidad/control-moviles/wsp-control-moviles-ui.js?v=20260806-informes-pagina-v4",
-  "./frontend/compatibilidad/control-moviles/control-moviles.js?v=20260806-informes-pagina-v4",
-  "./frontend/compatibilidad/pantalla-principal/pantalla-principal-flujo.js?v=20260806-informes-pagina-v4",
-  "./backend/aplicacion/estado/fotos-estado.js",
-  "./backend/dominio/compartido/tipos/operativos-elementos-controlados-opcionales.js",
-  "./backend/dominio/compartido/tipos/presencia-activa-puente.js",
-  "./backend/dominio/compartido/tipos/resultados-especiales-finaliza.js",
-  "./backend/dominio/inicia/inicio-mapper-supabase.js",
-  "./backend/dominio/inicia/inicio-salida-texto-base.js",
-  "./backend/dominio/inicia/inicio-validaciones-base.js",
-  "./backend/dominio/whatsapp/formateador-control-moviles.js",
-  "./backend/dominio/whatsapp/formateador-finalizado.js",
-  "./backend/dominio/whatsapp/formateador-informes.js",
-  "./backend/dominio/whatsapp/formateador-inicio.js",
-  "./backend/dominio/whatsapp/fotos-whatsapp.js",
-  "./backend/dominio/whatsapp/whatsapp-config.js",
-  "./backend/infraestructura/ensayo/operativos-ensayo.js",
-  "./frontend/pantallas/informes/modelos-informes.js",
-  "./frontend/pantallas/informes/informes.js",
-  "./frontend/pantallas/informes/compartido/informe-especial-builder.js",
-  "./frontend/pantallas/informes/modelos/control-armas/control-armas.html",
-  "./frontend/pantallas/informes/modelos/control-armas/control-armas.js",
-  "./frontend/pantallas/informes/modelos/retencion-licencia/retencion-licencia.html",
-  "./frontend/pantallas/informes/modelos/retencion-licencia/retencion-licencia.js",
-  "./frontend/servicios/whatsapp/abrir-whatsapp.js",
-  "./frontend/servicios/whatsapp/salida-whatsapp.js"
+  "./frontend/assets/icon-512.png"
 ];
 
 self.addEventListener("install", (event) => {
@@ -124,7 +59,7 @@ self.addEventListener("fetch", (event) => {
 
 async function recargarClientesConVersionActual() {
   const clientes = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
-  const version = "20260808-contexto-oculto-v1";
+  const version = "20260808-arquitectura-aislada-v1";
 
   await Promise.all(clientes.map(async (cliente) => {
     try {
@@ -140,7 +75,7 @@ async function navigationNetworkFirst(request) {
   const cache = await caches.open(CACHE_ESTATICO);
 
   try {
-    const response = await fetch(request);
+    const response = await fetch(request, { cache: "no-store" });
     if (response?.ok) {
       await cache.put("./index.html", response.clone());
     }
@@ -157,7 +92,7 @@ async function cacheFirst(request) {
   const cached = await cache.match(request);
   if (cached) return cached;
 
-  const response = await fetch(request);
+  const response = await fetch(request, { cache: "no-store" });
   if (response?.ok) {
     cache.put(request, response.clone());
   }

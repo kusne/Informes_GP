@@ -1,5 +1,5 @@
 import { cargarComponenteHtml } from "../../../../servicios/ui/cargar-componente-html.js";
-import { modoEnsayoActivo } from "../../../../../backend/infraestructura/ensayo/modo-ensayo.js";
+import { modoEnsayoActivo } from "../../../../../api/app-api.js";
 
 export async function renderAvisoModoEnsayo({ hostSelector } = {}) {
   const host = document.querySelector(hostSelector);

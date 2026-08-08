@@ -7,14 +7,12 @@ export function normalizarNombreFoto({
   const guardiaFecha = String(
     contexto?.guardia_fecha ||
     contexto?.guardiaFecha ||
-    window.InformesGP?.guardiaFecha ||
     "sin_guardia"
   ).trim();
 
   const operativoKey = String(
     contexto?.operativoSeleccionado?.operativo_key ||
     contexto?.operativo_key ||
-    window.InformesGP?.operativoSeleccionado?.operativo_key ||
     "sin_operativo"
   ).trim();
 

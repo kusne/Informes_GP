@@ -1,0 +1,45 @@
+INFORMES_GP — REESTRUCTURACIÓN FRONTEND / API / BACKEND
+Fecha: 2026-08-08
+
+Arquitectura final:
+  frontend/ -> api/ -> backend/
+
+FRONTEND
+- Solo interfaz, DOM, formularios, navegación y eventos visuales.
+- No importa backend directamente.
+- No crea cliente Supabase ni conoce URL/tablas/repositorios Supabase.
+- Los builders leen el formulario y llaman casos de uso por api/.
+
+API
+- api/app-api.js: frontera pública para estado y casos de uso.
+- api/persistencia-api.js: frontera pública para persistencia, Realtime y adaptación del navegador.
+
+BACKEND
+- backend/aplicacion/: estado, coordinación y procesamiento.
+- backend/dominio/: validación, normalización, reglas, generación de texto/payload.
+- backend/infraestructura/: Supabase, persistencia, Realtime y ensayo.
+- No usa DOM, window, localStorage, navigator ni CustomEvent.
+- No importa frontend ni api.
+
+LIMPIEZA
+- Eliminado informe-especial-base.js legacy no utilizado.
+- Eliminado componente legacy boton-enviar-whatsapp no utilizado.
+- Eliminado estado compartido window.InformesGP para guardia/fotos/numerales.
+
+CONTROLES
+  npm run check:arquitectura
+  npm run check:modulos
+  npm run check:todo
+
+Última validación:
+- 174 archivos JS: 0 errores de sintaxis.
+- 101 módulos frontend/api: enlazados sin imports/exports rotos.
+- frontend -> backend: 0 dependencias directas.
+- frontend -> Supabase directo: 0 accesos.
+- backend -> api/frontend: 0 dependencias.
+- backend -> DOM/window/storage/eventos UI: 0 dependencias.
+- Casos de uso INICIA / FINALIZA / INFORMES probados fuera del DOM.
+
+NOTA
+GitHub Pages es hosting estático. El aislamiento logrado es arquitectónico/lógico.
+Para aislamiento físico (backend privado ejecutándose fuera del navegador) hace falta desplegar una API/servidor separado.

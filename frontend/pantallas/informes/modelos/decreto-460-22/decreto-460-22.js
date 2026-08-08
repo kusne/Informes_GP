@@ -1,5 +1,5 @@
 import { iniciarModeloInformeEspecial } from "../../compartido/informe-especial-builder.js";
-import { extraerCodigosFalta } from "../../../../../backend/dominio/finaliza/numerales/nomenclador.js";
+import { extraerCodigosFalta } from "../../../../../api/app-api.js";
 
 export async function iniciarModeloInformeUI({ form } = {}) {
   if (!form) return;

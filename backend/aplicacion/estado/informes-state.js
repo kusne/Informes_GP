@@ -49,7 +49,6 @@ export function establecerEstadoInformes(parcial = {}) {
     ...clonar(parcial)
   };
 
-  sincronizarWindowInformesGP();
   notificarSuscriptores();
 
   return obtenerEstadoInformes();
@@ -68,7 +67,6 @@ export function actualizarEstadoInformes(mutador) {
 
 export function limpiarEstadoInformes() {
   estado = clonar(estadoInicial);
-  sincronizarWindowInformesGP();
   notificarSuscriptores();
   return obtenerEstadoInformes();
 }
@@ -83,25 +81,6 @@ export function suscribirEstadoInformes(callback) {
   return () => {
     suscriptores.delete(callback);
   };
-}
-
-export function sincronizarWindowInformesGP() {
-  window.InformesGP = window.InformesGP || {};
-
-  Object.assign(window.InformesGP, {
-    ...estado
-  });
-}
-
-export function tomarEstadoDesdeWindowInformesGP() {
-  window.InformesGP = window.InformesGP || {};
-
-  estado = {
-    ...estado,
-    ...clonar(window.InformesGP)
-  };
-
-  return obtenerEstadoInformes();
 }
 
 function notificarSuscriptores() {

@@ -1,3 +1,4 @@
+import { obtenerFotosPorPrefijo, obtenerNumeralesFinalizaActuales } from "../../../../api/app-api.js";
 export function leerFormularioFinalizado(root = document) {
   const form = root.querySelector(".formulario-finaliza");
   if (!form) return null;
@@ -70,7 +71,7 @@ function construirPrefijoFotos(tipoOperativo) {
 }
 
 function obtenerResumenFotos(prefijo) {
-  const fotos = window.InformesGP?.fotos?.[prefijo] || [];
+  const fotos = obtenerFotosPorPrefijo(prefijo);
 
   if (!Array.isArray(fotos)) {
     return [];
@@ -83,7 +84,7 @@ function obtenerResumenFotos(prefijo) {
 }
 
 function obtenerResumenNumerales() {
-  const estado = window.InformesGP?.numeralesFinaliza || null;
+  const estado = obtenerNumeralesFinalizaActuales();
 
   if (!estado) {
     return {

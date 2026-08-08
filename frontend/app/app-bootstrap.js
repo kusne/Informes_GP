@@ -1,11 +1,11 @@
-import { iniciarApp } from "./app.js?v=20260806-informes-pagina-v4";
+import { iniciarApp } from "./app.js?v=20260808-arquitectura-aislada-v1";
 import { iniciarInstanciaUnicaInformesGP } from "../servicios/navegacion/instancia-unica.js";
 
 iniciarInstanciaUnicaInformesGP();
 registrarServiceWorkerSinBloquear();
 
 window.addEventListener("informesgp:instancia-reemplazada", () => {
-  import("../../backend/infraestructura/supabase/supabase-realtime.js")
+  import("../../api/persistencia-api.js")
     .then((modulo) => modulo.detenerRealtimeInformesGP?.())
     .catch(() => {});
 });

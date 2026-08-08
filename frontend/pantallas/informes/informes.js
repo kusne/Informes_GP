@@ -1,6 +1,6 @@
 import { cargarComponenteHtml } from "../../servicios/ui/cargar-componente-html.js";
 import { resolverRutaApp } from "../../servicios/rutas/rutas-app.js";
-import { obtenerOperativosPorModo } from "../../../backend/aplicacion/operativos/operativos.js";
+import { obtenerOperativosPorModo } from "../../../api/app-api.js";
 import {
   obtenerModeloInformeGP,
   normalizarModeloInforme

@@ -77,6 +77,14 @@ const PROGRAMADOS_ENSAYO = [
 ];
 
 let estadoMemoria = null;
+let storageEnsayo = null;
+
+export function configurarStorageEnsayo(storage = null) {
+  storageEnsayo = storage && typeof storage.getItem === "function" && typeof storage.setItem === "function"
+    ? storage
+    : null;
+  return Boolean(storageEnsayo);
+}
 
 /**
  * El modo ensayo replica el ciclo real del operativo:
@@ -103,7 +111,7 @@ export function obtenerOperativosEnsayoPorModo(modo, guardiaFecha) {
 
 /**
  * Registra localmente un envío válido del modo ensayo. Nunca escribe en
- * Supabase. Se persiste en localStorage para que el estado sobreviva al cambio
+ * Supabase. Se persiste mediante un adaptador de almacenamiento para que el estado sobreviva al cambio
  * INICIA <-> FINALIZA y a una recarga del navegador.
  */
 export function registrarTransicionOperativoEnsayo({ modo, payload } = {}) {
@@ -328,8 +336,8 @@ function normalizarModo(valor) {
 
 function leerStorage() {
   try {
-    if (typeof localStorage === "undefined") return null;
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+    if (!storageEnsayo) return null;
+    return JSON.parse(storageEnsayo.getItem(STORAGE_KEY) || "null");
   } catch {
     return null;
   }
@@ -337,8 +345,8 @@ function leerStorage() {
 
 function escribirStorage(estado) {
   try {
-    if (typeof localStorage === "undefined") return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(estado));
+    if (!storageEnsayo) return;
+    storageEnsayo.setItem(STORAGE_KEY, JSON.stringify(estado));
   } catch {}
 }
 

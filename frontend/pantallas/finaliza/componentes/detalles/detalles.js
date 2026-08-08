@@ -1,4 +1,4 @@
-import { getReferenciaFalta } from "../../../../../backend/dominio/finaliza/numerales/nomenclador.js";
+import { getReferenciaFalta } from "../../../../../api/app-api.js";
 
 export function iniciarDetallesFinaliza({ textarea, onChange } = {}) {
   if (!textarea || textarea.dataset.detallesNomencladorIniciado === "1") return;

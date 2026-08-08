@@ -1,0 +1,16 @@
+CORRECCION FOTOS WHATSAPP Y RESULTADOS FINALIZA
+
+FOTOS
+- Se eliminaron los links publicos de fotos del texto del informe.
+- Si una version antigua dejara un bloque "FOTOS ADJUNTAS" en memoria, se elimina justo antes de enviar.
+- Cuando hay fotos, se comparten los archivos reales mediante Web Share API.
+- El usuario elige WhatsApp en el selector de compartir del dispositivo.
+- Las fotos siguen guardandose en Supabase Storage para historial.
+- Sin fotos, se mantiene el flujo wa.me existente.
+- El Service Worker ya no sirve JS/HTML viejos por cache-first y fuerza la actualizacion al desplegar una version nueva.
+
+FINALIZA - RESULTADOS
+- PATRULLAJE: campo 460/22 debajo de Actas. Solo se imprime si es mayor que 0.
+- OCV / Control Vehicular / Alcoholemia / DICEP / UFIV / Multiagencia / Multiagencial / Coordinado / En conjunto: campos Assal y Control de Armas debajo de Actas.
+- Assal y Control de Armas solo se imprimen si son mayores que 0.
+- Los tres valores se conservan dentro de datos.resultados en Supabase.

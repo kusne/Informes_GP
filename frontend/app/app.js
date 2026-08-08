@@ -1,8 +1,8 @@
 import { cargarComponenteHtml } from "../servicios/ui/cargar-componente-html.js";
-import { iniciarPantallaPrincipal } from "../pantallas/pantalla-principal/pantalla-principal.js?v=20260806-informes-pagina-v4";
-import { obtenerGuardiaFecha0600 } from "../../backend/dominio/compartido/fechas/guardia-0600.js";
-import { establecerGuardiaFechaOperativos } from "../../backend/aplicacion/operativos/operativos-contexto.js";
-import { registrarModoEnsayoEnWindow } from "../../backend/infraestructura/ensayo/modo-ensayo.js";
+import { iniciarPantallaPrincipal } from "../pantallas/pantalla-principal/pantalla-principal.js?v=20260808-arquitectura-aislada-v1";
+import { obtenerGuardiaFecha0600 } from "../../api/app-api.js";
+import { establecerGuardiaFechaOperativos } from "../../api/app-api.js";
+import { inicializarEntornoAplicacion, registrarGuardiaFecha } from "../../api/app-api.js";
 
 export async function iniciarApp() {
   const app = document.getElementById("app");
@@ -14,9 +14,8 @@ export async function iniciarApp() {
   const guardiaFecha = obtenerGuardiaFecha0600();
   establecerGuardiaFechaOperativos(guardiaFecha);
 
-  window.InformesGP = window.InformesGP || {};
-  window.InformesGP.guardiaFecha = guardiaFecha;
-  registrarModoEnsayoEnWindow();
+  inicializarEntornoAplicacion();
+  registrarGuardiaFecha(guardiaFecha);
 
   // GitHub Pages ya entrega el shell crítico dentro de index.html para que
   // la interfaz aparezca de inmediato. En entornos antiguos se conserva el

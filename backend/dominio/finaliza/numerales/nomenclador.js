@@ -212,13 +212,6 @@ export function resolverCodigosFalta(valor) {
   }));
 }
 
-if (typeof window !== "undefined") {
-  window.NOMENCLADOR_CODIGOS = NOMENCLADOR_CODIGOS;
-  window.normalizeCodigoFalta = normalizeCodigoFalta;
-  window.getNomencladorFalta = getNomencladorFalta;
-  window.getReferenciaFalta = getReferenciaFalta;
-}
-
 export function buscarNumeral(codigo) {
   const item = getNomencladorFalta(codigo);
   if (!item) return null;

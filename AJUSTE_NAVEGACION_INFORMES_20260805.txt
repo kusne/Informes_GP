@@ -1,0 +1,8 @@
+AJUSTE INFORMES - 2026-08-05
+
+- Control de Armas: Fecha del hecho, Hora del hecho, Móviles y Personal policial dejan de mostrarse en la interfaz.
+- Esos cuatro valores siguen completándose automáticamente y forman parte del informe de WhatsApp.
+- Cada tarjeta de INFORMES abre una pantalla de modelo independiente.
+- Flecha ← arriba a la izquierda vuelve a la pantalla de tarjetas.
+- Tras un envío exitoso de un INFORME, la aplicación vuelve automáticamente a las tarjetas.
+- INICIA, FINALIZA y persistencia Supabase no se modifican.

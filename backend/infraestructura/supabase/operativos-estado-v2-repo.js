@@ -395,9 +395,6 @@ async function obtenerClienteSupabase() {
       modulo.supabase ||
       modulo.supabaseClient ||
       modulo.client ||
-      window.supabase ||
-      window.supabaseClient ||
-      window.InformesGP?.supabase ||
       null
     );
   } catch (error) {

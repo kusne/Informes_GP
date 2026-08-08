@@ -1,4 +1,4 @@
-import { getNomencladorFalta } from "../../../../../backend/dominio/finaliza/numerales/nomenclador.js";
+import { getNomencladorFalta } from "../../../../../api/app-api.js";
 
 const CODIGOS_POR_MOTIVO = {
   VENCIDA_MAS_6_MESES: "9136",

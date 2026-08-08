@@ -1,7 +1,7 @@
 import {
   obtenerEstadoInformes,
   suscribirEstadoInformes
-} from "../../../backend/aplicacion/estado/informes-state.js";
+} from "../../../api/app-api.js";
 import {
   abrirWhatsappConTexto,
   prepararVentanaWhatsapp,
@@ -9,20 +9,19 @@ import {
   puedeCompartirArchivosDesdeDispositivo,
   compartirInformeConArchivos
 } from "./abrir-whatsapp.js";
-import { obtenerSalidaInicioDesdeEstado } from "../../../backend/dominio/whatsapp/formateador-inicio.js";
-import { obtenerSalidaFinalizadoDesdeEstado } from "../../../backend/dominio/whatsapp/formateador-finalizado.js";
-import { obtenerSalidaInformesDesdeEstado } from "../../../backend/dominio/whatsapp/formateador-informes.js";
-import { obtenerSalidaControlMovilesDesdeEstado } from "../../../backend/dominio/whatsapp/formateador-control-moviles.js";
+import { obtenerSalidaInicioDesdeEstado } from "../../../api/app-api.js";
+import { obtenerSalidaFinalizadoDesdeEstado } from "../../../api/app-api.js";
+import { obtenerSalidaInformesDesdeEstado } from "../../../api/app-api.js";
+import { obtenerSalidaControlMovilesDesdeEstado } from "../../../api/app-api.js";
 import {
   limpiarFotosPorModoPayload,
   resolverPrefijoFotoPorModoPayload,
   obtenerFotosPorPrefijo
-} from "../../../backend/aplicacion/estado/fotos-estado.js";
+} from "../../../api/app-api.js";
 import {
   contarFotosCargadasDesdeEstado
-} from "../../../backend/dominio/whatsapp/fotos-whatsapp.js";
-import { modoEnsayoActivo } from "../../../backend/infraestructura/ensayo/modo-ensayo.js";
-import { registrarTransicionOperativoEnsayo } from "../../../backend/infraestructura/ensayo/operativos-ensayo.js";
+} from "../../../api/app-api.js";
+import { modoEnsayoActivo } from "../../../api/app-api.js";
 
 let cancelarSuscripcionPreview = null;
 let envioEnCurso = false;
@@ -422,154 +421,19 @@ function resolverSalidaPorModo({ modo, estado }) {
 }
 
 async function guardarSegunModoSiCorresponde({ modo, payload }) {
-  if (modoEnsayoActivo()) {
-    const transicion = registrarTransicionOperativoEnsayo({
-      modo,
-      payload
-    });
-
-    if (transicion?.ok === false) {
-      console.warn("[Informes_GP] No se pudo actualizar el estado local del ensayo:", transicion?.mensaje || transicion);
-    }
-
-    return {
-      ok: true,
-      saltado: true,
-      ensayo: true,
-      transicionEnsayo: transicion || null,
-      mensaje: transicion?.ok === false
-        ? "Modo ensayo: se generó el informe, pero no pudo actualizarse el estado local del operativo."
-        : "Modo ensayo: estado local actualizado; no se guardó información en Supabase.",
-      payloadFinal: payload || null,
-      fotos: []
-    };
-  }
-
-  if (!payload) {
-    return {
-      ok: true,
-      saltado: true,
-      mensaje: "Sin payload Supabase.",
-      payloadFinal: null
-    };
-  }
-
-  const supabase = await obtenerSupabaseDisponibleSeguro();
-
-  if (!supabase.disponible) {
-    console.warn("[Informes_GP] Supabase no configurado. Se abre WhatsApp sin guardar.", supabase.error || "");
-    return {
-      ok: true,
-      saltado: true,
-      mensaje: "Supabase no configurado.",
-      payloadFinal: payload,
-      fotos: []
-    };
-  }
-
   try {
-    // Storage/Supabase se carga recién al pulsar Enviar. No forma parte del
-    // arranque crítico de la app ni retrasa el primer formulario.
-    const fotosRepo = await import("../../../backend/infraestructura/supabase/subir-foto-supabase.js");
-    const resultadoFotos = await fotosRepo.subirFotosAdjuntasSupabase({
-      modo,
-      payload
-    });
-
-    const payloadFinal = resultadoFotos?.payload || payload;
-
-    if (modo === "INICIA") {
-      const repo = await import("../../../backend/infraestructura/supabase/operativos-estado-v2-repo.js");
-      const data = await repo.guardarInicioOperativoV2(payloadFinal);
-
-      return {
-        ok: true,
-        data,
-        payloadFinal,
-        fotos: resultadoFotos?.fotos || [],
-        mensaje: "Inicio guardado."
-      };
-    }
-
-    if (modo === "FINALIZA") {
-      const repo = await import("../../../backend/infraestructura/supabase/operativos-estado-v2-repo.js");
-      const data = await repo.guardarFinalizadoOperativoV2(payloadFinal);
-
-      return {
-        ok: true,
-        data,
-        payloadFinal,
-        fotos: resultadoFotos?.fotos || [],
-        mensaje: "Finalizado guardado."
-      };
-    }
-
-    if (modo === "INFORMES") {
-      const repo = await import("../../../backend/infraestructura/supabase/informes-especiales-v2-repo.js");
-      const data = await repo.guardarInformeEspecialV2(payloadFinal);
-
-      return {
-        ok: true,
-        saltado: Boolean(data?.saltado),
-        data,
-        payloadFinal,
-        fotos: resultadoFotos?.fotos || [],
-        mensaje: data?.mensaje || "Informe guardado en Supabase V2."
-      };
-    }
-
-    if (modo === "CONTROL_MOVILES") {
-      const repo = await import("../../../backend/infraestructura/supabase/control-moviles-repo.js");
-      const data = await repo.guardarNovedadMovil(payload);
-
-      return {
-        ok: true,
-        data,
-        payloadFinal: payload,
-        fotos: [],
-        mensaje: "Novedad de móvil guardada."
-      };
-    }
-
-    return {
-      ok: true,
-      saltado: true,
-      payloadFinal: payload,
-      fotos: [],
-      mensaje: "Modo sin persistencia Supabase."
-    };
+    // Única frontera de persistencia: frontend entrega modo + payload a la API.
+    // La API decide ensayo/producción y qué repositorio corresponde.
+    const persistencia = await import("../../../api/persistencia-api.js");
+    return await persistencia.persistirEnvio({ modo, payload });
   } catch (error) {
-    console.error("[Informes_GP] Error guardando en Supabase:", error);
-
+    console.error("[Informes_GP] Error guardando el envío:", error);
     return {
       ok: false,
       bloqueaEnvio: true,
-      payloadFinal: payload,
+      payloadFinal: payload || null,
       fotos: [],
-      mensaje: `No se pudo guardar en Supabase:\n${error?.message || error}`
-    };
-  }
-}
-
-async function obtenerSupabaseDisponibleSeguro() {
-  try {
-    const modulo = await import("../../../backend/infraestructura/supabase/supabase-client.js");
-
-    if (typeof modulo.supabaseDisponible !== "function") {
-      return {
-        disponible: Boolean(modulo.supabase || modulo.supabaseClient || window.supabase || window.supabaseClient),
-        error: ""
-      };
-    }
-
-    return {
-      disponible: Boolean(modulo.supabaseDisponible()),
-      error: ""
-    };
-  } catch (error) {
-    return {
-      disponible: false,
-      error
+      mensaje: `No se pudo guardar el envío:\n${error?.message || error}`
     };
   }
 }

@@ -234,7 +234,7 @@ async function obtenerClienteSupabase() {
     return null;
   }
 
-  return modulo.supabase || modulo.supabaseClient || modulo.client || window.InformesGP?.supabase || null;
+  return modulo.supabase || modulo.supabaseClient || modulo.client || null;
 }
 
 function normalizarArray(valor) {

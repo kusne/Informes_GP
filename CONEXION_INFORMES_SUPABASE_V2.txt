@@ -1,0 +1,24 @@
+INFORMES_GP - CONEXION DE INFORMES A SUPABASE V2
+
+Esta version conecta exclusivamente el modo INFORMES con:
+- public.bmzcn_informes_intradiarios_v2
+- public.bmzcn_informes_intradiarios_items_v2
+
+Modelos incluidos:
+- CONTROL_SUPERIOR
+- ALCOHOLEMIA_POSITIVA
+- DECRETO_460_22
+- CONTROL_ARMAS
+- RETENCION_LICENCIA
+
+Supabase sigue siendo la unica fuente de verdad.
+No existe comunicacion directa Informes_GP -> STATS.
+STATS no fue modificado en esta version.
+
+Persistencia:
+- La tabla principal guarda el formulario estructurado, calculos, texto final,
+  fecha/hora del informe, operativo vinculado y referencias de fotos.
+- La tabla _items guarda una marca INFORME y, cuando el modelo ya los produce,
+  NUMERAL y RESULTADO como datos estructurados para consumo posterior de STATS.
+- El guardado usa informe_key para que un reintento del mismo envio reemplace
+  sus items en lugar de duplicarlos.

@@ -1,7 +1,7 @@
-import { registrarNumeralesFinaliza } from "../../../../backend/aplicacion/estado/informes-coordinador.js";
-import { extraerItemsNumerales } from "../../../../backend/dominio/finaliza/numerales/normalizador-numerales.js";
-import { consolidarItemsNumerales } from "../../../../backend/dominio/finaliza/numerales/contador-numerales.js";
-import { clasificarItemsNumerales } from "../../../../backend/dominio/finaliza/numerales/clasificador-numerales.js";
+import { registrarNumeralesFinaliza } from "../../../../api/app-api.js";
+import { extraerItemsNumerales } from "../../../../api/app-api.js";
+import { consolidarItemsNumerales } from "../../../../api/app-api.js";
+import { clasificarItemsNumerales } from "../../../../api/app-api.js";
 
 let estadoNumerales = {
   items: [],
@@ -76,8 +76,6 @@ function publicarEstadoNumerales() {
 
   registrarNumeralesFinaliza(resumen);
 
-  window.InformesGP = window.InformesGP || {};
-  window.InformesGP.numeralesFinaliza = resumen;
 }
 
 function dispararCambioFormulario(modulo) {

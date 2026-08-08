@@ -15,13 +15,10 @@ let timeoutDebounce = null;
 
 export function iniciarRealtimeInformesGP({
   guardia_fecha,
-  onCambio
+  onCambio,
+  onEstado
 } = {}) {
-  const guardiaFecha = String(
-    guardia_fecha ||
-    window.InformesGP?.guardiaFecha ||
-    ""
-  ).trim();
+  const guardiaFecha = String(guardia_fecha || "").trim();
 
   if (!supabaseDisponible() || !supabase) {
     console.warn("[Informes_GP] Realtime no iniciado: Supabase no configurado.");
@@ -68,25 +65,17 @@ export function iniciarRealtimeInformesGP({
     if (status === "SUBSCRIBED") {
       realtimeActivo = true;
       console.log("[Informes_GP] Realtime activo:", canalNombre);
-      window.dispatchEvent(new CustomEvent("informesgp:realtime-estado", {
-        detail: {
-          activo: true,
-          status,
-          guardia_fecha: guardiaFecha
-        }
-      }));
+      if (typeof onEstado === "function") {
+        onEstado({ activo: true, status, guardia_fecha: guardiaFecha });
+      }
     }
 
     if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
       realtimeActivo = false;
       console.warn("[Informes_GP] Realtime estado:", status);
-      window.dispatchEvent(new CustomEvent("informesgp:realtime-estado", {
-        detail: {
-          activo: false,
-          status,
-          guardia_fecha: guardiaFecha
-        }
-      }));
+      if (typeof onEstado === "function") {
+        onEstado({ activo: false, status, guardia_fecha: guardiaFecha });
+      }
     }
   });
 
@@ -151,10 +140,6 @@ function manejarCambioRealtime({
     old: payload?.old || null,
     at: new Date().toISOString()
   };
-
-  window.dispatchEvent(new CustomEvent("informesgp:supabase-cambio", {
-    detail: detalle
-  }));
 
   if (typeof onCambio !== "function") {
     return;

@@ -1,6 +1,6 @@
-import { registrarFotosModulo } from "../../../../../backend/aplicacion/estado/informes-coordinador.js";
-import { validarFotoArchivo, validarCantidadFotos } from "../../../../../backend/dominio/compartido/fotos/validar-foto.js";
-import { normalizarNombreFoto } from "../../../../../backend/dominio/compartido/fotos/normalizar-nombre-foto.js";
+import { registrarFotosModulo } from "../../../../../api/app-api.js";
+import { validarFotoArchivo, validarCantidadFotos } from "../../../../../api/app-api.js";
+import { normalizarNombreFoto } from "../../../../../api/app-api.js";
 import { comprimirFotoBasica } from "../../../../servicios/fotos/comprimir-foto.js";
 
 const estadoFotos = { prefijo: "finaliza-unificado", fotos: [] };
@@ -63,6 +63,5 @@ async function procesarFoto({ modulo, indice, archivo, contexto }) {
 function publicarEstadoFotos() {
   const resumen = obtenerFotosModulo();
   registrarFotosModulo(estadoFotos.prefijo, resumen);
-  window.InformesGP = window.InformesGP || {}; window.InformesGP.fotos = window.InformesGP.fotos || {}; window.InformesGP.fotos[estadoFotos.prefijo] = resumen;
 }
 function limpiarUrlsTemporales() { for (const foto of estadoFotos.fotos) if (foto?.urlTemporal) { try { URL.revokeObjectURL(foto.urlTemporal); } catch {} } }
