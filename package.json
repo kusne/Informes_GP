@@ -1,6 +1,6 @@
 {
   "name": "informes_gp",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "private": true,
   "description": "Generador de Informes GP - BMZCN",
   "main": "backend/servidor/server.js",

@@ -52,8 +52,8 @@ export function validarFinalizadoBase(finalizado) {
   if (san + noSan > totalAlcohol) errores.push("La suma de positivas sancionables y no sancionables no puede superar los Test de Alcoholímetro.");
   validarGraduaciones(errores, "Positiva Sancionable", san, f.graduaciones_sancionable);
   validarGraduaciones(errores, "Positiva no Sancionable", noSan, f.graduaciones_no_sancionable);
-  validarListaCantidad(errores, "Qrz", numero(f.qrz), f.qrz_documentos);
-  validarListaCantidad(errores, "Dominio", numero(f.dominio), f.dominio_items);
+  // Los documentos QRZ y dominios asociados al numeral son datos opcionales.
+  // El usuario puede informar sólo la cantidad y enviar el FINALIZADO igualmente.
 
   return errores;
 }

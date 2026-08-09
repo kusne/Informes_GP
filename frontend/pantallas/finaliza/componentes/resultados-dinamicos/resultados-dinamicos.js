@@ -35,6 +35,7 @@ export function iniciarResultadosDinamicosFinaliza({ form, onChange } = {}) {
   refs.qrz?.addEventListener("input", () => { sincronizarQrzDominio(refs); notificar(); });
   refs.dominio?.addEventListener("input", () => { sincronizarQrzDominio(refs); notificar(); });
 
+  instalarVisibilidadDetallesOpcionales(refs, form);
   sincronizarAlcoholimetro(refs);
   sincronizarQrzDominio(refs);
   serializarOcultos(refs);
@@ -67,13 +68,37 @@ export function sincronizarAlcoholimetro(refs) {
 
 export function sincronizarQrzDominio(refs) {
   const cantidadQrz = entero(refs.qrz?.value);
-  refs.wrapQrz?.classList.toggle("hidden", cantidadQrz <= 0);
   renderLista(refs.qrzCasilleros, cantidadQrz, "qrz", refs.notificar || (() => serializarOcultos(refs)));
 
   const cantidadDominio = entero(refs.dominio?.value);
-  refs.wrapDominio?.classList.toggle("hidden", cantidadDominio <= 0);
   renderLista(refs.dominioCasilleros, cantidadDominio, "dominio", refs.notificar || (() => serializarOcultos(refs)));
+
+  actualizarVisibilidadDetallesOpcionales(refs, refs.documento?.activeElement || null);
   serializarOcultos(refs);
+}
+
+function instalarVisibilidadDetallesOpcionales(refs, form) {
+  const documento = form?.ownerDocument || globalThis.document || null;
+  refs.documento = documento;
+  if (!documento) return;
+
+  const actualizar = (target) => actualizarVisibilidadDetallesOpcionales(refs, target);
+  form.addEventListener("focusin", (event) => actualizar(event.target));
+  documento.addEventListener("pointerdown", (event) => actualizar(event.target), true);
+
+  // Los casilleros auxiliares empiezan ocultos aunque exista un numeral cargado.
+  // Se muestran únicamente cuando el usuario decide completar QRZ o Dominio.
+  actualizar(null);
+}
+
+function actualizarVisibilidadDetallesOpcionales(refs, target) {
+  const cantidadQrz = entero(refs.qrz?.value);
+  const cantidadDominio = entero(refs.dominio?.value);
+  const enQrz = !!target && (target === refs.qrz || refs.wrapQrz?.contains?.(target));
+  const enDominio = !!target && (target === refs.dominio || refs.wrapDominio?.contains?.(target));
+
+  refs.wrapQrz?.classList.toggle("hidden", !(cantidadQrz > 0 && enQrz));
+  refs.wrapDominio?.classList.toggle("hidden", !(cantidadDominio > 0 && enDominio));
 }
 
 function renderGraduaciones(host, cantidad, onInput) {
