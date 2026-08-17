@@ -5,9 +5,9 @@
   window.WSP = window.WSP || {};
   window.WSP.modules = window.WSP.modules || {};
 
-  const VERSION = "control-moviles-video-ref-20260704";
+  const VERSION = "control-moviles-wsp-readonly-20260817";
 
-  const BASE_NUMEROS = ["12428", "12502"];
+  const BASE_NUMEROS = ["12428", "10139", "12502"];
   const MOVILES_DEFAULT = [
     { numero: "12428", tipo: "MOVIL", modelo: "", condicion: true },
     { numero: "12502", tipo: "MOVIL", modelo: "", condicion: true },
@@ -32,6 +32,7 @@
     controles: new Map(),
     moviles: MOVILES_DEFAULT.map((m) => ({ ...m })),
     refs: {},
+    padronWsp: { cargado: false, ok: false, error: "", total: 0 },
   };
 
   function $(id) {
@@ -117,11 +118,17 @@
     const r = refs();
     if (!r.chips) return;
 
-    const movilesBase = estado.moviles.filter((m) => BASE_NUMEROS.includes(m.numero));
-    const motos = estado.moviles.filter((m) => normalizar(m.tipo) === "MOTO");
+    const visibles = estado.moviles.filter((m) => m?.activo !== false && m?.condicion !== false);
+    const movilesBase = visibles.filter((m) => BASE_NUMEROS.includes(m.numero));
+    const motos = visibles.filter((m) => normalizar(m.tipo) === "MOTO");
 
     r.chips.innerHTML = grupoHtml("Móviles", movilesBase, "base") + grupoHtml("Motos", motos, "motos");
-    setTextoEstado("Seleccione un móvil en servicio.");
+
+    if (estado.padronWsp.cargado && !estado.padronWsp.ok) {
+      setTextoEstado("No se pudo leer el padrón WSP. Se mantiene la lista local sin habilitar escritura remota.");
+    } else {
+      setTextoEstado("Seleccione un móvil en servicio.");
+    }
   }
 
   function mostrarLista() {
@@ -384,6 +391,67 @@
     }, true);
   }
 
+  async function cargarPadronWspSoloLectura() {
+    try {
+      setTextoEstado("Cargando padrón de móviles WSP...");
+
+      const apiUrl = new URL("api/app-api.js", document.baseURI).href;
+      const api = await import(apiUrl);
+
+      if (typeof api.diagnosticarPadronMovilesWspSoloLectura !== "function") {
+        throw new Error("La API de padrón WSP solo lectura no está disponible.");
+      }
+
+      const diagnostico = await api.diagnosticarPadronMovilesWspSoloLectura();
+      const moviles = Array.isArray(diagnostico?.moviles) ? diagnostico.moviles : [];
+
+      if (!diagnostico?.ok || !moviles.length) {
+        throw new Error("El padrón WSP respondió sin móviles activos.");
+      }
+
+      estado.moviles = moviles.map((movil) => ({
+        ...movil,
+        numero: limpiar(movil.numero),
+        kilometraje: movil.kilometraje ?? 0,
+        combustible: limpiar(movil.combustible),
+        observaciones_novedades: limpiar(movil.observaciones_novedades),
+        condicion: movil.condicion !== false,
+        activo: movil.activo !== false,
+      })).filter((movil) => Boolean(movil.numero));
+
+      estado.padronWsp = {
+        cargado: true,
+        ok: true,
+        error: "",
+        total: estado.moviles.length,
+      };
+
+      console.info(
+        `[Control_Moviles] Padrón WSP leído en modo SOLO LECTURA: ${estado.moviles.length} móviles.`,
+        estado.moviles.map((movil) => movil.numero)
+      );
+
+      return { ok: true, total: estado.moviles.length, moviles: estado.moviles.map((m) => ({ ...m })) };
+    } catch (error) {
+      estado.padronWsp = {
+        cargado: true,
+        ok: false,
+        error: String(error?.message || error || "Error desconocido"),
+        total: 0,
+      };
+
+      console.warn("[Control_Moviles] No se pudo leer el padrón WSP en modo solo lectura.", error);
+      return { ok: false, total: 0, error: estado.padronWsp.error };
+    }
+  }
+
+  function obtenerDiagnosticoPadronWsp() {
+    return {
+      ...estado.padronWsp,
+      numeros: estado.moviles.map((movil) => movil.numero),
+    };
+  }
+
   async function cargarHtmlSiFalta(mount) {
     if ($("bloqueControlMoviles")) return;
 
@@ -410,8 +478,9 @@
     await cargarHtmlSiFalta(mount || document.body);
     refs();
     bindUnaVez();
+    await cargarPadronWspSoloLectura();
     setActiva(false);
-    return { ok: true, version: VERSION };
+    return { ok: true, version: VERSION, padronWsp: obtenerDiagnosticoPadronWsp() };
   }
 
   window.WSP.modules.controlMoviles = {
@@ -422,6 +491,8 @@
     seleccionarMovil,
     volverASeleccion: mostrarLista,
     salirControlMoviles,
+    recargarPadronWspSoloLectura: cargarPadronWspSoloLectura,
+    diagnosticoPadronWsp: obtenerDiagnosticoPadronWsp,
   };
 
   console.log("[Control_Moviles] cargado", VERSION);
