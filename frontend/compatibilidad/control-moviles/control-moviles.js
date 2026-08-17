@@ -5,7 +5,7 @@
   window.WSP = window.WSP || {};
   window.WSP.modules = window.WSP.modules || {};
 
-  const VERSION = "control-moviles-wsp-readonly-20260817";
+  const VERSION = "control-moviles-wsp-control-20260817";
 
   const BASE_NUMEROS = ["12428", "10139", "12502"];
   const MOVILES_DEFAULT = [
@@ -217,49 +217,96 @@
     }
   }
 
-  function guardarActual() {
+  async function guardarActual() {
     const r = refs();
     const movil = estado.seleccionado;
     if (!movil) return;
 
+    if (!estado.padronWsp.ok) {
+      setTextoEstado("No se puede guardar: el padrón WSP/BMZCN no está disponible.");
+      return;
+    }
+
+    const kilometraje = limpiar(r.km?.value || "").replace(/\D+/g, "");
+    const combustible = limpiar(r.combustible?.value || "").toLowerCase();
+    const observaciones = limpiar(r.obs?.value || "");
+    const fueraServicio = !!r.fuera?.checked;
+
+    if (!kilometraje) {
+      setTextoEstado("Complete el kilometraje. Solo se aceptan números.");
+      r.km?.focus?.();
+      return;
+    }
+
     const datos = {
       numero: movil.numero,
+      movilId: movil.id || "",
       tipo: movil.tipo,
       modelo: movil.modelo,
-      kilometraje: limpiar(r.km?.value || ""),
-      combustible: limpiar(r.combustible?.value || ""),
-      observaciones: limpiar(r.obs?.value || ""),
-      fueraServicio: !!r.fuera?.checked,
+      kilometraje,
+      combustible,
+      observaciones,
+      fueraServicio,
       fechaControl: new Date().toISOString(),
+      fotos: {
+        foto1: r.foto1?.files?.[0] || null,
+        foto2: r.foto2?.files?.[0] || null,
+      },
     };
-
-    estado.controles.set(movil.numero, datos);
-    movil.kilometraje = datos.kilometraje;
-    movil.combustible = datos.combustible;
-    movil.observaciones_novedades = datos.observaciones;
-    movil.condicion = !datos.fueraServicio;
 
     if (r.guardar) {
       r.guardar.disabled = true;
       r.guardar.classList.add("guardando");
       r.guardar.textContent = "Guardando...";
     }
+    setTextoEstado("Guardando control...");
 
-    document.dispatchEvent(new CustomEvent("control-moviles:guardar", {
-      detail: {
-        modo: "CONTROL_MOVILES",
-        movil: { ...datos },
-        fotos: {
-          foto1: r.foto1?.files?.[0] || null,
-          foto2: r.foto2?.files?.[0] || null,
+    try {
+      document.dispatchEvent(new CustomEvent("control-moviles:guardar", {
+        detail: {
+          modo: "CONTROL_MOVILES",
+          movil: { ...datos, fotos: undefined },
+          fotos: datos.fotos,
         },
-      },
-    }));
+      }));
 
-    window.setTimeout(() => {
-      setTextoEstado("Control guardado para móvil " + movil.numero + ".");
+      const apiUrl = new URL("api/persistencia-api.js", document.baseURI).href;
+      const api = await import(apiUrl);
+
+      if (typeof api.persistirEnvio !== "function") {
+        throw new Error("La API de persistencia no está disponible.");
+      }
+
+      const resultado = await api.persistirEnvio({
+        modo: "CONTROL_MOVILES",
+        payload: datos,
+      });
+
+      if (!resultado?.ok) {
+        throw new Error(resultado?.mensaje || "No se pudo guardar el control.");
+      }
+
+      estado.controles.set(movil.numero, {
+        ...datos,
+        fotos: undefined,
+      });
+      movil.kilometraje = Number(kilometraje);
+      movil.combustible = combustible;
+      movil.observaciones_novedades = observaciones;
+      movil.condicion = !fueraServicio;
+
       mostrarLista();
-    }, 650);
+      setTextoEstado(resultado?.mensaje || `Control guardado para móvil ${movil.numero}.`);
+    } catch (error) {
+      console.error("[Control_Moviles] Error al guardar control WSP/BMZCN.", error);
+      setTextoEstado(`No se pudo guardar: ${String(error?.message || error || "Error desconocido")}`);
+    } finally {
+      if (r.guardar) {
+        r.guardar.disabled = false;
+        r.guardar.classList.remove("guardando");
+        r.guardar.textContent = "Guardar";
+      }
+    }
   }
 
   function abrirAyuda() {
@@ -468,7 +515,7 @@
           <div id="controlMovilesAyudaWrap" class="control-moviles-ayuda-wrap"><button type="button" id="controlMovilesAyudaBtn" class="control-moviles-ayuda-btn">?</button><div id="controlMovilesAyudaPopup" class="control-moviles-ayuda-popup hidden"><p><strong>Que Controlar? Sistemas Pasivos y Activos</strong></p><p><strong>Anotar:</strong> kilometraje y Combustible</p><p><strong>Revisar:</strong> Luces Altas/Bajas/de giro/balizas y Sirena; Batería, Cubiertas y Nivel Aceite, Gato, Matafuego.</p><p><strong>Ejemplo de Novedad:</strong> matafuego vencido--cubierta lisa--sin batería--luz quemada</p><p>Anotar en Observaciones las novedades; adjuntar fotos/video y apretar guardar.</p></div></div>
           <p id="controlMovilesEstado" class="control-moviles-estado">Seleccione un móvil en servicio.</p>
           <div id="controlMovilesChips" class="control-moviles-chips"></div>
-          <form id="controlMovilesFormulario" class="control-moviles-formulario hidden" novalidate><div class="control-moviles-form-header"><span class="control-moviles-label">Móvil seleccionado</span><strong id="controlMovilNumeroSeleccionado">---</strong></div><div class="control-moviles-form-grid"><label class="control-moviles-campo"><span>Kilometraje</span><input id="controlMovilKilometraje"></label><label class="control-moviles-campo"><span>Combustible</span><select id="controlMovilCombustible"><option></option><option>Reserva</option><option>1/4</option><option>+1/4</option><option>1/2</option><option>+1/2</option><option>3/4</option><option>Lleno</option></select></label></div><label class="control-moviles-campo control-moviles-campo-full"><span>Observaciones</span><textarea id="controlMovilObservaciones" rows="4"></textarea></label><div class="control-moviles-fotos"><label class="control-moviles-campo"><span>Foto 1</span><input id="controlMovilFoto1" type="file" accept="image/*,video/*"><img id="controlMovilPreview1" class="control-moviles-preview hidden" alt=""></label><label class="control-moviles-campo"><span>Foto 2</span><input id="controlMovilFoto2" type="file" accept="image/*,video/*"><img id="controlMovilPreview2" class="control-moviles-preview hidden" alt=""></label></div><button type="button" id="controlMovilGuardar" class="control-moviles-guardar">Guardar</button></form>
+          <form id="controlMovilesFormulario" class="control-moviles-formulario hidden" novalidate><div class="control-moviles-form-header"><span class="control-moviles-label">Móvil seleccionado</span><strong id="controlMovilNumeroSeleccionado">---</strong></div><div class="control-moviles-form-grid"><label class="control-moviles-campo"><span>Kilometraje</span><input id="controlMovilKilometraje"></label><label class="control-moviles-campo"><span>Combustible</span><select id="controlMovilCombustible"><option value="">Seleccionar</option><option value="reserva">Reserva</option><option value="1/4">1/4</option><option value="+1/4">+1/4</option><option value="-1/2">-1/2</option><option value="1/2">1/2</option><option value="+1/2">+1/2</option><option value="3/4">3/4</option><option value="+3/4">+3/4</option><option value="lleno">Lleno</option></select></label></div><label class="control-moviles-campo control-moviles-campo-full"><span>Observaciones</span><textarea id="controlMovilObservaciones" rows="4"></textarea></label><div class="control-moviles-fotos"><label class="control-moviles-campo"><span>Foto 1</span><input id="controlMovilFoto1" type="file" accept="image/*,video/*"><img id="controlMovilPreview1" class="control-moviles-preview hidden" alt=""></label><label class="control-moviles-campo"><span>Foto 2</span><input id="controlMovilFoto2" type="file" accept="image/*,video/*"><img id="controlMovilPreview2" class="control-moviles-preview hidden" alt=""></label></div><button type="button" id="controlMovilGuardar" class="control-moviles-guardar">Guardar</button></form>
         </section>`);
     }
   }
