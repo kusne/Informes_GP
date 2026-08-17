@@ -62,6 +62,22 @@ export async function persistirEnvio({ modo, payload } = {}) {
     };
   }
 
+  const modoNormalizado = normalizarModo(modo);
+
+  // Control de móviles usa el Supabase secundario WSP/BMZCN y no depende
+  // de la disponibilidad del Supabase principal de Informes GP.
+  if (modoNormalizado === "CONTROL_MOVILES") {
+    const repo = await import("../backend/infraestructura/supabase/moviles-wsp-readonly-client.js");
+    const data = await repo.guardarControlMovilWspDesdeInformesGp(payload);
+    return {
+      ok: data?.ok !== false,
+      data,
+      payloadFinal: payload,
+      fotos: data?.fotos?.guardadas || [],
+      mensaje: data?.mensaje || "Control de móvil guardado."
+    };
+  }
+
   if (!supabaseDisponible()) {
     return {
       ok: true,
@@ -72,7 +88,6 @@ export async function persistirEnvio({ modo, payload } = {}) {
     };
   }
 
-  const modoNormalizado = normalizarModo(modo);
   const fotosRepo = await import("../backend/infraestructura/supabase/subir-foto-supabase.js");
   const resultadoFotos = await fotosRepo.subirFotosAdjuntasSupabase({ modo: modoNormalizado, payload });
   const payloadFinal = resultadoFotos?.payload || payload;
@@ -100,12 +115,6 @@ export async function persistirEnvio({ modo, payload } = {}) {
       fotos: resultadoFotos?.fotos || [],
       mensaje: data?.mensaje || "Informe guardado en Supabase V2."
     };
-  }
-
-  if (modoNormalizado === "CONTROL_MOVILES") {
-    const repo = await import("../backend/infraestructura/supabase/control-moviles-repo.js");
-    const data = await repo.guardarNovedadMovil(payload);
-    return { ok: true, data, payloadFinal: payload, fotos: [], mensaje: "Novedad de móvil guardada." };
   }
 
   return {
