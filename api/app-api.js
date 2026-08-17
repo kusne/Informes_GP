@@ -230,6 +230,15 @@ export { procesarInformeEspecialFormulario } from "../backend/aplicacion/procesa
 // Padrón de móviles WSP/BMZCN - segundo Supabase, SOLO LECTURA.
 export {
   listarPadronMovilesWspSoloLectura,
-  diagnosticarPadronMovilesWspSoloLectura
+  diagnosticarPadronMovilesWspSoloLectura,
+  limpiarVencidosControlMovilesWsp,
+  listarBloqueosControlMovilesWsp,
+  registrarPresenciaControlMovilesWsp,
+  guardarBloqueoControlMovilWsp,
+  liberarBloqueosPropiosControlMovilesWsp,
+  borrarPresenciaPropiaControlMovilesWsp,
+  cerrarSesionControlMovilesWsp,
+  suscribirControlMovilesWsp,
+  detenerSuscripcionControlMovilesWsp
 } from "../backend/infraestructura/supabase/moviles-wsp-readonly-client.js";
 
