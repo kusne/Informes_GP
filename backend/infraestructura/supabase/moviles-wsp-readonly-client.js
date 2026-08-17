@@ -14,9 +14,13 @@ const TABLA_MOVILES = "moviles_bmzcn";
 const TABLA_CONTROLES = "moviles_controles";
 const TABLA_FOTOS = "moviles_fotos_guardia";
 const TABLA_ESTADO_RECURSOS = "recursos_controles_wsp_estado";
+const TABLA_LOCKS = "wsp_control_moviles_locks";
+const TABLA_PRESENCE = "wsp_control_moviles_presence";
 const BUCKET_FOTOS = "moviles-control-fotos";
 const FUENTE_INFORMES_GP = "INFORMES_GP";
 const VIGENCIA_MARCA_MS = 2 * 60 * 60 * 1000;
+const VIGENCIA_LOCK_MS = 2 * 60 * 60 * 1000;
+const VIGENCIA_PRESENCE_MS = 45 * 1000;
 
 const COMBUSTIBLES_VALIDOS = Object.freeze([
   "",
@@ -498,4 +502,217 @@ function extensionArchivo(file) {
 
 function texto(valor) {
   return String(valor ?? "").trim();
+}
+
+
+// ============================================================
+// COORDINACIÓN COMPARTIDA CONTROL DE MÓVILES (WSP / INFORMES GP)
+// Replica exclusivamente el comportamiento del control de móviles:
+// - móvil controlado: amarillo
+// - si el lock es de otro usuario: amarillo + candado + no editable
+// - presencia activa mientras el usuario permanece en Control de móviles
+// - los locks propios se liberan al presionar Salir
+// ============================================================
+
+export async function limpiarVencidosControlMovilesWsp() {
+  const cliente = obtenerClienteMovilesWsp();
+  const ahora = new Date().toISOString();
+
+  const [locks, presence] = await Promise.all([
+    cliente.from(TABLA_LOCKS).delete().lt("expires_at", ahora),
+    cliente.from(TABLA_PRESENCE).delete().lt("expires_at", ahora)
+  ]);
+
+  if (locks.error) console.warn("[Informes_GP] No se pudieron limpiar locks vencidos.", locks.error);
+  if (presence.error) console.warn("[Informes_GP] No se pudieron limpiar presencias vencidas.", presence.error);
+
+  return { ok: !locks.error && !presence.error };
+}
+
+export async function listarBloqueosControlMovilesWsp() {
+  const cliente = obtenerClienteMovilesWsp();
+  const guardia = obtenerGuardiaControlMovil();
+
+  const { data, error } = await cliente
+    .from(TABLA_LOCKS)
+    .select("numero_movil,guardia_fecha,owner_id,session_id,locked_at,updated_at,expires_at")
+    .eq("guardia_fecha", guardia.guardia_fecha)
+    .gt("expires_at", new Date().toISOString())
+    .order("numero_movil", { ascending: true });
+
+  if (error) {
+    throw new Error(`No se pudieron leer los bloqueos de móviles: ${error.message || error}`);
+  }
+
+  return (Array.isArray(data) ? data : [])
+    .map(normalizarLockControlMovil)
+    .filter(Boolean);
+}
+
+export async function registrarPresenciaControlMovilesWsp({ ownerId, sessionId } = {}) {
+  const cliente = obtenerClienteMovilesWsp();
+  const owner_id = texto(ownerId);
+  const session_id = texto(sessionId);
+  if (!owner_id || !session_id) throw new Error("Falta identidad de sesión para Control de móviles.");
+
+  const guardia = obtenerGuardiaControlMovil();
+  const ahora = new Date();
+  const payload = {
+    owner_id,
+    session_id,
+    guardia_fecha: guardia.guardia_fecha,
+    entered_at: ahora.toISOString(),
+    heartbeat_at: ahora.toISOString(),
+    expires_at: new Date(ahora.getTime() + VIGENCIA_PRESENCE_MS).toISOString()
+  };
+
+  const { error } = await cliente
+    .from(TABLA_PRESENCE)
+    .upsert(payload, { onConflict: "session_id" });
+
+  if (error) {
+    throw new Error(`No se pudo registrar presencia de Control de móviles: ${error.message || error}`);
+  }
+
+  return payload;
+}
+
+export async function guardarBloqueoControlMovilWsp({ numero, ownerId, sessionId } = {}) {
+  const cliente = obtenerClienteMovilesWsp();
+  const numeroNormalizado = normalizarNumeroMovil(numero);
+  const owner_id = texto(ownerId);
+  const session_id = texto(sessionId);
+
+  if (!numeroNormalizado || !owner_id || !session_id) {
+    throw new Error("No se puede bloquear el móvil: faltan datos de coordinación.");
+  }
+
+  const guardia = obtenerGuardiaControlMovil();
+  const ahora = new Date();
+  const payload = {
+    numero_movil: numeroNormalizado,
+    guardia_fecha: guardia.guardia_fecha,
+    owner_id,
+    session_id,
+    locked_at: ahora.toISOString(),
+    updated_at: ahora.toISOString(),
+    expires_at: new Date(ahora.getTime() + VIGENCIA_LOCK_MS).toISOString()
+  };
+
+  const { data, error } = await cliente
+    .from(TABLA_LOCKS)
+    .upsert(payload, { onConflict: "guardia_fecha,numero_movil" })
+    .select("numero_movil,guardia_fecha,owner_id,session_id,locked_at,updated_at,expires_at")
+    .single();
+
+  if (error) {
+    throw new Error(`El control se guardó, pero no se pudo activar el bloqueo amarillo: ${error.message || error}`);
+  }
+
+  return normalizarLockControlMovil(data || payload);
+}
+
+export async function liberarBloqueosPropiosControlMovilesWsp({ ownerId } = {}) {
+  const cliente = obtenerClienteMovilesWsp();
+  const owner_id = texto(ownerId);
+  if (!owner_id) return { ok: true };
+
+  const guardia = obtenerGuardiaControlMovil();
+  const { error } = await cliente
+    .from(TABLA_LOCKS)
+    .delete()
+    .eq("guardia_fecha", guardia.guardia_fecha)
+    .eq("owner_id", owner_id);
+
+  if (error) {
+    throw new Error(`No se pudieron liberar los móviles controlados por esta sesión: ${error.message || error}`);
+  }
+
+  return { ok: true };
+}
+
+export async function borrarPresenciaPropiaControlMovilesWsp({ sessionId } = {}) {
+  const cliente = obtenerClienteMovilesWsp();
+  const session_id = texto(sessionId);
+  if (!session_id) return { ok: true };
+
+  const { error } = await cliente
+    .from(TABLA_PRESENCE)
+    .delete()
+    .eq("session_id", session_id);
+
+  if (error) {
+    throw new Error(`No se pudo cerrar la presencia de Control de móviles: ${error.message || error}`);
+  }
+
+  return { ok: true };
+}
+
+export async function cerrarSesionControlMovilesWsp({ ownerId, sessionId } = {}) {
+  const resultados = await Promise.allSettled([
+    liberarBloqueosPropiosControlMovilesWsp({ ownerId }),
+    borrarPresenciaPropiaControlMovilesWsp({ sessionId })
+  ]);
+
+  const errores = resultados
+    .filter((r) => r.status === "rejected")
+    .map((r) => String(r.reason?.message || r.reason || "Error desconocido"));
+
+  return { ok: errores.length === 0, errores };
+}
+
+export function suscribirControlMovilesWsp({ onCambio } = {}) {
+  const cliente = obtenerClienteMovilesWsp();
+  const guardia = obtenerGuardiaControlMovil();
+  const nombre = `informes-gp-control-moviles-${guardia.guardia_fecha}-${Math.random().toString(36).slice(2, 9)}`;
+
+  const avisar = (tipo, payload) => {
+    try {
+      if (typeof onCambio === "function") onCambio({ tipo, payload });
+    } catch (error) {
+      console.warn("[Informes_GP] Error procesando cambio Realtime de Control de móviles.", error);
+    }
+  };
+
+  const canal = cliente
+    .channel(nombre)
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: TABLA_LOCKS, filter: `guardia_fecha=eq.${guardia.guardia_fecha}` },
+      (payload) => avisar("LOCK", payload)
+    )
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: TABLA_ESTADO_RECURSOS, filter: `guardia_fecha=eq.${guardia.guardia_fecha}` },
+      (payload) => avisar("ESTADO", payload)
+    )
+    .subscribe();
+
+  return canal;
+}
+
+export async function detenerSuscripcionControlMovilesWsp(canal) {
+  if (!canal) return { ok: true };
+  const cliente = obtenerClienteMovilesWsp();
+  try {
+    await cliente.removeChannel(canal);
+    return { ok: true };
+  } catch (error) {
+    console.warn("[Informes_GP] No se pudo cerrar el canal Realtime de Control de móviles.", error);
+    return { ok: false, error: String(error?.message || error) };
+  }
+}
+
+function normalizarLockControlMovil(row = {}) {
+  const numero = normalizarNumeroMovil(row.numero_movil);
+  if (!numero) return null;
+  return {
+    numero,
+    guardia_fecha: texto(row.guardia_fecha),
+    owner_id: texto(row.owner_id),
+    session_id: texto(row.session_id),
+    locked_at: texto(row.locked_at),
+    updated_at: texto(row.updated_at),
+    expires_at: texto(row.expires_at)
+  };
 }
