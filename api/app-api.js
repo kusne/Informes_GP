@@ -227,3 +227,9 @@ function crearAdaptadorStorageNavegador() {
 export { procesarInicioFormulario } from "../backend/aplicacion/procesamiento/procesar-inicio.js";
 export { procesarFinalizadoFormulario } from "../backend/aplicacion/procesamiento/procesar-finalizado.js";
 export { procesarInformeEspecialFormulario } from "../backend/aplicacion/procesamiento/procesar-informe-especial.js";
+// Padrón de móviles WSP/BMZCN - segundo Supabase, SOLO LECTURA.
+export {
+  listarPadronMovilesWspSoloLectura,
+  diagnosticarPadronMovilesWspSoloLectura
+} from "../backend/infraestructura/supabase/moviles-wsp-readonly-client.js";
+
