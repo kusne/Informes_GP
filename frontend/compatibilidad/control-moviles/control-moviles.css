@@ -84,12 +84,12 @@
 
 .control-movil-chip {
   width: 100%;
-  min-height: 58px;
+  min-height: 50px;
   border: 2px solid #9ba4b2;
   border-radius: 16px;
   background: #eef1f7;
   color: #090e1a;
-  font-size: 25px;
+  font-size: 22px;
   font-weight: 900;
   line-height: 1;
   cursor: pointer;
@@ -310,8 +310,8 @@ body.control-movil-seleccionado-activo #btnEnviar {
   }
 
   .control-movil-chip {
-    min-height: 56px;
-    font-size: 24px;
+    min-height: 48px;
+    font-size: 21px;
   }
 
   .control-moviles-ayuda-wrap {
