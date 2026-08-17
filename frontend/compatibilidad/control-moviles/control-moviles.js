@@ -1,55 +1,68 @@
-// Control_Moviles/control-moviles.js - referencia funcional video
+// Control de móviles - comportamiento alineado con WSP.
 (function () {
   "use strict";
 
   window.WSP = window.WSP || {};
   window.WSP.modules = window.WSP.modules || {};
 
-  const VERSION = "control-moviles-wsp-control-20260817";
-
+  const VERSION = "control-moviles-wsp-behavior-20260817-2";
   const BASE_NUMEROS = ["12428", "10139", "12502"];
-  const MOVILES_DEFAULT = [
-    { numero: "12428", tipo: "MOVIL", modelo: "", condicion: true },
-    { numero: "12502", tipo: "MOVIL", modelo: "", condicion: true },
-    { numero: "12087", tipo: "MOTO", modelo: "250", condicion: true },
-    { numero: "12088", tipo: "MOTO", modelo: "250", condicion: true },
-    { numero: "12089", tipo: "MOTO", modelo: "250", condicion: true },
-    { numero: "12090", tipo: "MOTO", modelo: "250", condicion: true },
-    { numero: "12091", tipo: "MOTO", modelo: "250", condicion: true },
-    { numero: "8989", tipo: "MOTO", modelo: "300", condicion: true },
-    { numero: "9029", tipo: "MOTO", modelo: "300", condicion: true },
-    { numero: "9030", tipo: "MOTO", modelo: "300", condicion: true },
-    { numero: "9071", tipo: "MOTO", modelo: "300", condicion: true },
-    { numero: "9087", tipo: "MOTO", modelo: "650", condicion: true },
-    { numero: "9088", tipo: "MOTO", modelo: "650", condicion: true },
-    { numero: "9091", tipo: "MOTO", modelo: "650", condicion: true },
-    { numero: "9092", tipo: "MOTO", modelo: "650", condicion: true },
-  ];
+  const HEARTBEAT_MS = 15000;
 
   const estado = {
     activa: false,
     seleccionado: null,
-    controles: new Map(),
-    moviles: MOVILES_DEFAULT.map((m) => ({ ...m })),
+    moviles: [],
+    locks: new Map(),
     refs: {},
-    padronWsp: { cargado: false, ok: false, error: "", total: 0 },
+    api: null,
+    realtime: null,
+    heartbeat: null,
+    refrescoTimer: null,
+    sincronizando: false,
+    padronOk: false,
+    ownerId: obtenerIdSesion("igp_control_moviles_owner_id", "owner"),
+    sessionId: obtenerIdSesion("igp_control_moviles_session_id", "session"),
   };
 
   function $(id) {
     return document.getElementById(id);
   }
 
+  function limpiar(txt) {
+    return String(txt || "").replace(/\s+/g, " ").trim();
+  }
+
   function normalizar(txt) {
-    return String(txt || "")
+    return limpiar(txt)
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
-      .replace(/\s+/g, " ")
-      .trim()
       .toUpperCase();
   }
 
-  function limpiar(txt) {
-    return String(txt || "").replace(/\s+/g, " ").trim();
+  function normalizarNumero(valor) {
+    return limpiar(valor).replace(/\D+/g, "");
+  }
+
+  function crearId(prefix) {
+    try {
+      if (window.crypto && typeof window.crypto.randomUUID === "function") {
+        return `${prefix}_${window.crypto.randomUUID()}`;
+      }
+    } catch (_) {}
+    return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 12)}`;
+  }
+
+  function obtenerIdSesion(key, prefix) {
+    try {
+      const actual = window.sessionStorage?.getItem(key);
+      if (actual) return actual;
+      const nuevo = crearId(prefix);
+      window.sessionStorage?.setItem(key, nuevo);
+      return nuevo;
+    } catch (_) {
+      return crearId(prefix);
+    }
   }
 
   function refs() {
@@ -70,6 +83,7 @@
       preview1: $("controlMovilPreview1"),
       preview2: $("controlMovilPreview2"),
       guardar: $("controlMovilGuardar"),
+      salir: $("controlMovilesSalir"),
       btnEnviar: $("btnEnviar"),
     };
     return estado.refs;
@@ -78,15 +92,6 @@
   function setTextoEstado(texto) {
     const r = refs();
     if (r.estado) r.estado.textContent = texto || "";
-  }
-
-  function ccMoto(movil) {
-    const modelo = normalizar(movil.modelo);
-    if (modelo.includes("250")) return "(250cc.)";
-    if (modelo.includes("300")) return "(300cc.)";
-    if (modelo.includes("650")) return "(650cc.)";
-    if (modelo.includes("400")) return "(400cc.)";
-    return "";
   }
 
   function escapeHtml(txt) {
@@ -98,80 +103,142 @@
       .replaceAll("'", "&#39;");
   }
 
+  function cilindradaMoto(movil) {
+    const modelo = normalizar(movil?.modelo || "");
+    if (modelo.includes("250")) return "(250cc.)";
+    if (modelo.includes("300")) return "(300cc.)";
+    if (modelo.includes("400")) return "(400cc.)";
+    if (modelo.includes("650")) return "(650cc.)";
+    return "";
+  }
+
+  function lockDe(numero) {
+    return estado.locks.get(normalizarNumero(numero)) || null;
+  }
+
+  function lockEsPropio(lock) {
+    return !!lock && limpiar(lock.owner_id) === estado.ownerId;
+  }
+
+  function movilVisible(movil) {
+    return !!movil?.numero && (movil.condicion !== false || !!lockDe(movil.numero));
+  }
+
+  function ordenarNumero(a, b) {
+    return String(a?.numero || "").localeCompare(String(b?.numero || ""), "es", { numeric: true });
+  }
+
   function grupoHtml(titulo, moviles, tipo) {
     if (!moviles.length) return "";
+
     return `
       <div class="control-moviles-grupo control-moviles-grupo-${tipo}">
         <div class="control-moviles-grupo-titulo">${escapeHtml(titulo)}</div>
         <div class="control-moviles-grupo-grid">
           ${moviles.map((movil) => {
-            const numero = escapeHtml(movil.numero);
-            const cc = tipo === "motos" ? ccMoto(movil) : "";
-            const controlado = estado.controles.has(movil.numero) ? " controlado" : "";
-            return `<button type="button" class="control-movil-chip${controlado}" data-control-movil-numero="${numero}">${numero}${cc ? ` <small>${escapeHtml(cc)}</small>` : ""}</button>`;
+            const numero = normalizarNumero(movil.numero);
+            const lock = lockDe(numero);
+            const controlado = !!lock;
+            const bloqueado = controlado && !lockEsPropio(lock);
+            const cc = tipo === "motos" ? cilindradaMoto(movil) : "";
+            const clases = ["control-movil-chip"];
+            if (controlado) clases.push("control-movil-chip-controlado");
+            if (bloqueado) clases.push("control-movil-chip-bloqueado");
+            if (movil.condicion === false) clases.push("control-movil-chip-fuera-servicio");
+            const candado = bloqueado ? ' <span class="control-movil-candado" aria-hidden="true">🔒</span>' : "";
+            const tituloBtn = bloqueado
+              ? "Móvil controlado por otro usuario. Bloqueado hasta que ese controlador presione Salir."
+              : controlado
+                ? "Móvil controlado por esta sesión. Puede volver a editarlo."
+                : "Seleccionar móvil";
+
+            return `<button type="button" class="${clases.join(" ")}" data-control-movil-numero="${escapeHtml(numero)}" ${bloqueado ? "disabled" : ""} title="${escapeHtml(tituloBtn)}">${escapeHtml(numero)}${cc ? ` <small>${escapeHtml(cc)}</small>` : ""}${candado}</button>`;
           }).join("")}
         </div>
       </div>`;
   }
 
-  function renderLista() {
+  function renderLista({ conservarMensaje = false } = {}) {
     const r = refs();
     if (!r.chips) return;
 
-    const visibles = estado.moviles.filter((m) => m?.activo !== false && m?.condicion !== false);
-    const movilesBase = visibles.filter((m) => BASE_NUMEROS.includes(m.numero));
-    const motos = visibles.filter((m) => normalizar(m.tipo) === "MOTO");
+    const visibles = (Array.isArray(estado.moviles) ? estado.moviles : []).filter(movilVisible);
+    const base = visibles
+      .filter((m) => BASE_NUMEROS.includes(normalizarNumero(m.numero)))
+      .sort((a, b) => BASE_NUMEROS.indexOf(normalizarNumero(a.numero)) - BASE_NUMEROS.indexOf(normalizarNumero(b.numero)));
+    const motos = visibles
+      .filter((m) => normalizar(m.tipo) === "MOTO")
+      .sort(ordenarNumero);
 
-    r.chips.innerHTML = grupoHtml("Móviles", movilesBase, "base") + grupoHtml("Motos", motos, "motos");
+    r.chips.innerHTML = grupoHtml("Móviles", base, "base") + grupoHtml("Motos", motos, "motos");
 
-    if (estado.padronWsp.cargado && !estado.padronWsp.ok) {
-      setTextoEstado("No se pudo leer el padrón WSP. Se mantiene la lista local sin habilitar escritura remota.");
-    } else {
-      setTextoEstado("Seleccione un móvil en servicio.");
+    if (!conservarMensaje) {
+      setTextoEstado(visibles.length ? "Seleccione un móvil en servicio." : "No hay móviles en servicio para controlar.");
     }
   }
 
-  function mostrarLista() {
+  function actualizarBotonSalir() {
+    const r = refs();
+
+    if (r.salir) {
+      r.salir.classList.toggle("hidden", !estado.activa || !!estado.seleccionado);
+      r.salir.disabled = false;
+      if (!r.salir.textContent || normalizar(r.salir.textContent) === "SALIENDO...") r.salir.textContent = "Salir";
+    }
+
+    // Si alguna versión antigua todavía tiene btnEnviar, no se usa como
+    // segundo botón dentro de Control de móviles.
+    if (estado.activa && r.btnEnviar) {
+      r.btnEnviar.style.display = "none";
+    }
+  }
+
+  function mostrarLista({ conservarMensaje = false } = {}) {
     const r = refs();
     estado.seleccionado = null;
     document.body.classList.add("modo-control-moviles");
     document.body.classList.remove("control-movil-seleccionado-activo");
 
-    if (r.chips) r.chips.classList.remove("hidden");
-    if (r.form) r.form.classList.add("hidden");
-
-    if (r.btnEnviar) {
-      r.btnEnviar.classList.remove("hidden");
-      r.btnEnviar.style.display = "block";
-      r.btnEnviar.textContent = "Salir";
+    if (r.chips) {
+      r.chips.classList.remove("hidden");
+      r.chips.style.display = "grid";
+    }
+    if (r.form) {
+      r.form.classList.add("hidden");
+      r.form.style.display = "none";
+    }
+    if (r.fuera) {
+      r.fuera.checked = false;
+      r.fuera.disabled = true;
     }
 
-    renderLista();
+    limpiarFotos();
+    renderLista({ conservarMensaje });
+    actualizarBotonSalir();
   }
 
   function limpiarFotos() {
     const r = refs();
-    if (r.foto1) r.foto1.value = "";
-    if (r.foto2) r.foto2.value = "";
-    if (r.preview1) {
-      r.preview1.src = "";
-      r.preview1.classList.add("hidden");
-    }
-    if (r.preview2) {
-      r.preview2.src = "";
-      r.preview2.classList.add("hidden");
-    }
+    [r.foto1, r.foto2].forEach((input) => {
+      if (input) input.value = "";
+    });
+    [r.preview1, r.preview2].forEach((img) => {
+      if (!img) return;
+      img.src = "";
+      img.classList.add("hidden");
+    });
   }
 
   function cargarDatosFormulario(movil) {
     const r = refs();
-    const guardado = estado.controles.get(movil.numero) || {};
-
-    if (r.numero) r.numero.textContent = movil.numero;
-    if (r.km) r.km.value = guardado.kilometraje || movil.kilometraje || "";
-    if (r.combustible) r.combustible.value = guardado.combustible || movil.combustible || "";
-    if (r.obs) r.obs.value = guardado.observaciones || movil.observaciones_novedades || "";
-    if (r.fuera) r.fuera.checked = guardado.fueraServicio ?? !movil.condicion;
+    if (r.numero) r.numero.textContent = movil.numero || "---";
+    if (r.km) r.km.value = movil.kilometraje ?? "";
+    if (r.combustible) r.combustible.value = limpiar(movil.combustible).toLowerCase();
+    if (r.obs) r.obs.value = movil.observaciones_novedades || movil.observaciones || "";
+    if (r.fuera) {
+      r.fuera.disabled = false;
+      r.fuera.checked = movil.condicion === false;
+    }
     if (r.guardar) {
       r.guardar.disabled = false;
       r.guardar.classList.remove("guardando");
@@ -180,31 +247,52 @@
     limpiarFotos();
   }
 
-  function seleccionarMovil(numero) {
-    const movil = estado.moviles.find((m) => m.numero === limpiar(numero));
+  async function seleccionarMovil(numero) {
+    const numeroNormalizado = normalizarNumero(numero);
+    if (!numeroNormalizado) return;
+
+    try {
+      await refrescarBloqueos();
+    } catch (_) {}
+
+    const lock = lockDe(numeroNormalizado);
+    if (lock && !lockEsPropio(lock)) {
+      setTextoEstado(`El móvil ${numeroNormalizado} está bloqueado por otro usuario.`);
+      renderLista({ conservarMensaje: true });
+      return;
+    }
+
+    try {
+      await cargarPadron();
+    } catch (_) {}
+
+    const movil = estado.moviles.find((m) => normalizarNumero(m.numero) === numeroNormalizado);
     if (!movil) return;
 
     const r = refs();
     estado.seleccionado = movil;
-
     document.body.classList.add("modo-control-moviles", "control-movil-seleccionado-activo");
 
-    if (r.chips) r.chips.classList.add("hidden");
-    if (r.form) r.form.classList.remove("hidden");
-    if (r.btnEnviar) r.btnEnviar.style.display = "none";
+    if (r.chips) {
+      r.chips.classList.add("hidden");
+      r.chips.style.display = "none";
+    }
+    if (r.form) {
+      r.form.classList.remove("hidden");
+      r.form.style.display = "grid";
+    }
 
     cargarDatosFormulario(movil);
+    actualizarBotonSalir();
     setTextoEstado("Complete kilometraje, combustible, observaciones y fotos si corresponde.");
 
-    window.setTimeout(() => {
-      refs().km?.focus?.();
-    }, 80);
+    window.setTimeout(() => refs().km?.focus?.(), 60);
   }
 
   function preview(input, img) {
     if (!input || !img) return;
-    const file = input.files && input.files[0];
-    if (!file) {
+    const file = input.files?.[0];
+    if (!file || !String(file.type || "").toLowerCase().startsWith("image/")) {
       img.src = "";
       img.classList.add("hidden");
       return;
@@ -217,15 +305,136 @@
     }
   }
 
+  async function obtenerApi() {
+    if (estado.api) return estado.api;
+    estado.api = await import(new URL("api/app-api.js", document.baseURI).href);
+    return estado.api;
+  }
+
+  async function cargarPadron() {
+    const api = await obtenerApi();
+    if (typeof api.diagnosticarPadronMovilesWspSoloLectura !== "function") {
+      throw new Error("La API del padrón WSP no está disponible.");
+    }
+
+    const diagnostico = await api.diagnosticarPadronMovilesWspSoloLectura();
+    const moviles = Array.isArray(diagnostico?.moviles) ? diagnostico.moviles : [];
+    if (!diagnostico?.ok || !moviles.length) throw new Error("El padrón WSP respondió sin móviles activos.");
+
+    estado.moviles = moviles.map((m) => ({
+      ...m,
+      numero: normalizarNumero(m.numero),
+      condicion: m.condicion !== false,
+      activo: m.activo !== false,
+    })).filter((m) => !!m.numero);
+    estado.padronOk = true;
+    return estado.moviles;
+  }
+
+  async function refrescarBloqueos() {
+    const api = await obtenerApi();
+    if (typeof api.listarBloqueosControlMovilesWsp !== "function") return [];
+
+    const locks = await api.listarBloqueosControlMovilesWsp();
+    estado.locks = new Map();
+    (Array.isArray(locks) ? locks : []).forEach((lock) => {
+      if (lock?.numero) estado.locks.set(normalizarNumero(lock.numero), lock);
+    });
+
+    if (estado.seleccionado?.numero) {
+      const lock = lockDe(estado.seleccionado.numero);
+      if (lock && !lockEsPropio(lock)) {
+        const numeroBloqueado = estado.seleccionado.numero;
+        mostrarLista();
+        setTextoEstado(`El móvil ${numeroBloqueado} quedó bloqueado por otro usuario.`);
+      }
+    }
+
+    return locks;
+  }
+
+  async function refrescarCompartido() {
+    if (!estado.activa || estado.sincronizando) return;
+    estado.sincronizando = true;
+    try {
+      await Promise.allSettled([cargarPadron(), refrescarBloqueos()]);
+      if (!estado.seleccionado) renderLista();
+    } finally {
+      estado.sincronizando = false;
+    }
+  }
+
+  function programarRefrescoCompartido() {
+    if (estado.refrescoTimer) clearTimeout(estado.refrescoTimer);
+    estado.refrescoTimer = setTimeout(() => {
+      estado.refrescoTimer = null;
+      refrescarCompartido().catch((e) => console.warn("[Control_Moviles] Refresco Realtime falló.", e));
+    }, 80);
+  }
+
+  async function iniciarCoordinacionCompartida() {
+    if (estado.sincronizando) return;
+    estado.sincronizando = true;
+    try {
+      const api = await obtenerApi();
+      await api.limpiarVencidosControlMovilesWsp?.();
+      await api.registrarPresenciaControlMovilesWsp?.({ ownerId: estado.ownerId, sessionId: estado.sessionId });
+      await Promise.all([cargarPadron(), refrescarBloqueos()]);
+
+      if (!estado.realtime && typeof api.suscribirControlMovilesWsp === "function") {
+        estado.realtime = api.suscribirControlMovilesWsp({ onCambio: programarRefrescoCompartido });
+      }
+
+      if (!estado.heartbeat) {
+        estado.heartbeat = setInterval(() => {
+          if (!estado.activa) return;
+          api.registrarPresenciaControlMovilesWsp?.({ ownerId: estado.ownerId, sessionId: estado.sessionId })
+            .catch((e) => console.warn("[Control_Moviles] Heartbeat falló.", e));
+        }, HEARTBEAT_MS);
+      }
+
+      renderLista();
+    } catch (error) {
+      console.error("[Control_Moviles] No se pudo iniciar coordinación compartida.", error);
+      setTextoEstado(`No se pudo sincronizar el control compartido: ${String(error?.message || error)}`);
+    } finally {
+      estado.sincronizando = false;
+    }
+  }
+
+  async function detenerCoordinacionCompartida({ liberarLocks = true } = {}) {
+    if (estado.heartbeat) {
+      clearInterval(estado.heartbeat);
+      estado.heartbeat = null;
+    }
+    if (estado.refrescoTimer) {
+      clearTimeout(estado.refrescoTimer);
+      estado.refrescoTimer = null;
+    }
+
+    try {
+      const api = await obtenerApi();
+      if (estado.realtime && typeof api.detenerSuscripcionControlMovilesWsp === "function") {
+        await api.detenerSuscripcionControlMovilesWsp(estado.realtime);
+      }
+      estado.realtime = null;
+
+      if (liberarLocks && typeof api.cerrarSesionControlMovilesWsp === "function") {
+        await api.cerrarSesionControlMovilesWsp({ ownerId: estado.ownerId, sessionId: estado.sessionId });
+      } else if (typeof api.borrarPresenciaPropiaControlMovilesWsp === "function") {
+        await api.borrarPresenciaPropiaControlMovilesWsp({ sessionId: estado.sessionId });
+      }
+    } catch (error) {
+      console.warn("[Control_Moviles] No se pudo cerrar limpiamente la coordinación compartida.", error);
+    }
+
+    estado.locks = new Map();
+  }
+
   async function guardarActual() {
     const r = refs();
     const movil = estado.seleccionado;
     if (!movil) return;
-
-    if (!estado.padronWsp.ok) {
-      setTextoEstado("No se puede guardar: el padrón WSP/BMZCN no está disponible.");
-      return;
-    }
 
     const kilometraje = limpiar(r.km?.value || "").replace(/\D+/g, "");
     const combustible = limpiar(r.combustible?.value || "").toLowerCase();
@@ -238,11 +447,29 @@
       return;
     }
 
+    if (!combustible) {
+      setTextoEstado("Seleccione un combustible válido.");
+      r.combustible?.focus?.();
+      return;
+    }
+
+    const lockActual = lockDe(movil.numero);
+    if (lockActual && !lockEsPropio(lockActual)) {
+      mostrarLista();
+      setTextoEstado(`El móvil ${movil.numero} fue bloqueado por otro usuario.`);
+      return;
+    }
+
+    if (r.guardar) {
+      r.guardar.disabled = true;
+      r.guardar.classList.add("guardando");
+      r.guardar.textContent = "Guardando...";
+    }
+    setTextoEstado("Guardando control...");
+
     const datos = {
       numero: movil.numero,
       movilId: movil.id || "",
-      tipo: movil.tipo,
-      modelo: movil.modelo,
       kilometraje,
       combustible,
       observaciones,
@@ -254,49 +481,27 @@
       },
     };
 
-    if (r.guardar) {
-      r.guardar.disabled = true;
-      r.guardar.classList.add("guardando");
-      r.guardar.textContent = "Guardando...";
-    }
-    setTextoEstado("Guardando control...");
-
     try {
-      document.dispatchEvent(new CustomEvent("control-moviles:guardar", {
-        detail: {
-          modo: "CONTROL_MOVILES",
-          movil: { ...datos, fotos: undefined },
-          fotos: datos.fotos,
-        },
-      }));
+      const persistencia = await import(new URL("api/persistencia-api.js", document.baseURI).href);
+      const resultado = await persistencia.persistirEnvio({ modo: "CONTROL_MOVILES", payload: datos });
+      if (!resultado?.ok) throw new Error(resultado?.mensaje || "No se pudo guardar el control.");
 
-      const apiUrl = new URL("api/persistencia-api.js", document.baseURI).href;
-      const api = await import(apiUrl);
-
-      if (typeof api.persistirEnvio !== "function") {
-        throw new Error("La API de persistencia no está disponible.");
+      const api = await obtenerApi();
+      let lock = null;
+      try {
+        lock = await api.guardarBloqueoControlMovilWsp?.({
+          numero: movil.numero,
+          ownerId: estado.ownerId,
+          sessionId: estado.sessionId,
+        });
+      } catch (errorLock) {
+        console.warn("[Control_Moviles] Control guardado, pero falló el lock amarillo.", errorLock);
       }
+      if (lock?.numero) estado.locks.set(normalizarNumero(lock.numero), lock);
 
-      const resultado = await api.persistirEnvio({
-        modo: "CONTROL_MOVILES",
-        payload: datos,
-      });
-
-      if (!resultado?.ok) {
-        throw new Error(resultado?.mensaje || "No se pudo guardar el control.");
-      }
-
-      estado.controles.set(movil.numero, {
-        ...datos,
-        fotos: undefined,
-      });
-      movil.kilometraje = Number(kilometraje);
-      movil.combustible = combustible;
-      movil.observaciones_novedades = observaciones;
-      movil.condicion = !fueraServicio;
-
-      mostrarLista();
-      setTextoEstado(resultado?.mensaje || `Control guardado para móvil ${movil.numero}.`);
+      await Promise.allSettled([cargarPadron(), refrescarBloqueos()]);
+      mostrarLista({ conservarMensaje: true });
+      setTextoEstado("Control guardado. Seleccione otro móvil o presione Salir.");
     } catch (error) {
       console.error("[Control_Moviles] Error al guardar control WSP/BMZCN.", error);
       setTextoEstado(`No se pudo guardar: ${String(error?.message || error || "Error desconocido")}`);
@@ -306,6 +511,7 @@
         r.guardar.classList.remove("guardando");
         r.guardar.textContent = "Guardar";
       }
+      actualizarBotonSalir();
     }
   }
 
@@ -326,10 +532,8 @@
   }
 
   function alternarAyuda(event) {
-    if (event) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
     const r = refs();
     if (!r.ayudaPopup) return;
     if (r.ayudaPopup.classList.contains("hidden")) abrirAyuda();
@@ -344,53 +548,76 @@
       });
 
     if (!selector) return;
-    const op = Array.from(selector.options || []).find((o) => normalizar(o.textContent || o.value) === "INICIA") || selector.options[0];
+    const op = Array.from(selector.options || []).find((o) => normalizar(o.textContent || o.value) === "INICIA");
     if (!op) return;
     selector.value = op.value;
     selector.dispatchEvent(new Event("change", { bubbles: true }));
   }
 
-  function salirControlMoviles() {
+  async function salirControlMoviles() {
     if (estado.seleccionado) {
       mostrarLista();
       return;
     }
-    setActiva(false);
+
+    const r = refs();
+    if (r.salir) {
+      r.salir.disabled = true;
+      r.salir.textContent = "Saliendo...";
+    }
+
+    await detenerCoordinacionCompartida({ liberarLocks: true });
+    desactivarVisual();
     elegirIniciaEnSelector();
+  }
+
+  function desactivarVisual() {
+    const r = refs();
+    estado.activa = false;
+    estado.seleccionado = null;
+    if (r.bloque) r.bloque.classList.add("hidden");
+    if (r.form) r.form.classList.add("hidden");
+    if (r.chips) r.chips.classList.remove("hidden");
+    if (r.fuera) {
+      r.fuera.checked = false;
+      r.fuera.disabled = true;
+    }
+    cerrarAyuda();
+    document.body.classList.remove("modo-control-moviles", "control-movil-seleccionado-activo");
+    if (r.btnEnviar) r.btnEnviar.style.display = "";
+    actualizarBotonSalir();
   }
 
   function setActiva(activa) {
     const r = refs();
-    estado.activa = !!activa;
-
-    if (r.bloque) r.bloque.classList.toggle("hidden", !estado.activa);
-    document.body.classList.toggle("modo-control-moviles", estado.activa);
-
-    if (!estado.activa) {
-      estado.seleccionado = null;
-      document.body.classList.remove("control-movil-seleccionado-activo");
-      cerrarAyuda();
-      if (r.form) r.form.classList.add("hidden");
-      if (r.chips) r.chips.classList.remove("hidden");
-      if (r.btnEnviar) {
-        r.btnEnviar.style.display = "";
-        if (r.btnEnviar.textContent.trim().toUpperCase() === "SALIR") {
-          r.btnEnviar.textContent = "Enviar por WhatsApp";
-        }
-      }
+    const nueva = !!activa;
+    if (nueva === estado.activa && nueva) {
+      mostrarLista();
       return;
     }
 
-    mostrarLista();
+    estado.activa = nueva;
+    if (r.bloque) r.bloque.classList.toggle("hidden", !nueva);
+
+    if (!nueva) {
+      detenerCoordinacionCompartida({ liberarLocks: true }).catch(() => {});
+      desactivarVisual();
+      return;
+    }
+
+    document.body.classList.add("modo-control-moviles");
+    mostrarLista({ conservarMensaje: true });
+    setTextoEstado("Cargando móviles en servicio...");
+    iniciarCoordinacionCompartida();
   }
 
   function bindUnaVez() {
-    if (document.body.dataset.boundControlMovilesVideoRef === "1") return;
-    document.body.dataset.boundControlMovilesVideoRef = "1";
+    if (document.body.dataset.boundControlMovilesWspBehavior === "1") return;
+    document.body.dataset.boundControlMovilesWspBehavior = "1";
 
     document.addEventListener("click", (event) => {
       const chip = event.target.closest("[data-control-movil-numero]");
-      if (!chip) return;
+      if (!chip || chip.disabled) return;
       event.preventDefault();
       event.stopPropagation();
       seleccionarMovil(chip.dataset.controlMovilNumero);
@@ -401,7 +628,6 @@
         alternarAyuda(event);
         return;
       }
-
       const r = refs();
       if (!r.ayudaPopup || r.ayudaPopup.classList.contains("hidden")) return;
       if (r.ayudaPopup.contains(event.target) || r.ayudaBtn?.contains(event.target)) return;
@@ -415,12 +641,6 @@
       guardarActual();
     }, true);
 
-    document.addEventListener("change", (event) => {
-      const r = refs();
-      if (event.target === r.foto1) preview(r.foto1, r.preview1);
-      if (event.target === r.foto2) preview(r.foto2, r.preview2);
-    });
-
     document.addEventListener("submit", (event) => {
       if (event.target?.id !== "controlMovilesFormulario") return;
       event.preventDefault();
@@ -428,96 +648,28 @@
       guardarActual();
     }, true);
 
+    document.addEventListener("change", (event) => {
+      const r = refs();
+      if (event.target === r.foto1) preview(r.foto1, r.preview1);
+      if (event.target === r.foto2) preview(r.foto2, r.preview2);
+    });
+
     document.addEventListener("click", (event) => {
       const r = refs();
-      if (!r.btnEnviar || event.target !== r.btnEnviar) return;
-      if (!document.body.classList.contains("modo-control-moviles")) return;
+      if (!r.salir || !event.target.closest("#controlMovilesSalir")) return;
+      if (!estado.activa || estado.seleccionado) return;
       event.preventDefault();
       event.stopPropagation();
       salirControlMoviles();
     }, true);
   }
 
-  async function cargarPadronWspSoloLectura() {
-    try {
-      setTextoEstado("Cargando padrón de móviles WSP...");
-
-      const apiUrl = new URL("api/app-api.js", document.baseURI).href;
-      const api = await import(apiUrl);
-
-      if (typeof api.diagnosticarPadronMovilesWspSoloLectura !== "function") {
-        throw new Error("La API de padrón WSP solo lectura no está disponible.");
-      }
-
-      const diagnostico = await api.diagnosticarPadronMovilesWspSoloLectura();
-      const moviles = Array.isArray(diagnostico?.moviles) ? diagnostico.moviles : [];
-
-      if (!diagnostico?.ok || !moviles.length) {
-        throw new Error("El padrón WSP respondió sin móviles activos.");
-      }
-
-      estado.moviles = moviles.map((movil) => ({
-        ...movil,
-        numero: limpiar(movil.numero),
-        kilometraje: movil.kilometraje ?? 0,
-        combustible: limpiar(movil.combustible),
-        observaciones_novedades: limpiar(movil.observaciones_novedades),
-        condicion: movil.condicion !== false,
-        activo: movil.activo !== false,
-      })).filter((movil) => Boolean(movil.numero));
-
-      estado.padronWsp = {
-        cargado: true,
-        ok: true,
-        error: "",
-        total: estado.moviles.length,
-      };
-
-      console.info(
-        `[Control_Moviles] Padrón WSP leído en modo SOLO LECTURA: ${estado.moviles.length} móviles.`,
-        estado.moviles.map((movil) => movil.numero)
-      );
-
-      return { ok: true, total: estado.moviles.length, moviles: estado.moviles.map((m) => ({ ...m })) };
-    } catch (error) {
-      estado.padronWsp = {
-        cargado: true,
-        ok: false,
-        error: String(error?.message || error || "Error desconocido"),
-        total: 0,
-      };
-
-      console.warn("[Control_Moviles] No se pudo leer el padrón WSP en modo solo lectura.", error);
-      return { ok: false, total: 0, error: estado.padronWsp.error };
-    }
-  }
-
-  function obtenerDiagnosticoPadronWsp() {
-    return {
-      ...estado.padronWsp,
-      numeros: estado.moviles.map((movil) => movil.numero),
-    };
-  }
-
   async function cargarHtmlSiFalta(mount) {
     if ($("bloqueControlMoviles")) return;
-
-    try {
-      const resp = await fetch(new URL("frontend/compatibilidad/control-moviles/control-moviles.html?v=" + VERSION, document.baseURI).href, { cache: "default" });
-      if (!resp.ok) throw new Error("HTTP " + resp.status);
-      const html = await resp.text();
-      (mount || document.body).insertAdjacentHTML("beforeend", html);
-    } catch (err) {
-      console.warn("[Control_Moviles] No se pudo cargar HTML externo. Usando fallback.", err);
-      (mount || document.body).insertAdjacentHTML("beforeend", `
-        <section id="bloqueControlMoviles" class="bloque-control-moviles hidden">
-          <div class="control-moviles-topbar"><h2 class="control-moviles-title">Control de móviles</h2><label class="control-moviles-fuera-servicio"><input type="checkbox" id="controlMovilFueraServicio"><span>Fuera de Servicio</span></label></div>
-          <div id="controlMovilesAyudaWrap" class="control-moviles-ayuda-wrap"><button type="button" id="controlMovilesAyudaBtn" class="control-moviles-ayuda-btn">?</button><div id="controlMovilesAyudaPopup" class="control-moviles-ayuda-popup hidden"><p><strong>Que Controlar? Sistemas Pasivos y Activos</strong></p><p><strong>Anotar:</strong> kilometraje y Combustible</p><p><strong>Revisar:</strong> Luces Altas/Bajas/de giro/balizas y Sirena; Batería, Cubiertas y Nivel Aceite, Gato, Matafuego.</p><p><strong>Ejemplo de Novedad:</strong> matafuego vencido--cubierta lisa--sin batería--luz quemada</p><p>Anotar en Observaciones las novedades; adjuntar fotos/video y apretar guardar.</p></div></div>
-          <p id="controlMovilesEstado" class="control-moviles-estado">Seleccione un móvil en servicio.</p>
-          <div id="controlMovilesChips" class="control-moviles-chips"></div>
-          <form id="controlMovilesFormulario" class="control-moviles-formulario hidden" novalidate><div class="control-moviles-form-header"><span class="control-moviles-label">Móvil seleccionado</span><strong id="controlMovilNumeroSeleccionado">---</strong></div><div class="control-moviles-form-grid"><label class="control-moviles-campo"><span>Kilometraje</span><input id="controlMovilKilometraje"></label><label class="control-moviles-campo"><span>Combustible</span><select id="controlMovilCombustible"><option value="">Seleccionar</option><option value="reserva">Reserva</option><option value="1/4">1/4</option><option value="+1/4">+1/4</option><option value="-1/2">-1/2</option><option value="1/2">1/2</option><option value="+1/2">+1/2</option><option value="3/4">3/4</option><option value="+3/4">+3/4</option><option value="lleno">Lleno</option></select></label></div><label class="control-moviles-campo control-moviles-campo-full"><span>Observaciones</span><textarea id="controlMovilObservaciones" rows="4"></textarea></label><div class="control-moviles-fotos"><label class="control-moviles-campo"><span>Foto 1</span><input id="controlMovilFoto1" type="file" accept="image/*,video/*"><img id="controlMovilPreview1" class="control-moviles-preview hidden" alt=""></label><label class="control-moviles-campo"><span>Foto 2</span><input id="controlMovilFoto2" type="file" accept="image/*,video/*"><img id="controlMovilPreview2" class="control-moviles-preview hidden" alt=""></label></div><button type="button" id="controlMovilGuardar" class="control-moviles-guardar">Guardar</button></form>
-        </section>`);
-    }
+    const resp = await fetch(new URL(`frontend/compatibilidad/control-moviles/control-moviles.html?v=${VERSION}`, document.baseURI).href, { cache: "default" });
+    if (!resp.ok) throw new Error(`No se pudo cargar Control de móviles: HTTP ${resp.status}`);
+    const html = await resp.text();
+    (mount || document.body).insertAdjacentHTML("beforeend", html);
   }
 
   async function init(config = {}) {
@@ -525,9 +677,8 @@
     await cargarHtmlSiFalta(mount || document.body);
     refs();
     bindUnaVez();
-    await cargarPadronWspSoloLectura();
-    setActiva(false);
-    return { ok: true, version: VERSION, padronWsp: obtenerDiagnosticoPadronWsp() };
+    if (estado.refs.fuera) estado.refs.fuera.disabled = true;
+    return { ok: true, version: VERSION };
   }
 
   window.WSP.modules.controlMoviles = {
@@ -538,8 +689,7 @@
     seleccionarMovil,
     volverASeleccion: mostrarLista,
     salirControlMoviles,
-    recargarPadronWspSoloLectura: cargarPadronWspSoloLectura,
-    diagnosticoPadronWsp: obtenerDiagnosticoPadronWsp,
+    refrescar: refrescarCompartido,
   };
 
   console.log("[Control_Moviles] cargado", VERSION);
