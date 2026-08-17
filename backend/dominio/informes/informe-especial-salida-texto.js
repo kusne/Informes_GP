@@ -116,6 +116,7 @@ function construirDecreto46022(informe) {
   agregarLinea(lineas, "TIPO VEHÍCULO", "MOTOVEHÍCULO");
   agregarLinea(lineas, "INFRACCIÓN/ES", codigos.map((codigo) => `CÓD. ${codigo}`).join(" / "));
   lineas.push("Se realizó (01) Procedimiento por Dcto 460/22.");
+  lineas.push("*OBSERVACIONES:* Es dable mencionar que se realizaron consultas sobre el vehículo y la persona, arrojando resultados negativos por impedimentos legales.");
   agregarNumeralesSugeridos(lineas, informe);
 
   return lineas.filter(Boolean).join("\n");
