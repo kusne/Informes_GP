@@ -124,8 +124,9 @@ async function recargarItemsPantalla({
   });
 
   actualizarTituloContador(modo);
+  aplicarSuperficieExclusivaControlMoviles(modo);
 
-  if (modo !== "INFORMES") {
+  if (modo !== "INFORMES" && modo !== "CONTROL_MOVILES") {
     await renderContadorSeguro(estadoPantalla.cantidadOperativos);
 
     await renderSelectorOperativoSeguro({
@@ -138,7 +139,7 @@ async function recargarItemsPantalla({
   }
 
   if (!renderLocalInicial) {
-    if (modo === "INFORMES") {
+    if (modo === "INFORMES" || modo === "CONTROL_MOVILES") {
       const hostDinamico = document.querySelector("#contenedorDinamicoHost");
       if (hostDinamico) hostDinamico.innerHTML = "";
     } else {
@@ -152,6 +153,21 @@ async function recargarItemsPantalla({
 
   if (motivo) {
     console.log("[Informes_GP] Pantalla refrescada:", motivo);
+  }
+}
+
+function aplicarSuperficieExclusivaControlMoviles(modo) {
+  const esControl = normalizarModo(modo) === "CONTROL_MOVILES";
+  const cardOperativos = document.querySelector(".pantalla-principal-operativos-card");
+  const hostDinamico = document.querySelector("#contenedorDinamicoHost");
+
+  if (cardOperativos) {
+    cardOperativos.style.display = esControl ? "none" : "";
+  }
+
+  if (hostDinamico) {
+    hostDinamico.style.display = esControl ? "none" : "";
+    if (esControl) hostDinamico.innerHTML = "";
   }
 }
 
