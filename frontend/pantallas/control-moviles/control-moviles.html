@@ -1,80 +1,78 @@
-<section id="controlMovilesRoot" class="cmv-root" data-control-moviles-root>
-  <header class="cmv-header">
-    <div>
-      <h2 class="cmv-title">Control de móviles</h2>
-      <p id="controlMovilesEstado" class="cmv-estado">Seleccione un móvil en servicio.</p>
-    </div>
+<!-- Control_Moviles/control-moviles.html -->
+<section id="bloqueControlMoviles" class="bloque-control-moviles hidden" aria-label="Control de móviles">
+  <div class="control-moviles-topbar">
+    <h2 class="control-moviles-title">Control de móviles</h2>
 
-    <label class="cmv-fuera-servicio">
-      <input id="controlMovilFueraServicio" type="checkbox" />
+    <label class="control-moviles-fuera-servicio">
+      <input type="checkbox" id="controlMovilFueraServicio" />
       <span>Fuera de Servicio</span>
     </label>
-  </header>
+  </div>
 
-  <div id="controlMovilesAyudaWrap" class="cmv-ayuda-wrap">
-    <button id="controlMovilesAyudaBtn" class="cmv-ayuda-btn" type="button" aria-expanded="false" aria-controls="controlMovilesAyudaPopup">?</button>
-    <div id="controlMovilesAyudaPopup" class="cmv-ayuda-popup hidden" role="dialog" aria-label="Ayuda control de móviles">
-      <strong>Que Controlar? Sistemas Pasivos y Activos</strong>
-      <p><b>Anotar:</b> kilometraje y Combustible</p>
-      <p><b>Revisar:</b> Luces Altas/Bajas/de giro/balizas y Sirena; Batería, Cubiertas y Nivel Aceite, Gato, Matafuego.</p>
-      <p><b>Ejemplo de Novedad:</b> matafuego vencido--cubierta lisa--sin batería--luz quemada</p>
+  <div id="controlMovilesAyudaWrap" class="control-moviles-ayuda-wrap">
+    <button type="button" id="controlMovilesAyudaBtn" class="control-moviles-ayuda-btn" aria-label="Leer ayuda de control de móviles" aria-expanded="false">?</button>
+
+    <div id="controlMovilesAyudaPopup" class="control-moviles-ayuda-popup hidden" role="dialog" aria-label="Ayuda control de móviles">
+      <p><strong>Que Controlar? Sistemas Pasivos y Activos</strong></p>
+      <p><strong>Anotar:</strong> kilometraje y Combustible</p>
+      <p><strong>Revisar:</strong> Luces Altas/Bajas/de giro/balizas y Sirena; Batería, Cubiertas y Nivel Aceite, Gato, Matafuego.</p>
+      <p><strong>Ejemplo de Novedad:</strong> matafuego vencido--cubierta lisa--sin batería--luz quemada</p>
       <p>Anotar en Observaciones las novedades; adjuntar fotos/video y apretar guardar.</p>
     </div>
   </div>
 
-  <div id="controlMovilesListado" class="cmv-listado" data-vista="listado">
-    <div id="controlMovilesChips" class="cmv-chips" aria-label="Móviles disponibles"></div>
-  </div>
+  <p id="controlMovilesEstado" class="control-moviles-estado">Seleccione un móvil en servicio.</p>
 
-  <form id="controlMovilesFormulario" class="cmv-formulario hidden" data-vista="formulario" novalidate>
-    <div class="cmv-seleccionado">
-      <span>Móvil seleccionado</span>
+  <div id="controlMovilesChips" class="control-moviles-chips" aria-label="Listado de móviles"></div>
+
+  <form id="controlMovilesFormulario" class="control-moviles-formulario hidden" autocomplete="off" novalidate>
+    <div class="control-moviles-form-header">
+      <span class="control-moviles-label">Móvil seleccionado</span>
       <strong id="controlMovilNumeroSeleccionado">---</strong>
     </div>
 
-    <div class="cmv-form-grid">
-      <label class="cmv-campo">
+    <div class="control-moviles-form-grid">
+      <label class="control-moviles-campo">
         <span>Kilometraje</span>
-        <input id="controlMovilKilometraje" type="number" inputmode="numeric" autocomplete="off" placeholder="Kilometraje" />
+        <input id="controlMovilKilometraje" inputmode="numeric" type="text" placeholder="Ej: 38012" />
       </label>
 
-      <label class="cmv-campo">
+      <label class="control-moviles-campo">
         <span>Combustible</span>
         <select id="controlMovilCombustible">
           <option value="">Seleccionar</option>
-          <option value="0">0</option>
+          <option value="Reserva">Reserva</option>
           <option value="1/4">1/4</option>
+          <option value="+1/4">+1/4</option>
+          <option value="-1/2">-1/2</option>
           <option value="1/2">1/2</option>
+          <option value="+1/2">+1/2</option>
           <option value="3/4">3/4</option>
-          <option value="FULL">FULL</option>
+          <option value="+3/4">+3/4</option>
+          <option value="Lleno">Lleno</option>
         </select>
       </label>
     </div>
 
-    <label class="cmv-campo cmv-observaciones">
+    <label class="control-moviles-campo control-moviles-campo-full">
       <span>Observaciones</span>
       <textarea id="controlMovilObservaciones" rows="4" placeholder="Novedades u observaciones del control"></textarea>
     </label>
 
-    <div class="cmv-fotos">
-      <label class="cmv-campo">
+    <div class="control-moviles-fotos">
+      <label class="control-moviles-campo">
         <span>Foto 1</span>
         <input id="controlMovilFoto1" type="file" accept="image/*,video/*" />
-        <img id="controlMovilPreview1" class="cmv-preview hidden" alt="Vista previa foto 1" />
+        <img id="controlMovilPreview1" class="control-moviles-preview hidden" alt="Preview foto 1" />
       </label>
 
-      <label class="cmv-campo">
+      <label class="control-moviles-campo">
         <span>Foto 2</span>
         <input id="controlMovilFoto2" type="file" accept="image/*,video/*" />
-        <img id="controlMovilPreview2" class="cmv-preview hidden" alt="Vista previa foto 2" />
+        <img id="controlMovilPreview2" class="control-moviles-preview hidden" alt="Preview foto 2" />
       </label>
     </div>
 
-    <div class="cmv-acciones">
-      <button id="controlMovilesVolver" class="cmv-btn cmv-btn-secundario" type="button">Volver</button>
-      <button id="controlMovilesGuardar" class="cmv-btn cmv-btn-guardar" type="submit">Guardar</button>
-    </div>
+    <button type="button" id="controlMovilGuardar" class="control-moviles-guardar">Guardar</button>
   </form>
-
-  <button id="controlMovilesSalir" class="cmv-salir" type="button">Salir</button>
 </section>
