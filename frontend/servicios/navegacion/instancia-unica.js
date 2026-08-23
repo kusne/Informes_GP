@@ -1,15 +1,19 @@
-const CANAL_INSTANCIA = "informes-gp-instancia-unica-v1";
+const CANAL_INSTANCIA = "informes-gp-instancia-unica-v2";
 
 let canal = null;
 let instanciaId = "";
-let takeoverSolicitado = false;
 
 /**
- * Coordinación best-effort entre pestañas del mismo navegador.
- * Una página web normal no tiene permiso universal para cerrar pestañas que
- * abrió el usuario. Cuando el navegador lo permite, las instancias anteriores
- * ocultas se cierran; en los demás casos quedan inactivas. Para una única
- * ventana garantizada se usa el modo PWA con launch_handler.
+ * Coordinación informativa entre pestañas del mismo navegador.
+ *
+ * IMPORTANTE:
+ * Informes GP nunca debe cerrar, reemplazar ni desactivar una ventana que el
+ * usuario ya tiene abierta. Versiones anteriores intentaban hacer takeover de
+ * la instancia anterior y cerraban programáticamente la pestaña cuando estaba oculta; en
+ * móviles/PWA eso podía provocar cierres inesperados o pérdida del formulario.
+ *
+ * La coordinación queda sólo para detectar que existe otra instancia. Cada
+ * pestaña conserva su ciclo de vida normal y el navegador decide cuándo cerrar.
  */
 export function iniciarInstanciaUnicaInformesGP() {
   try {
@@ -38,20 +42,7 @@ export function iniciarInstanciaUnicaInformesGP() {
     }
 
     if (mensaje.tipo === "IGP_INSTANCIA_PRESENTE" && mensaje.para === instanciaId) {
-      if (takeoverSolicitado) return;
-      takeoverSolicitado = true;
-
-      // La pestaña recién abierta queda como principal; las anteriores intentan
-      // cerrarse únicamente si están ocultas.
-      canal.postMessage({
-        tipo: "IGP_TOMAR_CONTROL",
-        instanciaId
-      });
-      return;
-    }
-
-    if (mensaje.tipo === "IGP_TOMAR_CONTROL") {
-      desactivarInstanciaAnterior();
+      console.info("[Informes_GP] Hay otra instancia abierta. Se mantienen ambas sin cerrar ninguna ventana.");
     }
   });
 
@@ -63,18 +54,6 @@ export function iniciarInstanciaUnicaInformesGP() {
   window.addEventListener("pagehide", cerrarCanal, { once: true });
 
   return { activo: true, instanciaId };
-}
-
-function desactivarInstanciaAnterior() {
-  if (document.visibilityState !== "hidden") return;
-
-  // Evita que una pestaña vieja siga manteniendo conexiones realtime aunque
-  // el navegador no permita cerrarla.
-  window.dispatchEvent(new CustomEvent("informesgp:instancia-reemplazada"));
-
-  try {
-    window.close();
-  } catch {}
 }
 
 function cerrarCanal() {
