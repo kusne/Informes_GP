@@ -1,52 +1,90 @@
-const CATALOGO_RECURSOS_OPERATIVOS = Object.freeze({
-  personal: Object.freeze([
-    "JEFE",
-    "SUBJEFE",
-    "Subinspector Mariaux A.",
-    "Oficial Merlo D.",
-    "Oficial Lascurain I.",
-    "Suboficial Aquino F.",
-    "Suboficial Delgado Y.",
-    "Suboficial Benavidez."
-  ]),
-  moviles: Object.freeze(["12428", "10139", "12502"]),
-  motos: Object.freeze(["9092", "8989", "12089", "12090", "9029", "9030", "12091", "12087", "12088"]),
-  elementos: Object.freeze([
-    Object.freeze({ clave: "escopetas", etiqueta: "ESCOPETA", etiquetaSalida: "Escopetas", items: Object.freeze(["N°650367", "N°650368"]) }),
-    Object.freeze({ clave: "ht", etiqueta: "HT", etiquetaSalida: "Ht", items: Object.freeze(["N°02", "N°V03", "N°06", "N°08"]) }),
-    Object.freeze({ clave: "pda", etiqueta: "PDA", etiquetaSalida: "Pda", items: Object.freeze(["05", "19", "67", "68"]) }),
-    Object.freeze({ clave: "impresoras", etiqueta: "IMPRESORA", etiquetaSalida: "Impresoras", items: Object.freeze(["N°05", "N°39", "N°64"]) }),
-    Object.freeze({ clave: "alometros", etiqueta: "Alómetro", etiquetaSalida: "Alómetros", items: Object.freeze(["AREC-0127", "ARTL-0425", "ARSA-0360"]) }),
-    Object.freeze({ clave: "alcoholimetros", etiqueta: "Alcoholímetro", etiquetaSalida: "Alcoholímetros", items: Object.freeze(["ARUJ-0239", "ARLM-0652"]) })
-  ])
+const CACHE_VERSION = "informes-gp-v20260823-ui-campos-v2";
+const CACHE_ESTATICO = `${CACHE_VERSION}-static`;
+
+const PRECACHE = [
+  "./",
+  "./index.html",
+  "./manifest.webmanifest",
+  "./frontend/app/app-bundle.css",
+  "./frontend/assets/logo-bmzcn-gold-black.png",
+  "./frontend/assets/icon-192.png",
+  "./frontend/assets/icon-512.png"
+];
+
+self.addEventListener("install", (event) => {
+  event.waitUntil(
+    caches.open(CACHE_ESTATICO)
+      .then((cache) => cache.addAll(PRECACHE))
+      .then(() => self.skipWaiting())
+  );
 });
 
-export function obtenerCatalogoRecursosOperativos() {
-  return {
-    personal: [...CATALOGO_RECURSOS_OPERATIVOS.personal],
-    moviles: [...CATALOGO_RECURSOS_OPERATIVOS.moviles],
-    motos: [...CATALOGO_RECURSOS_OPERATIVOS.motos],
-    elementos: CATALOGO_RECURSOS_OPERATIVOS.elementos.map((grupo) => ({ ...grupo, items: [...grupo.items] }))
-  };
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches.keys()
+      .then((keys) => Promise.all(
+        keys
+          .filter((key) => key.startsWith("informes-gp-") && key !== CACHE_ESTATICO)
+          .map((key) => caches.delete(key))
+      ))
+      // La actualización del Service Worker NO navega ni recarga ventanas
+      // abiertas. El usuario puede terminar el formulario que está usando.
+      .then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener("fetch", (event) => {
+  const request = event.request;
+  if (request.method !== "GET") return;
+
+  const url = new URL(request.url);
+  if (url.origin !== self.location.origin) return;
+
+  if (request.mode === "navigate") {
+    event.respondWith(navigationNetworkFirst(request));
+    return;
+  }
+
+  // JS/HTML siempre por red y sin cache HTTP: evita que GitHub/PWA ejecute
+  // una versión anterior después de publicar una corrección de interfaz.
+  if (/\.(?:js|html)$/i.test(url.pathname)) {
+    event.respondWith(fetch(request, { cache: "no-store" }));
+    return;
+  }
+
+  if (esRecursoEstatico(url.pathname)) {
+    event.respondWith(cacheFirst(request));
+  }
+});
+
+async function navigationNetworkFirst(request) {
+  const cache = await caches.open(CACHE_ESTATICO);
+
+  try {
+    const response = await fetch(request, { cache: "no-store" });
+    if (response?.ok) {
+      await cache.put("./index.html", response.clone());
+    }
+    return response;
+  } catch {
+    const cached = (await cache.match(request)) || (await cache.match("./index.html"));
+    if (cached) return cached;
+    return new Response("Sin conexión", { status: 503 });
+  }
 }
 
-export function construirResumenRecursosOperativos({ personal = [], moviles = [], motos = [], elementos = {} } = {}) {
-  const personalTexto = normalizarLista(personal).join("\n");
-  const movilidadCompleta = [...normalizarLista(moviles), ...normalizarLista(motos)];
-  const lineasElementos = CATALOGO_RECURSOS_OPERATIVOS.elementos.map((grupo) => {
-    const seleccionados = normalizarLista(elementos?.[grupo.clave]);
-    return `${grupo.etiquetaSalida}: ${seleccionados.length ? seleccionados.join(" / ") : "/"}`;
-  });
+async function cacheFirst(request) {
+  const cache = await caches.open(CACHE_ESTATICO);
+  const cached = await cache.match(request);
+  if (cached) return cached;
 
-  return {
-    personal: personalTexto,
-    moviles_motos: movilidadCompleta.join(" / "),
-    elementos: lineasElementos.join("\n")
-  };
+  const response = await fetch(request, { cache: "no-store" });
+  if (response?.ok) {
+    cache.put(request, response.clone());
+  }
+  return response;
 }
 
-function normalizarLista(items) {
-  return (Array.isArray(items) ? items : [])
-    .map((item) => String(item || "").trim())
-    .filter(Boolean);
+function esRecursoEstatico(pathname) {
+  return /\.(?:js|css|html|png|jpg|jpeg|webp|svg|json|webmanifest)$/i.test(pathname);
 }
