@@ -8,6 +8,7 @@ export async function iniciarModeloInformeEspecial({
   form,
   modelo,
   operativoSeleccionado,
+  getOperativoSeleccionado,
   getContexto
 } = {}) {
   if (!form) {
@@ -20,13 +21,24 @@ export async function iniciarModeloInformeEspecial({
     return;
   }
 
-  autocompletarDesdeOperativo(form, operativoSeleccionado);
+  const resolverOperativoActual = () => {
+    if (typeof getOperativoSeleccionado === "function") {
+      try {
+        return getOperativoSeleccionado() || null;
+      } catch {
+        return operativoSeleccionado || null;
+      }
+    }
+    return operativoSeleccionado || null;
+  };
+
+  autocompletarDesdeOperativo(form, resolverOperativoActual());
 
   await cargarFotosDeFormulario({
     form,
     contexto: {
       ...resolverContexto(getContexto),
-      operativoSeleccionado
+      operativoSeleccionado: resolverOperativoActual()
     }
   });
 
@@ -35,7 +47,7 @@ export async function iniciarModeloInformeEspecial({
       formulario: leerDatosFormulario(form),
       modelo: modelo || form?.dataset?.modeloInforme || "",
       fotoPrefijo: form?.dataset?.fotoPrefijo || "",
-      operativoSeleccionado,
+      operativoSeleccionado: resolverOperativoActual(),
       contexto: resolverContexto(getContexto)
     });
 
@@ -51,7 +63,18 @@ export async function iniciarModeloInformeEspecial({
   form.addEventListener("change", actualizar);
   form.addEventListener("keyup", actualizar);
   form.addEventListener("paste", () => setTimeout(actualizar, 0));
+  form.addEventListener("informesgp:operativo-informe-actualizado", actualizar);
   actualizar();
+}
+
+export function actualizarOperativoInformeEspecial({
+  form,
+  operativoSeleccionado
+} = {}) {
+  if (!form) return;
+
+  autocompletarDesdeOperativo(form, operativoSeleccionado);
+  form.dispatchEvent(new CustomEvent("informesgp:operativo-informe-actualizado"));
 }
 
 export function leerDatosFormulario(form) {
@@ -92,7 +115,14 @@ function completarCampoSiVacio(form, nombres, valor) {
   if (!valor) return;
   for (const nombre of nombres) {
     const campo = form.querySelector(`[name="${nombre}"]`);
-    if (!campo || String(campo.value || "").trim()) continue;
+    if (!campo) continue;
+
+    const esContextoOculto =
+      campo.type === "hidden" &&
+      campo.hasAttribute("data-contexto-operativo");
+
+    if (!esContextoOculto && String(campo.value || "").trim()) continue;
+
     campo.value = String(valor).trim();
     break;
   }
