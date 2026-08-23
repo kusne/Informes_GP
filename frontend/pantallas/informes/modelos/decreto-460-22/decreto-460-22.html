@@ -1,30 +1,52 @@
 <section class="formulario-informe-especial" data-modelo-informe="DECRETO_460_22" data-foto-prefijo="decreto-460-22">
   <h2>DECRETO 460/22</h2>
-  <p>Informe especial por procedimiento Decreto 460/22 vinculado al operativo seleccionado.</p>
+  <p>Informe especial por remisión de motocicleta Decreto 460/22 vinculado a uno de los últimos operativos iniciados.</p>
 
   <div class="grilla-doble">
     <div class="bloque-formulario">
-      <label for="d460Conductor">Conductor / involucrado</label>
-      <input id="d460Conductor" name="conductor" type="text" placeholder="Apellido y nombre">
+      <label for="d460Marca">Marca de la motocicleta</label>
+      <input id="d460Marca" name="marca" type="text" placeholder="Ej: YAMAHA">
     </div>
 
     <div class="bloque-formulario">
-      <label for="d460Dni">DNI</label>
-      <input id="d460Dni" name="dni" type="text" placeholder="DNI">
+      <label for="d460ModeloVehiculo">Modelo</label>
+      <input id="d460ModeloVehiculo" name="modelo_vehiculo" type="text" placeholder="Ej: YBR">
     </div>
   </div>
 
-  <div class="bloque-formulario">
-    <label for="d460Dominio">Dominio</label>
-    <input id="d460Dominio" name="dominio" type="text" placeholder="Patente / dominio">
+  <div class="grilla-doble">
+    <div class="bloque-formulario">
+      <label for="d460Dominio">Dominio</label>
+      <input id="d460Dominio" name="dominio" type="text" placeholder="Ej: 365KLR">
+    </div>
+
+    <div class="bloque-formulario">
+      <label for="d460NumeroActa">N.º de acta de infracción</label>
+      <input id="d460NumeroActa" name="numero_acta" type="text" placeholder="Ej: 070534889">
+    </div>
   </div>
 
   <input name="tipo_vehiculo" type="hidden" value="MOTOVEHÍCULO">
 
   <div class="bloque-formulario">
     <label for="d460CodigosInfraccion">Código/s de infracción</label>
-    <input id="d460CodigosInfraccion" name="codigos_infraccion" type="text" placeholder="Ej: 4084, 3079">
+    <input id="d460CodigosInfraccion" name="codigos_infraccion" type="text" placeholder="Ej: 9119 o 9119, 9123">
   </div>
+
+  <details class="bloque-formulario">
+    <summary>Datos opcionales de la persona</summary>
+    <div class="grilla-doble">
+      <div class="bloque-formulario">
+        <label for="d460Conductor">Conductor / involucrado (opcional)</label>
+        <input id="d460Conductor" name="conductor" type="text" placeholder="Apellido y nombre">
+      </div>
+
+      <div class="bloque-formulario">
+        <label for="d460Dni">DNI (opcional)</label>
+        <input id="d460Dni" name="dni" type="text" placeholder="DNI">
+      </div>
+    </div>
+  </details>
 
   <div class="fotos-formulario-host"
        data-fotos-html="/frontend/pantallas/informes/modelos/decreto-460-22/fotos/fotos-decreto-460-22.html"
