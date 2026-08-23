@@ -222,7 +222,7 @@ async function renderInformes({
         type="button"
         aria-label="Volver a modelos de informes"
         title="Volver a modelos de informes"
-      >←</button>
+      ><span class="informe-volver-modelos__icono" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.42-1.41L7.83 13H20v-2z"></path></svg></span></button>
       <main class="informe-pagina-contenido">
         <div id="informesModuloHost"></div>
         <div id="salidaWhatsappHost"></div>
