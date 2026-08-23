@@ -1,4 +1,4 @@
-const CACHE_VERSION = "informes-gp-v20260823-ui-campos-v2";
+const CACHE_VERSION = "informes-gp-v20260823-back-button-v3";
 const CACHE_ESTATICO = `${CACHE_VERSION}-static`;
 
 const PRECACHE = [
