@@ -1,5 +1,6 @@
 import {
   listarEstadosOperativosRestRapido,
+  listarUltimosEstadosOperativosRestRapido,
   listarOperativosProgramadosRestRapido
 } from "../../infraestructura/supabase/supabase-rest-rapido.js";
 import { obtenerContextoOperativos, registrarFuenteOperativos } from "./operativos-contexto.js";
@@ -145,33 +146,12 @@ async function obtenerOperativosDesdeSupabase({ modo, guardiaFecha }) {
   }
 
   if (modo === "INFORMES") {
-    const [estadosResultado, programadosResultado] = await Promise.allSettled([
-      listarEstadosOperativosRestRapido({
-        guardia_fecha: guardiaFecha
-      }),
-      listarOperativosProgramadosRestRapido({
-        guardia_fecha: guardiaFecha,
-        activo: true,
-        excluir_sin_efecto: false
-      })
-    ]);
-
-    if (estadosResultado.status !== "fulfilled") {
-      throw estadosResultado.reason;
-    }
-
-    const enCurso = (estadosResultado.value || [])
-      .filter((op) => normalizarEstado(op?.estado) === "EN_CURSO");
-
-    if (programadosResultado.status === "fulfilled") {
-      return enriquecerFechaOperativoDesdeProgramacion(
-        enCurso,
-        programadosResultado.value || []
-      );
-    }
-
-    console.warn("[Informes_GP] No se pudo recuperar fecha_operativo para INFORMES:", programadosResultado.reason);
-    return enCurso;
+    // INFORMES no depende de la guardia actual ni de que el operativo siga
+    // EN_CURSO. La tabla de estado conserva una fila desde el primer INICIO y
+    // created_at no cambia cuando luego se FINALIZA. Por eso podemos traer de
+    // forma directa los dos últimos INICIOS reales, incluso de la guardia
+    // anterior si todavía son los más recientes.
+    return listarUltimosEstadosOperativosRestRapido({ limite: 2 });
   }
 
   return [];
@@ -205,7 +185,67 @@ function filtrarSegunModo(modo, operativos = []) {
     return filtrarOperativosIniciadosParaFinalizar(operativos);
   }
 
+  if (modo === "INFORMES") {
+    return seleccionarUltimosOperativosIniciados(operativos, 2);
+  }
+
   return normalizarOperativos(operativos);
+}
+
+/**
+ * Devuelve los últimos operativos que tuvieron un INICIO real. El estado
+ * actual puede ser EN_CURSO o FINALIZADO. created_at representa la creación
+ * de la fila de estado (momento del primer INICIO) y no cambia al finalizar.
+ */
+export function seleccionarUltimosOperativosIniciados(operativos = [], limite = 2) {
+  const maximo = Math.max(0, Math.trunc(Number(limite) || 0));
+  if (!maximo) return [];
+
+  return normalizarOperativos(operativos)
+    .filter((op) => fueIniciado(op))
+    .sort((a, b) => marcaInicio(b) - marcaInicio(a))
+    .slice(0, maximo);
+}
+
+function fueIniciado(op = {}) {
+  const estado = normalizarEstado(op?.estado);
+  const tipoEvento = normalizarEstado(op?.tipo_evento);
+  const datos = op?.datos && typeof op.datos === "object" ? op.datos : {};
+
+  return Boolean(
+    op?.inicio_evento_id ||
+    op?.created_at ||
+    datos?.inicio_snapshot ||
+    ["INICIO", "FINALIZADO"].includes(tipoEvento) ||
+    ["EN_CURSO", "INICIADO", "ACTIVO", "FINALIZADO", "CERRADO"].includes(estado)
+  );
+}
+
+function marcaInicio(op = {}) {
+  const datos = op?.datos && typeof op.datos === "object" ? op.datos : {};
+  const snapshot = datos?.inicio_snapshot && typeof datos.inicio_snapshot === "object"
+    ? datos.inicio_snapshot
+    : {};
+
+  for (const valor of [
+    op?.created_at,
+    op?.inicio_created_at,
+    snapshot?.fecha_evento,
+    op?.inicio_evento_at,
+    op?.fecha_evento
+  ]) {
+    const t = Date.parse(String(valor || ""));
+    if (Number.isFinite(t)) return t;
+  }
+
+  // Fallback estable si una instalación antigua no conserva timestamps.
+  const guardia = Date.parse(String(op?.guardia_fecha || ""));
+  const [hh, mm] = String(op?.hora_inicio || "").split(":").map(Number);
+  if (Number.isFinite(guardia)) {
+    return guardia + (Number.isFinite(hh) ? hh : 0) * 3600000 + (Number.isFinite(mm) ? mm : 0) * 60000;
+  }
+
+  return 0;
 }
 
 export function filtrarProgramadosPendientes({
