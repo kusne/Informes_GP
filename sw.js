@@ -1,4 +1,4 @@
-const CACHE_VERSION = "informes-gp-v20260808-flujo-stats-v2-193";
+const CACHE_VERSION = "informes-gp-v20260823-estabilidad-informes-v1";
 const CACHE_ESTATICO = `${CACHE_VERSION}-static`;
 
 const PRECACHE = [
@@ -27,8 +27,9 @@ self.addEventListener("activate", (event) => {
           .filter((key) => key.startsWith("informes-gp-") && key !== CACHE_ESTATICO)
           .map((key) => caches.delete(key))
       ))
+      // La actualización del Service Worker NO navega ni recarga ventanas
+      // abiertas. El usuario puede terminar el formulario que está usando.
       .then(() => self.clients.claim())
-      .then(() => recargarClientesConVersionActual())
   );
 });
 
@@ -55,21 +56,6 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(cacheFirst(request));
   }
 });
-
-
-async function recargarClientesConVersionActual() {
-  const clientes = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
-  const version = "20260808-flujo-stats-v2-193";
-
-  await Promise.all(clientes.map(async (cliente) => {
-    try {
-      const url = new URL(cliente.url);
-      if (url.searchParams.get("igp_v") === version) return;
-      url.searchParams.set("igp_v", version);
-      await cliente.navigate(url.href);
-    } catch {}
-  }));
-}
 
 async function navigationNetworkFirst(request) {
   const cache = await caches.open(CACHE_ESTATICO);
