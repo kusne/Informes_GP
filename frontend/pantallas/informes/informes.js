@@ -5,7 +5,10 @@ import {
   obtenerModeloInformeGP,
   normalizarModeloInforme
 } from "./modelos-informes.js";
-import { iniciarModeloInformeEspecial } from "./compartido/informe-especial-builder.js";
+import {
+  iniciarModeloInformeEspecial,
+  actualizarOperativoInformeEspecial
+} from "./compartido/informe-especial-builder.js";
 
 let estadoInforme = {
   modelo: null,
@@ -107,12 +110,20 @@ function renderSelectorOperativoInterno({
 
   const selector = contenedor.querySelector("#selectorOperativoDentroInforme");
 
-  selector?.addEventListener("change", async () => {
+  selector?.addEventListener("change", () => {
     estadoInforme.operativoSeleccionado = operativos.find((op) => String(op.operativo_key) === selector.value) || null;
 
-    await renderFormularioInforme({
-      host,
-      getContexto
+    // No reconstruir el formulario: elegir/cambiar el operativo nunca debe borrar
+    // lo que el usuario ya escribió ni las fotos que ya seleccionó.
+    const formHost = host.querySelector("#informeEspecialHost");
+    const form =
+      formHost?.querySelector("form") ||
+      formHost?.querySelector("[data-modelo-informe]") ||
+      formHost?.firstElementChild;
+
+    actualizarOperativoInformeEspecial({
+      form,
+      operativoSeleccionado: estadoInforme.operativoSeleccionado
     });
   });
 }
@@ -178,6 +189,7 @@ async function renderFormularioInforme({
     form,
     modelo: modelo.codigo,
     operativoSeleccionado: estadoInforme.operativoSeleccionado,
+    getOperativoSeleccionado: () => estadoInforme.operativoSeleccionado,
     getContexto
   });
 }
