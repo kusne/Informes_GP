@@ -70,7 +70,7 @@ async function cargarOperativosInternos() {
   try {
     estadoInforme.operativos = await obtenerOperativosPorModo("INFORMES");
   } catch (error) {
-    console.error("[Informes_GP] No se pudieron leer operativos iniciados para informe:", error);
+    console.error("[Informes_GP] No se pudieron leer los últimos operativos iniciados para informe:", error);
     estadoInforme.operativos = [];
   }
 }
@@ -88,10 +88,10 @@ function renderSelectorOperativoInterno({
   contenedor.innerHTML = `
     <section class="informe-operativo-interno">
       <h3>${escapeHtml(estadoInforme.modelo?.nombre || "INFORME")}</h3>
-      <label for="selectorOperativoDentroInforme">Operativo iniciado para vincular informe</label>
+      <label for="selectorOperativoDentroInforme">Últimos operativos iniciados</label>
 
       <select id="selectorOperativoDentroInforme" ${operativos.length ? "" : "disabled"}>
-        <option value="">${operativos.length ? "Seleccionar operativo iniciado" : "No hay operativos iniciados"}</option>
+        <option value="">${operativos.length ? "Seleccionar uno de los últimos 2 operativos" : "No hay operativos iniciados disponibles"}</option>
         ${operativos.map((op) => `
           <option value="${escapeHtml(op.operativo_key)}">
             ${escapeHtml(construirEtiquetaOperativo(op))}
@@ -100,7 +100,7 @@ function renderSelectorOperativoInterno({
       </select>
 
       <p class="informe-operativo-ayuda">
-        ${operativos.length ? "Seleccione hora / lugar / tipo para vincular este informe." : "No hay operativos iniciados para vincular el informe."}
+        ${operativos.length ? "Puede seleccionar un operativo aunque ya esté FINALIZADO." : "Todavía no hay operativos que hayan sido iniciados para vincular el informe."}
       </p>
     </section>
   `;
