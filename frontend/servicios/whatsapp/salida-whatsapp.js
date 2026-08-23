@@ -133,18 +133,17 @@ export async function manejarEnvioWhatsapp({ boton = null, getContexto } = {}) {
     payload: salida.payload
   });
 
-  // Con fotos usamos Web Share para entregar los ARCHIVOS REALES al dispositivo.
-  // Esto evita convertir las imágenes en URLs dentro del cuerpo del informe.
-  if (archivosFotos.length > 0) {
-    if (!puedeCompartirArchivosDesdeDispositivo(archivosFotos)) {
-      alert(
-        "Las fotos están cargadas, pero este navegador no permite adjuntarlas directamente.\n\n" +
-        "Abra Informes GP desde Chrome/Android o desde la app instalada y vuelva a tocar Enviar WhatsApp.\n\n" +
-        "No se enviarán links de las fotos."
-      );
-      return;
-    }
+  // Con fotos usamos Web Share cuando el dispositivo lo soporta, para entregar
+  // los ARCHIVOS REALES. Si el navegador no soporta compartir archivos, no
+  // bloqueamos el informe: se abre WhatsApp con el texto y el usuario puede
+  // adjuntar las fotos manualmente. Nunca se insertan URLs de fotos en el texto.
+  const puedeAdjuntarFotosDirectamente =
+    archivosFotos.length > 0 && puedeCompartirArchivosDesdeDispositivo(archivosFotos);
 
+  const fotosRequierenAdjuntoManual =
+    archivosFotos.length > 0 && !puedeAdjuntarFotosDirectamente;
+
+  if (puedeAdjuntarFotosDirectamente) {
     envioEnCurso = true;
     cambiarEstadoBoton(boton, true, "Compartiendo fotos...");
     marcarEstadoEnvio("Seleccione WhatsApp para enviar el informe con las fotos...");
@@ -215,8 +214,20 @@ export async function manejarEnvioWhatsapp({ boton = null, getContexto } = {}) {
     return;
   }
 
-  // Sin fotos mantenemos el flujo actual por wa.me y la app principal nunca se reemplaza.
+  // Flujo por wa.me: se usa cuando no hay fotos o como contingencia cuando el
+  // navegador no permite compartir archivos. La ventana se prepara ANTES de
+  // cualquier await para evitar bloqueos de popup y la app principal nunca se
+  // reemplaza.
   const ventanaWhatsapp = prepararVentanaWhatsapp();
+
+  if (fotosRequierenAdjuntoManual) {
+    alert(
+      "Este navegador no permite adjuntar las fotos automáticamente.\n\n" +
+      "Se abrirá WhatsApp con el informe de texto. Adjunte las fotos manualmente si corresponde.\n\n" +
+      "El envío del informe no quedará bloqueado y no se insertarán links de las fotos."
+    );
+  }
+
   let whatsappEntregado = false;
 
   envioEnCurso = true;
