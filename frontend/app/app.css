@@ -84,6 +84,14 @@ textarea {
   font-weight: 700;
 }
 
+/* Normalización exclusivamente visual: no modifica el valor real ni las salidas WhatsApp. */
+input:not([type="file"]):not([type="checkbox"]):not([type="radio"]),
+textarea,
+select,
+select option {
+  text-transform: uppercase;
+}
+
 textarea {
   min-height: 84px;
   resize: vertical;
