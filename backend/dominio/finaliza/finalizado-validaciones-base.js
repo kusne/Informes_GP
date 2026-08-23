@@ -46,6 +46,17 @@ export function validarFinalizadoBase(finalizado) {
     errores.push('Si "Actas Labradas" es mayor a cero, "Personas Identificadas" debe ser mayor a cero.');
   }
 
+  const hayDetalles = Boolean(texto(f.detalles));
+  const cantidadActas = numero(f.actas);
+
+  if (hayDetalles && cantidadActas <= 0) {
+    errores.push('Si completa "Detalles", debe indicar una cantidad de "Actas Labradas" mayor a cero.');
+  }
+
+  if (cantidadActas > 0 && !hayDetalles) {
+    errores.push('Si "Actas Labradas" es mayor a cero, debe completar "Detalles".');
+  }
+
   const totalAlcohol = numero(f.test_alcoholimetro);
   const san = numero(f.positiva_sancionable);
   const noSan = numero(f.positiva_no_sancionable);
