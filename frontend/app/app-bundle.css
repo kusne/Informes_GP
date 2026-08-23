@@ -1510,17 +1510,17 @@ body.informe-detalle-activo {
   display: grid !important;
   place-items: center !important;
   box-sizing: border-box !important;
-  width: 68px !important;
-  min-width: 68px !important;
-  height: 68px !important;
-  min-height: 68px !important;
-  margin: 6px auto 18px auto !important;
+  width: 60px !important;
+  min-width: 60px !important;
+  height: 60px !important;
+  min-height: 60px !important;
+  margin: 8px 0 18px 2px !important;
   padding: 0 !important;
-  border: 2px solid rgba(255, 255, 255, 0.34) !important;
-  border-radius: 22px !important;
-  background: linear-gradient(145deg, #0d5bdd, #072e6d) !important;
+  border: 1px solid rgba(255, 255, 255, 0.30) !important;
+  border-radius: 18px !important;
+  background: linear-gradient(145deg, #0d5bdd, #083a91) !important;
   color: #ffffff !important;
-  box-shadow: 0 14px 30px rgba(7, 46, 109, 0.34), inset 0 1px 0 rgba(255,255,255,.24) !important;
+  box-shadow: 0 10px 24px rgba(7, 46, 109, 0.30), inset 0 1px 0 rgba(255,255,255,.22) !important;
   cursor: pointer !important;
   -webkit-tap-highlight-color: transparent;
   transition: transform 120ms ease, box-shadow 160ms ease, filter 160ms ease !important;
@@ -1529,28 +1529,24 @@ body.informe-detalle-activo {
 .informe-volver-modelos__icono {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
   line-height: 0;
   pointer-events: none;
 }
 
 .informe-volver-modelos__icono svg {
   display: block;
-  width: 34px;
-  height: 34px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 4;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  width: 38px;
+  height: 38px;
+  fill: currentColor;
 }
 
 @media (hover: hover) {
   .informe-volver-modelos:hover {
-    filter: brightness(1.12);
+    filter: brightness(1.10);
     transform: translateY(-1px);
-    box-shadow: 0 18px 34px rgba(7, 46, 109, 0.40), inset 0 1px 0 rgba(255,255,255,.30) !important;
+    box-shadow: 0 14px 28px rgba(7, 46, 109, 0.36), inset 0 1px 0 rgba(255,255,255,.28) !important;
   }
 }
 
