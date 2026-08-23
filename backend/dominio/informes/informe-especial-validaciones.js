@@ -8,7 +8,7 @@ export function validarInformeEspecial(informe) {
   }
 
   if (!informe?.operativo_key) {
-    errores.push("Debe seleccionar un operativo iniciado.");
+    errores.push("Debe seleccionar uno de los últimos operativos iniciados.");
   }
 
   if (!informe?.guardia_fecha) {
@@ -77,9 +77,13 @@ function validarAlcoholemia(informe, errores) {
 function validarDecreto46022(informe, errores) {
   const f = informe.formulario || {};
 
-  if (!texto(f.conductor)) errores.push("Debe completar conductor/involucrado.");
-  if (!texto(f.dni)) errores.push("Debe completar DNI.");
+  // Conductor y DNI son datos opcionales: el formato institucional 460/22 no
+  // los imprime como campos independientes. Sí son obligatorios los datos que
+  // integran el relato del procedimiento.
+  if (!texto(f.marca)) errores.push("Debe completar la marca de la motocicleta.");
+  if (!texto(f.modelo_vehiculo)) errores.push("Debe completar el modelo de la motocicleta.");
   if (!texto(f.dominio)) errores.push("Debe completar dominio.");
+  if (!texto(f.numero_acta)) errores.push("Debe completar el N.º de acta de infracción.");
 
   const codigos = extraerCodigosFalta(f.codigos_infraccion);
   if (!codigos.length) {
