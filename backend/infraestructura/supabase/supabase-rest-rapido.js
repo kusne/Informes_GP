@@ -74,6 +74,21 @@ export async function listarEstadosOperativosRestRapido({
   return normalizarEstados(data);
 }
 
+
+export async function listarUltimosEstadosOperativosRestRapido({
+  limite = 2
+} = {}) {
+  const maximo = Math.max(1, Math.min(20, Math.trunc(Number(limite) || 2)));
+  const filtros = {
+    select: "*",
+    order: "created_at.desc,updated_at.desc",
+    limit: maximo
+  };
+
+  const data = await consultarRest(TABLA_ESTADO, filtros);
+  return normalizarEstados(data);
+}
+
 async function consultarRest(tabla, filtros = {}) {
   const url = new URL(`/rest/v1/${tabla}`, SUPABASE_URL);
 
