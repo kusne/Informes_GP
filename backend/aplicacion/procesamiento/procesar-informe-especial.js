@@ -92,6 +92,9 @@ function calcularDatosModelo(modelo, formulario) {
   if (modelo === "RETENCION_LICENCIA") {
     return { retencion_licencia: true, motivo_licencia: formulario.motivo_licencia || "", codigo: formulario.codigo || resolverCodigoLicencia(formulario.motivo_licencia) };
   }
+  if (modelo === "REQUISA_VEHICULAR") {
+    return { requisa_vehicular: true };
+  }
   return {};
 }
 
