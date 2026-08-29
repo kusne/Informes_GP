@@ -184,10 +184,17 @@ function agregarItemNumeral({
     categoria: String(categoria || "MANUAL").trim().toUpperCase()
   };
 
-  const existente = estadoNumerales.items.find((n) => n.codigo === item.codigo && n.detalle === item.detalle);
+  const existente = buscarItemNumeralExistente(item);
 
   if (existente) {
     existente.cantidad += item.cantidad;
+
+    // El código identifica al numeral. Si la primera carga no tenía detalle
+    // útil y una carga posterior sí, conservamos el detalle más informativo
+    // sin crear una segunda línea para el mismo código.
+    if (detalleEsGenerico(existente.detalle) && !detalleEsGenerico(item.detalle)) {
+      existente.detalle = item.detalle;
+    }
   } else {
     estadoNumerales.items.push(item);
   }
@@ -256,7 +263,7 @@ function construirResumenNumerales() {
   if (!estadoNumerales.items.length) return "";
 
   return estadoNumerales.items
-    .map((item) => `${item.codigo} x${item.cantidad}`)
+    .map(formatearNumeralSalida)
     .join(" | ");
 }
 
@@ -264,8 +271,52 @@ function construirTextoNumerales() {
   if (!estadoNumerales.items.length) return "";
 
   return estadoNumerales.items
-    .map((item) => `${item.codigo} x${item.cantidad} - ${item.detalle}`)
+    .map(formatearNumeralSalida)
     .join("\n");
+}
+
+function buscarItemNumeralExistente(item) {
+  const codigo = normalizarCodigo(item?.codigo || "");
+
+  // Para un numeral con código, el código es la identidad única.
+  // El detalle puede variar en mayúsculas, abreviaturas o texto libre y no
+  // debe provocar dos renglones separados para el mismo numeral.
+  if (codigo && codigo !== "S/C") {
+    return estadoNumerales.items.find((actual) => normalizarCodigo(actual.codigo) === codigo) || null;
+  }
+
+  // Si no existe código real, solo consolidamos textos equivalentes.
+  const detalle = normalizarDetalleComparacion(item?.detalle);
+  if (!detalle) return null;
+
+  return estadoNumerales.items.find((actual) =>
+    normalizarCodigo(actual.codigo) === "S/C" &&
+    normalizarDetalleComparacion(actual.detalle) === detalle
+  ) || null;
+}
+
+function formatearNumeralSalida(item) {
+  const cantidad = String(normalizarCantidad(item?.cantidad || 1)).padStart(2, "0");
+  const codigo = normalizarCodigo(item?.codigo || "");
+
+  if (codigo && codigo !== "S/C") {
+    return `(${cantidad}) ${codigo}`;
+  }
+
+  const detalle = String(item?.detalle || "SIN DETALLE").trim();
+  return `(${cantidad}) ${detalle}`;
+}
+
+function detalleEsGenerico(valor) {
+  const detalle = normalizarDetalleComparacion(valor);
+  return !detalle || detalle === "SIN DETALLE";
+}
+
+function normalizarDetalleComparacion(valor) {
+  return String(valor || "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toUpperCase();
 }
 
 function normalizarCantidad(valor) {
