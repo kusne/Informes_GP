@@ -12,7 +12,6 @@ export function resolverPrefijoFotoPorModoPayload({ modo, payload } = {}) {
 
   if (modoNormalizado === "INFORMES") {
     const tipoInforme = normalizarModo(payload?.tipo_informe);
-    if (tipoInforme === "ALCOHOLEMIA_POSITIVA") return "alcoholemia-positiva";
     if (tipoInforme === "DECRETO_460_22") return "decreto-460-22";
     if (tipoInforme === "CONTROL_ARMAS") return "control-armas";
     if (tipoInforme === "RETENCION_LICENCIA") return "retencion-licencia";
