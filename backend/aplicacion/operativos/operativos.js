@@ -4,8 +4,13 @@ import {
   listarOperativosProgramadosRestRapido
 } from "../../infraestructura/supabase/supabase-rest-rapido.js";
 import { obtenerContextoOperativos, registrarFuenteOperativos } from "./operativos-contexto.js";
-import { guardarOperativosEnCache } from "./operativos-cache.js";
-import { obtenerGuardiaFecha0600 } from "../../dominio/compartido/fechas/guardia-0600.js";
+import { guardarOperativosEnCache, obtenerOperativosDesdeCache } from "./operativos-cache.js";
+import {
+  obtenerGuardiaFecha0600,
+  obtenerFinGuardia0600,
+  parsearFechaISO,
+  formatearFechaISO
+} from "../../dominio/compartido/fechas/guardia-0600.js";
 import { modoEnsayoActivo } from "../../infraestructura/ensayo/modo-ensayo.js";
 import { obtenerOperativosEnsayoPorModo } from "../../infraestructura/ensayo/operativos-ensayo.js";
 
@@ -39,7 +44,8 @@ export async function obtenerOperativosPorModo(modo, opciones = {}) {
   try {
     const operativos = await obtenerOperativosDesdeSupabase({
       modo: modoNormalizado,
-      guardiaFecha
+      guardiaFecha,
+      ahora: opciones.ahora instanceof Date ? opciones.ahora : new Date()
     });
 
     const normalizados = filtrarSegunModo(
@@ -66,16 +72,22 @@ export async function obtenerOperativosPorModo(modo, opciones = {}) {
     registrarFuenteOperativos({ modo: modoNormalizado, fuente: "ERROR_SUPABASE_REST" });
   }
 
-  guardarOperativosEnCache({
+  // Una falla momentánea de red no debe convertir visualmente los operativos
+  // en una lista vacía. Se conserva la última lectura válida de esta guardia.
+  const cache = obtenerOperativosDesdeCache({
     modo: modoNormalizado,
-    guardiaFecha,
-    operativos: []
+    guardiaFecha
   });
 
-  return [];
+  registrarFuenteOperativos({
+    modo: modoNormalizado,
+    fuente: "CACHE_TRAS_ERROR_SUPABASE"
+  });
+
+  return cache;
 }
 
-async function obtenerOperativosDesdeSupabase({ modo, guardiaFecha }) {
+async function obtenerOperativosDesdeSupabase({ modo, guardiaFecha, ahora = new Date() }) {
   if (modo === "INICIA") {
     // PROGRAMADOS y ESTADO pertenecen al mismo proyecto nuevo.
     // Se leen en paralelo para reducir el tiempo de carga y evitar el circuito legacy.
@@ -114,9 +126,21 @@ async function obtenerOperativosDesdeSupabase({ modo, guardiaFecha }) {
   }
 
   if (modo === "FINALIZA") {
-    // Se consulta el estado nuevo y la programación nueva en paralelo.
-    // La programación aporta fecha_operativo; el estado aporta los datos del INICIO.
-    const [estadosResultado, programadosResultado] = await Promise.allSettled([
+    // Regla operativa:
+    // - siempre se muestran los EN_CURSO de la guardia actual;
+    // - durante las 6 horas posteriores al cierre teórico de la guardia anterior
+    //   (06:00 -> 12:00), también se conservan sus EN_CURSO pendientes.
+    // Esto permite finalizar una novedad de la guardia saliente sin dejarla
+    // disponible indefinidamente.
+    const incluirGuardiaAnterior = debeIncluirGuardiaAnteriorFinaliza({
+      guardiaFecha,
+      ahora
+    });
+    const guardiaAnterior = incluirGuardiaAnterior
+      ? obtenerGuardiaAnterior(guardiaFecha)
+      : "";
+
+    const promesas = [
       listarEstadosOperativosRestRapido({
         guardia_fecha: guardiaFecha
       }),
@@ -125,24 +149,82 @@ async function obtenerOperativosDesdeSupabase({ modo, guardiaFecha }) {
         activo: true,
         excluir_sin_efecto: false
       })
-    ]);
+    ];
 
-    if (estadosResultado.status !== "fulfilled") {
-      throw estadosResultado.reason;
-    }
-
-    const enCurso = (estadosResultado.value || [])
-      .filter((op) => normalizarEstado(op?.estado) === "EN_CURSO");
-
-    if (programadosResultado.status === "fulfilled") {
-      return enriquecerFechaOperativoDesdeProgramacion(
-        enCurso,
-        programadosResultado.value || []
+    if (guardiaAnterior) {
+      promesas.push(
+        listarEstadosOperativosRestRapido({
+          guardia_fecha: guardiaAnterior
+        }),
+        listarOperativosProgramadosRestRapido({
+          guardia_fecha: guardiaAnterior,
+          activo: true,
+          excluir_sin_efecto: false
+        })
       );
     }
 
-    console.warn("[Informes_GP] No se pudo recuperar fecha_operativo para FINALIZA:", programadosResultado.reason);
-    return enCurso;
+    const resultados = await Promise.allSettled(promesas);
+    const estadosActualResultado = resultados[0];
+    const programadosActualResultado = resultados[1];
+
+    if (estadosActualResultado.status !== "fulfilled") {
+      throw estadosActualResultado.reason;
+    }
+
+    const enCursoActual = (estadosActualResultado.value || [])
+      .filter((op) => normalizarEstado(op?.estado) === "EN_CURSO");
+
+    const actualEnriquecido = programadosActualResultado.status === "fulfilled"
+      ? enriquecerFechaOperativoDesdeProgramacion(
+          enCursoActual,
+          programadosActualResultado.value || []
+        )
+      : enCursoActual;
+
+    if (programadosActualResultado.status !== "fulfilled") {
+      console.warn(
+        "[Informes_GP] No se pudo recuperar fecha_operativo de la guardia actual para FINALIZA:",
+        programadosActualResultado.reason
+      );
+    }
+
+    if (!guardiaAnterior) {
+      return actualEnriquecido;
+    }
+
+    const estadosAnteriorResultado = resultados[2];
+    const programadosAnteriorResultado = resultados[3];
+
+    if (estadosAnteriorResultado.status !== "fulfilled") {
+      console.warn(
+        "[Informes_GP] No se pudieron recuperar EN_CURSO de la guardia anterior para FINALIZA:",
+        estadosAnteriorResultado.reason
+      );
+      return actualEnriquecido;
+    }
+
+    const enCursoAnterior = (estadosAnteriorResultado.value || [])
+      .filter((op) => normalizarEstado(op?.estado) === "EN_CURSO");
+
+    const anteriorEnriquecido = programadosAnteriorResultado.status === "fulfilled"
+      ? enriquecerFechaOperativoDesdeProgramacion(
+          enCursoAnterior,
+          programadosAnteriorResultado.value || []
+        )
+      : enCursoAnterior;
+
+    if (programadosAnteriorResultado.status !== "fulfilled") {
+      console.warn(
+        "[Informes_GP] No se pudo recuperar fecha_operativo de la guardia anterior para FINALIZA:",
+        programadosAnteriorResultado.reason
+      );
+    }
+
+    return combinarOperativosSinDuplicar([
+      ...actualEnriquecido,
+      ...anteriorEnriquecido
+    ]);
   }
 
   if (modo === "INFORMES") {
@@ -155,6 +237,46 @@ async function obtenerOperativosDesdeSupabase({ modo, guardiaFecha }) {
   }
 
   return [];
+}
+
+
+function debeIncluirGuardiaAnteriorFinaliza({ guardiaFecha, ahora = new Date() } = {}) {
+  const guardiaAnterior = obtenerGuardiaAnterior(guardiaFecha);
+  if (!guardiaAnterior) return false;
+
+  try {
+    const cierreTeorico = obtenerFinGuardia0600(guardiaAnterior);
+    const limite = new Date(cierreTeorico.getTime() + (6 * 60 * 60 * 1000));
+    const momento = ahora instanceof Date ? ahora : new Date(ahora);
+
+    if (Number.isNaN(momento.getTime())) return false;
+
+    return momento >= cierreTeorico && momento < limite;
+  } catch {
+    return false;
+  }
+}
+
+function obtenerGuardiaAnterior(guardiaFecha) {
+  try {
+    const fecha = parsearFechaISO(String(guardiaFecha || "").trim());
+    fecha.setDate(fecha.getDate() - 1);
+    return formatearFechaISO(fecha);
+  } catch {
+    return "";
+  }
+}
+
+function combinarOperativosSinDuplicar(operativos = []) {
+  const mapa = new Map();
+
+  for (const operativo of normalizarOperativos(operativos)) {
+    const clave = `${operativo.guardia_fecha || ""}::${operativo.operativo_key || ""}`;
+    if (!operativo.operativo_key || mapa.has(clave)) continue;
+    mapa.set(clave, operativo);
+  }
+
+  return Array.from(mapa.values());
 }
 
 function normalizarEstado(valor) {
