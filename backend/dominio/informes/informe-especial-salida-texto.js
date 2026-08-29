@@ -252,39 +252,146 @@ function compactarSaltos(valor) {
 function construirAlcoholemia(informe) {
   const f = informe.formulario || {};
   const c = informe.calculos || {};
-  const lineas = [];
+  const recursos = resolverRecursosOperativoInforme(informe);
+  const codigoSancionable = texto(c.codigo_sancionable);
+  const motivo = c.sancionable
+    ? codigoSancionable === "2033"
+      ? "ALCOHOLEMIA POSITIVA SANCIONABLE PROFESIONAL"
+      : "ALCOHOLEMIA POSITIVA SANCIONABLE"
+    : "ALCOHOLEMIA POSITIVA NO SANCIONABLE";
+  const observacion = construirObservacionAlcoholemia(informe, f, c);
 
-  lineas.push(ENCABEZADO_INFORMES);
-  lineas.push("");
-  lineas.push("INFORME ALCOHOLEMIA POSITIVA");
-  agregarLinea(lineas, "OPERATIVO", resumenOperativo(informe));
-  agregarLinea(lineas, "CONDUCTOR", f.conductor);
-  agregarLinea(lineas, "DNI", f.dni);
-  agregarLinea(lineas, "DOMINIO", f.dominio);
-  agregarLinea(lineas, "TIPO VEHÍCULO", f.tipo_vehiculo);
-  agregarLinea(lineas, "RESULTADO", `${formatearNumero(c.resultado)} G/L`);
+  const lineas = [
+    "*POLICÍA DE LA PROVINCIA DE SANTA FE - DIRECCION GENERAL GUARDIA PROVINCIAL*",
+    "*BRIGADA MOTORIZADA ZONA CENTRO NORTE SANTA FE*",
+    "*TERCIO CHARLIE*",
+    "",
+    `*MOTIVO: ${motivo}*`,
+    "",
+    `*LUGAR:* ${texto(informe.lugar) || "/"}`,
+    "",
+    `*HORA:* ${resolverHoraInforme(informe)}HS`,
+    "",
+    `*FECHA:* ${resolverFechaInformeDocumento(informe, true)}`,
+    "",
+    `*MÓVIL:* ${recursos.moviles || "/"}`,
+    "",
+    "*PERSONAL*",
+    normalizarPersonalInstitucional(recursos.personal) || "/",
+    "",
+    `*OBSERVACIÓN:* ${observacion || "/"}`
+  ];
 
-  if (c.sancionable) {
-    lineas.push(`RESULTADO: POSITIVO SANCIONABLE - CÓDIGO ${c.codigo_sancionable}`);
-  } else {
-    lineas.push("RESULTADO: POSITIVO NO SANCIONABLE");
+  return compactarSaltos(lineas.join("\n"));
+}
+
+function construirObservacionAlcoholemia(informe, f = {}, c = {}) {
+  const tipoVehiculo = formatearTipoVehiculoAlcoholemia(
+    c.tipo_vehiculo_normalizado || f.tipo_vehiculo
+  );
+  const marca = texto(f.marca);
+  const modelo = texto(f.modelo_vehiculo);
+  const dominio = texto(f.dominio);
+  const conductor = texto(f.conductor);
+  const resultado = formatearNumero(c.resultado).replace(",", ".");
+  const condicion = c.sancionable ? "sancionable" : "no sancionable";
+  const operativo = construirDescripcionOperativo(informe, { mayusculas: true });
+
+  let descripcionVehiculo = `un vehiculo tipo ${tipoVehiculo || "vehículo"}`;
+  if (marca) descripcionVehiculo += ` marca ${marca}`;
+  if (modelo) descripcionVehiculo += ` modelo ${modelo}`;
+  if (dominio) descripcionVehiculo += `, dominio ${dominio}`;
+  if (conductor) descripcionVehiculo += `, conducido por ${conductor}`;
+
+  const partes = [
+    `En momentos que nos encontrábamos realizando ${operativo} se detiene la marcha de ${descripcionVehiculo}, constatando que circula con alcoholemia positiva ${condicion} de ${resultado} G/L.`
+  ];
+
+  const numeroActa = normalizarNumeroActa(f.numero_acta);
+  const codigos = construirCodigosAlcoholemia(f, c);
+  if (numeroActa) {
+    partes.push(
+      `Se labró acta de infracción N° ${numeroActa}${codigos.length ? ` por código/s ${codigos.join(" / ")}` : ""}.`
+    );
   }
 
-  const licencia = construirTextoLicencia(f);
-  if (licencia) lineas.push(licencia);
+  const licencia = construirLicenciaObservacionAlcoholemia(f);
+  if (licencia) partes.push(licencia);
 
-  if (Boolean(f.con_decreto_460_22)) {
-    if (c.sancionable) {
-      lineas.push("OBSERVACIÓN: ALCOHOLEMIA POSITIVA SANCIONABLE CON REMISIÓN POR Dcto 460/22.");
-    } else {
-      lineas.push("OBSERVACIÓN: REMISIÓN POR Dcto 460/22 y ALCOHOLEMIA POSITIVA NO SANCIONABLE.");
-    }
+  const medidas = construirMedidasCautelaresAlcoholemia(f);
+  if (medidas.length) {
+    partes.push(`Como medida cautelar se realizó ${medidas.join(", ")}.`);
   }
 
-  agregarNumeralesSugeridos(lineas, informe);
-  agregarLinea(lineas, "OBSERVACIONES", f.observaciones);
+  if (Boolean(c.con_decreto_460_22)) {
+    partes.push("También se realizó el procedimiento correspondiente conforme Decreto 460/22.");
+  }
 
-  return lineas.filter(Boolean).join("\n");
+  return partes.join(" ");
+}
+
+function construirLicenciaObservacionAlcoholemia(f = {}) {
+  const clase = texto(f.clase);
+  if (!clase) return "";
+
+  if (contieneDni(clase)) {
+    return `NO POSEE LICENCIA DE CONDUCIR, POSEE DNI ${clase}.`;
+  }
+
+  return `LICENCIA CLASE ${clase}.`;
+}
+
+function construirCodigosAlcoholemia(f = {}, c = {}) {
+  const codigos = [];
+
+  if (Boolean(c.sancionable) && texto(c.codigo_sancionable)) {
+    codigos.push(texto(c.codigo_sancionable));
+  }
+
+  for (const codigo of extraerCodigosFalta(f.otros_codigos)) {
+    if (!codigos.includes(codigo)) codigos.push(codigo);
+  }
+
+  return codigos;
+}
+
+function construirMedidasCautelaresAlcoholemia(f = {}) {
+  const medidas = [];
+  if (Boolean(f.medida_prohibicion)) medidas.push("PROHIBICIÓN DE CIRCULAR");
+  if (Boolean(f.medida_cesion)) medidas.push("CESIÓN DE CONDUCCIÓN");
+  if (Boolean(f.medida_remision)) medidas.push("REMISIÓN DEL VEHÍCULO");
+  if (Boolean(f.medida_retencion)) medidas.push("RETENCIÓN DE LICENCIA DE CONDUCIR");
+  return medidas;
+}
+
+function formatearTipoVehiculoAlcoholemia(valor) {
+  const key = texto(valor)
+    .toUpperCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, "_");
+
+  const etiquetas = {
+    MOTO: "MOTO / MOTOVEHÍCULO",
+    CAMION: "CAMIÓN",
+    TRANSPORTE: "TRANSPORTE DE PASAJEROS",
+    TRANSPORTE_PASAJEROS: "TRANSPORTE DE PASAJEROS",
+    CHASIS: "CHASIS",
+    CHASIS_CON_CABINA: "CHASIS CON CABINA",
+    CHASIS_SIN_CABINA: "CHASIS SIN CABINA",
+    TRACTOR: "TRACTOR DE CARRETERA",
+    TRACTOR_CARRETERA: "TRACTOR DE CARRETERA",
+    CARRETON: "CARRETÓN",
+    AUTO: "AUTO",
+    SEDAN: "SEDÁN",
+    PICK_UP: "PICK UP",
+    CAMIONETA: "CAMIONETA",
+    FURGON: "FURGÓN",
+    FURGONETA: "FURGONETA",
+    OTROS: "OTROS"
+  };
+
+  return etiquetas[key] || texto(valor).replaceAll("_", " ");
 }
 
 function construirDecreto46022(informe) {
