@@ -91,10 +91,10 @@ function renderSelectorOperativoInterno({
   contenedor.innerHTML = `
     <section class="informe-operativo-interno">
       <h3>${escapeHtml(estadoInforme.modelo?.nombre || "INFORME")}</h3>
-      <label for="selectorOperativoDentroInforme">Últimos operativos iniciados</label>
+      <label for="selectorOperativoDentroInforme">Últimos Operativos</label>
 
       <select id="selectorOperativoDentroInforme" ${operativos.length ? "" : "disabled"}>
-        <option value="">${operativos.length ? "Seleccionar uno de los últimos 2 operativos" : "No hay operativos iniciados disponibles"}</option>
+        <option value="">${operativos.length ? "Seleccione Operativo" : "No hay operativos disponibles"}</option>
         ${operativos.map((op) => `
           <option value="${escapeHtml(op.operativo_key)}">
             ${escapeHtml(construirEtiquetaOperativo(op))}
