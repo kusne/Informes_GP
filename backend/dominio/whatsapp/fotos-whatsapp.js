@@ -57,7 +57,6 @@ export function resolverPrefijoFoto({
     const tipo = normalizarModo(tipoInforme);
 
     if (tipo === "DECRETO_460_22") return "decreto-460-22";
-    if (tipo === "CONTROL_ARMAS") return "control-armas";
     if (tipo === "RETENCION_LICENCIA") return "retencion-licencia";
   }
 
