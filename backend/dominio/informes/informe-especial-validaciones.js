@@ -57,20 +57,35 @@ function validarControlSuperior(informe, errores) {
 
 function validarAlcoholemia(informe, errores) {
   const f = informe.formulario || {};
+  const c = informe.calculos || {};
 
-  if (!texto(f.conductor)) errores.push("Debe completar conductor.");
-  if (!texto(f.dni)) errores.push("Debe completar DNI.");
-  if (!texto(f.dominio)) errores.push("Debe completar dominio.");
   if (!texto(f.tipo_vehiculo)) errores.push("Debe seleccionar tipo de vehículo.");
+  if (!texto(f.marca)) errores.push("Debe completar marca.");
+  if (!texto(f.modelo_vehiculo)) errores.push("Debe completar modelo.");
+  if (!texto(f.conductor)) errores.push("Debe completar conductor.");
+  if (!texto(f.clase)) errores.push("Debe completar Licencia Clase / DNI.");
 
-  const resultado = Number(f.resultado);
-
+  const resultado = parsearDecimal(f.resultado);
   if (!Number.isFinite(resultado) || resultado <= 0) {
-    errores.push("Debe completar resultado de alcoholemia mayor a 0.");
+    errores.push("Debe completar graduación de alcoholemia mayor a 0.");
   }
 
-  if (Boolean(f.licencia_digital) && !texto(f.clase)) {
-    errores.push("Si posee licencia digital, debe completar Clase.");
+  // Para una alcoholemia sancionable el formato institucional necesita acta.
+  if (Boolean(c.sancionable) && !texto(f.numero_acta)) {
+    errores.push("Debe completar N° de acta para una alcoholemia sancionable.");
+  }
+
+  const otrosCodigosTexto = texto(f.otros_codigos);
+  if (otrosCodigosTexto) {
+    const codigos = extraerCodigosFalta(otrosCodigosTexto);
+    if (!codigos.length) {
+      errores.push("Otros códigos debe contener códigos numéricos válidos.");
+    } else {
+      const invalidos = codigos.filter((codigo) => !getNomencladorFalta(codigo));
+      if (invalidos.length) {
+        errores.push(`Código/s no encontrado/s en nomenclador: ${invalidos.join(", ")}.`);
+      }
+    }
   }
 }
 
@@ -129,6 +144,17 @@ function validarRetencionLicencia(informe, errores) {
     errores.push("Debe completar fecha de vencimiento / VTO de la licencia.");
   }
 
+}
+
+function parsearDecimal(valor) {
+  const limpio = String(valor ?? "")
+    .trim()
+    .replace(/\s+/g, "")
+    .replace(",", ".");
+
+  if (!limpio) return NaN;
+  const numero = Number(limpio);
+  return Number.isFinite(numero) ? numero : NaN;
 }
 
 function texto(valor) {
