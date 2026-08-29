@@ -575,18 +575,23 @@ body.informe-detalle-activo {
   font-size: 16px;
 }
 
-@media (max-width: 410px) {
+/* En teléfonos, dos tarjetas por fila dan ancho real a números/identificadores. */
+@media (max-width: 520px) {
   .inicio-opciones-grid {
-    gap: 8px;
+    gap: 9px;
+  }
+
+  .inicio-moviles-grid,
+  .inicio-motos-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .inicio-opcion-recurso {
-    min-height: 44px;
-    padding: 7px 8px;
-    font-size: 14px;
+    min-height: 50px;
+    padding: 9px 10px;
+    font-size: 16px;
   }
 }
-
 /* === FIN frontend/pantallas/inicia/componentes/movilidad/movilidad.css === */
 
 
@@ -620,20 +625,19 @@ body.informe-detalle-activo {
   min-height: 46px;
 }
 
-@media (max-width: 410px) {
+/* Evita N°... / AREC-0... en pantallas angostas sin cambiar el diseño de escritorio. */
+@media (max-width: 520px) {
+  .inicio-elementos-grid--3,
   .inicio-elementos-grid--4 {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  .inicio-elementos-grid--3 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .inicio-opcion-elemento {
-    font-size: 13px;
+    min-height: 50px;
+    padding: 9px 10px;
+    font-size: 16px;
   }
 }
-
 /* === FIN frontend/pantallas/inicia/componentes/elementos/elementos.css === */
 
 
@@ -910,11 +914,14 @@ body.informe-detalle-activo {
 .finaliza-moviles-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
 .finaliza-motos-grid { grid-template-columns: repeat(4,minmax(0,1fr)); }
 .finaliza-opcion-recurso { min-width: 0; min-height: 46px; padding: 8px 10px; font-size: 16px; }
-@media (max-width: 410px) {
-  .finaliza-opciones-grid { gap: 8px; }
-  .finaliza-opcion-recurso { min-height: 44px; padding: 7px 8px; font-size: 14px; }
-}
 
+/* Mismo criterio visual que INICIA: números completos y legibles en móvil. */
+@media (max-width: 520px) {
+  .finaliza-opciones-grid { gap: 9px; }
+  .finaliza-moviles-grid,
+  .finaliza-motos-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .finaliza-opcion-recurso { min-height: 50px; padding: 9px 10px; font-size: 16px; }
+}
 /* === FIN frontend/pantallas/finaliza/componentes/movilidad/movilidad.css === */
 
 
@@ -926,8 +933,13 @@ body.informe-detalle-activo {
 .finaliza-elementos-grid--3 { grid-template-columns: repeat(3,minmax(0,1fr)); }
 .finaliza-elementos-grid--4 { grid-template-columns: repeat(4,minmax(0,1fr)); }
 .finaliza-opcion-elemento { min-height: 46px; }
-@media (max-width: 410px) { .finaliza-opcion-elemento { font-size: 13px; } }
 
+/* Evita identificadores truncados en teléfonos; escritorio conserva 3/4 columnas. */
+@media (max-width: 520px) {
+  .finaliza-elementos-grid--3,
+  .finaliza-elementos-grid--4 { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .finaliza-opcion-elemento { min-height: 50px; padding: 9px 10px; font-size: 16px; }
+}
 /* === FIN frontend/pantallas/finaliza/componentes/elementos/elementos.css === */
 
 
