@@ -17,6 +17,11 @@ const MODELOS = {
     html: "/frontend/pantallas/informes/modelos/decreto-460-22/decreto-460-22.html",
     modulo: "../../modelos/decreto-460-22/decreto-460-22.js",
     iniciar: "iniciarDecreto46022"
+  },
+  REQUISA_VEHICULAR: {
+    html: "/frontend/pantallas/informes/modelos/requisa-vehicular/requisa-vehicular.html",
+    modulo: "../../modelos/requisa-vehicular/requisa-vehicular.js",
+    iniciar: "iniciarModeloInformeUI"
   }
 };
 
