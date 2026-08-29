@@ -2,79 +2,71 @@
   <h2>ALCOHOLEMIA POSITIVA</h2>
   <p>Informe especial de alcoholemia positiva vinculado al operativo seleccionado.</p>
 
+  <div class="bloque-formulario">
+    <label for="alcoTipoVehiculo">Tipo de vehículo</label>
+    <select id="alcoTipoVehiculo" name="tipo_vehiculo">
+      <option value="">Seleccionar</option>
+      <option value="MOTO">Moto / motovehículo</option>
+      <option value="CAMION">Camión</option>
+      <option value="TRANSPORTE_PASAJEROS">Transporte de pasajeros</option>
+      <option value="CHASIS_CON_CABINA">Chasis con cabina</option>
+      <option value="CHASIS_SIN_CABINA">Chasis sin cabina</option>
+      <option value="TRACTOR_CARRETERA">Tractor de carretera</option>
+      <option value="CARRETON">Carretón</option>
+      <option value="AUTO">Auto</option>
+      <option value="SEDAN">Sedán</option>
+      <option value="PICK_UP">Pick up</option>
+      <option value="CAMIONETA">Camioneta</option>
+      <option value="FURGON">Furgón</option>
+      <option value="FURGONETA">Furgoneta</option>
+      <option value="OTROS">Otros</option>
+    </select>
+  </div>
+
+  <div class="bloque-formulario">
+    <label for="alcoConductor">Conductor</label>
+    <input id="alcoConductor" name="conductor" type="text" placeholder="Apellido y nombre">
+  </div>
+
   <div id="alco460Bloque" class="bloque-formulario checkbox-linea" hidden>
     <input id="alcoCon460" name="con_decreto_460_22" type="checkbox" value="SI">
     <label for="alcoCon460">460/22</label>
   </div>
 
-  <div class="grilla-doble">
-    <div class="bloque-formulario">
-      <label for="alcoTipoVehiculo">Tipo de vehículo</label>
-      <select id="alcoTipoVehiculo" name="tipo_vehiculo">
-        <option value="">Seleccionar</option>
-        <option value="MOTO">Moto / motovehículo</option>
-        <option value="CAMION">Camión</option>
-        <option value="TRANSPORTE_PASAJEROS">Transporte de pasajeros</option>
-        <option value="CHASIS_CON_CABINA">Chasis con cabina</option>
-        <option value="CHASIS_SIN_CABINA">Chasis sin cabina</option>
-        <option value="TRACTOR_CARRETERA">Tractor de carretera</option>
-        <option value="CARRETON">Carretón</option>
-        <option value="AUTO">Auto</option>
-        <option value="SEDAN">Sedán</option>
-        <option value="PICK_UP">Pick up</option>
-        <option value="CAMIONETA">Camioneta</option>
-        <option value="FURGON">Furgón</option>
-        <option value="FURGONETA">Furgoneta</option>
-        <option value="OTROS">Otros</option>
-      </select>
-    </div>
-
-    <div class="bloque-formulario">
-      <label for="alcoMarca">Marca</label>
-      <input id="alcoMarca" name="marca" type="text" placeholder="Marca">
-    </div>
-  </div>
-
-  <div class="grilla-doble">
+  <div class="alco-datos-dos-columnas">
     <div class="bloque-formulario">
       <label for="alcoDominio">Dominio</label>
       <input id="alcoDominio" name="dominio" type="text" placeholder="Dominio">
     </div>
 
     <div class="bloque-formulario">
+      <label for="alcoMarca">Marca</label>
+      <input id="alcoMarca" name="marca" type="text" placeholder="Marca">
+    </div>
+
+    <div class="bloque-formulario">
+      <label for="alcoNumeroActa">N° de acta</label>
+      <input id="alcoNumeroActa" name="numero_acta" type="text" inputmode="numeric" placeholder="N° de acta">
+    </div>
+
+    <div class="bloque-formulario">
       <label for="alcoModeloVehiculo">Modelo</label>
       <input id="alcoModeloVehiculo" name="modelo_vehiculo" type="text" placeholder="Modelo">
     </div>
-  </div>
 
-  <div class="grilla-doble">
     <div class="bloque-formulario">
-      <label for="alcoConductor">Conductor</label>
-      <input id="alcoConductor" name="conductor" type="text" placeholder="Apellido y nombre">
+      <label for="alcoClase">Licencia / DNI</label>
+      <input id="alcoClase" name="clase" type="text" placeholder="B1 o DNI">
+    </div>
+
+    <div class="bloque-formulario checkbox-linea alco-licencia-digital">
+      <input id="alcoLicenciaDigital" name="licencia_digital" type="checkbox" value="SI">
+      <label for="alcoLicenciaDigital">Lic. digital</label>
     </div>
 
     <div class="bloque-formulario">
       <label for="alcoResultado">Graduación g/l</label>
       <input id="alcoResultado" name="resultado" type="text" inputmode="decimal" placeholder="0,51">
-    </div>
-  </div>
-
-  <div class="grilla-doble">
-    <div class="bloque-formulario">
-      <label for="alcoClase">Licencia Clase / DNI</label>
-      <input id="alcoClase" name="clase" type="text" placeholder="B1 o DNI si no posee">
-    </div>
-
-    <div class="bloque-formulario checkbox-linea">
-      <input id="alcoLicenciaDigital" name="licencia_digital" type="checkbox" value="SI">
-      <label for="alcoLicenciaDigital">Digital</label>
-    </div>
-  </div>
-
-  <div class="grilla-doble">
-    <div class="bloque-formulario">
-      <label for="alcoNumeroActa">N° de acta</label>
-      <input id="alcoNumeroActa" name="numero_acta" type="text" inputmode="numeric" placeholder="N° de acta">
     </div>
 
     <div class="bloque-formulario">
