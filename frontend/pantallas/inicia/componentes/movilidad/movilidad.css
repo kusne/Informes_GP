@@ -33,14 +33,20 @@
   font-size: 16px;
 }
 
-@media (max-width: 410px) {
+/* En teléfonos, dos tarjetas por fila dan ancho real a números/identificadores. */
+@media (max-width: 520px) {
   .inicio-opciones-grid {
-    gap: 8px;
+    gap: 9px;
+  }
+
+  .inicio-moviles-grid,
+  .inicio-motos-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .inicio-opcion-recurso {
-    min-height: 44px;
-    padding: 7px 8px;
-    font-size: 14px;
+    min-height: 50px;
+    padding: 9px 10px;
+    font-size: 16px;
   }
 }
