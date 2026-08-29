@@ -390,3 +390,25 @@
     font-size: 14px;
   }
 }
+
+/* PASO 11 - CONTROL SUPERIOR: checkbox y texto más grandes, solo visual. */
+[data-modelo-informe="CONTROL_SUPERIOR"] .checkbox-opcion {
+  gap: 10px;
+  font-size: 19px !important;
+  line-height: 1.2;
+}
+
+[data-modelo-informe="CONTROL_SUPERIOR"] .checkbox-opcion input[type="checkbox"] {
+  flex: 0 0 30px;
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px;
+  min-height: 30px;
+  margin: 0;
+  accent-color: var(--blue-strong);
+  cursor: pointer;
+}
+
+[data-modelo-informe="CONTROL_SUPERIOR"] .opciones-control-superior {
+  gap: 14px 18px;
+}
