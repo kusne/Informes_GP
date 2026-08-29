@@ -5,7 +5,7 @@
   window.IGP = window.IGP || {};
   window.IGP.pantallaPrincipal = window.IGP.pantallaPrincipal || {};
 
-  const VERSION = "pantalla-principal-flujo-20260806-informes-pagina-v4";
+  const VERSION = "pantalla-principal-flujo-20260829-requisa-v1";
 
   const MODELOS_INFORMES = [
     {
@@ -32,6 +32,11 @@
       id: "retencion-licencia",
       titulo: "Retención de Licencia",
       descripcion: "Informe de retención de licencia",
+    },
+    {
+      id: "requisa-vehicular",
+      titulo: "Requisa Vehicular",
+      descripcion: "Informe de requisa vehicular",
     },
   ];
 
