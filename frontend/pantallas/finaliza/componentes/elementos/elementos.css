@@ -5,4 +5,10 @@
 .finaliza-elementos-grid--3 { grid-template-columns: repeat(3,minmax(0,1fr)); }
 .finaliza-elementos-grid--4 { grid-template-columns: repeat(4,minmax(0,1fr)); }
 .finaliza-opcion-elemento { min-height: 46px; }
-@media (max-width: 410px) { .finaliza-opcion-elemento { font-size: 13px; } }
+
+/* Evita identificadores truncados en teléfonos; escritorio conserva 3/4 columnas. */
+@media (max-width: 520px) {
+  .finaliza-elementos-grid--3,
+  .finaliza-elementos-grid--4 { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .finaliza-opcion-elemento { min-height: 50px; padding: 9px 10px; font-size: 16px; }
+}
