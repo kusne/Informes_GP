@@ -2345,3 +2345,49 @@ body.informe-detalle-activo {
     font-size: 15px;
   }
 }
+
+/* PASO 9 - ALCOHOLEMIA: orden visual solicitado. */
+[data-modelo-informe="ALCOHOLEMIA_POSITIVA"] .alco-datos-dos-columnas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 12px;
+  row-gap: 2px;
+  align-items: end;
+}
+
+[data-modelo-informe="ALCOHOLEMIA_POSITIVA"] .alco-datos-dos-columnas > .bloque-formulario {
+  min-width: 0;
+}
+
+[data-modelo-informe="ALCOHOLEMIA_POSITIVA"] .alco-licencia-digital {
+  align-self: end;
+  min-height: 54px;
+  margin-bottom: 10px;
+  padding: 0 4px;
+}
+
+[data-modelo-informe="ALCOHOLEMIA_POSITIVA"] .alco-licencia-digital label {
+  white-space: nowrap;
+}
+
+/* Esta grilla permanece en dos columnas también en celulares. */
+@media (max-width: 640px) {
+  [data-modelo-informe="ALCOHOLEMIA_POSITIVA"] .alco-datos-dos-columnas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 8px;
+  }
+}
+
+@media (max-width: 380px) {
+  [data-modelo-informe="ALCOHOLEMIA_POSITIVA"] .alco-datos-dos-columnas {
+    column-gap: 6px;
+  }
+
+  [data-modelo-informe="ALCOHOLEMIA_POSITIVA"] .alco-datos-dos-columnas .bloque-formulario > label {
+    font-size: 14px;
+  }
+
+  [data-modelo-informe="ALCOHOLEMIA_POSITIVA"] .alco-licencia-digital label {
+    font-size: 14px;
+  }
+}
