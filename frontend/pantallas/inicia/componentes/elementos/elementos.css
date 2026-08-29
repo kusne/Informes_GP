@@ -27,16 +27,16 @@
   min-height: 46px;
 }
 
-@media (max-width: 410px) {
+/* Evita N°... / AREC-0... en pantallas angostas sin cambiar el diseño de escritorio. */
+@media (max-width: 520px) {
+  .inicio-elementos-grid--3,
   .inicio-elementos-grid--4 {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  .inicio-elementos-grid--3 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .inicio-opcion-elemento {
-    font-size: 13px;
+    min-height: 50px;
+    padding: 9px 10px;
+    font-size: 16px;
   }
 }
