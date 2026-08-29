@@ -39,6 +39,10 @@ export function validarInformeEspecial(informe) {
     validarRetencionLicencia(informe, errores);
   }
 
+  if (informe?.modelo === "REQUISA_VEHICULAR") {
+    validarRequisaVehicular(informe, errores);
+  }
+
   return errores;
 }
 
@@ -143,6 +147,17 @@ function validarRetencionLicencia(informe, errores) {
   if (["VENCIDA_MAS_6_MESES", "VENCIDA_MENOS_6_MESES", "CADUCA_CAMBIO_DATOS"].includes(motivo) && !texto(f.fecha_vencimiento)) {
     errores.push("Debe completar fecha de vencimiento / VTO de la licencia.");
   }
+
+}
+
+function validarRequisaVehicular(informe, errores) {
+  const f = informe.formulario || {};
+
+  if (!texto(f.fecha_hecho)) errores.push("No se pudo resolver la fecha de la requisa.");
+  if (!texto(f.hora_hecho)) errores.push("No se pudo resolver el horario de la requisa.");
+  if (!texto(f.departamento)) errores.push("Debe completar departamento.");
+  if (!texto(f.talonario)) errores.push("Debe indicar si se utilizó talonario.");
+  if (!texto(f.observaciones)) errores.push("Debe completar las observaciones de la requisa vehicular.");
 
 }
 
