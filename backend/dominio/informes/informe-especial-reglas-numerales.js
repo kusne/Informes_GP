@@ -18,8 +18,10 @@ export function construirIncrementosSugeridosInforme(informe) {
   if (!informe) return {};
 
   if (informe.modelo === "ALCOHOLEMIA_POSITIVA") {
-    const sancionable = Boolean(informe.calculos?.sancionable);
-    const con460 = Boolean(informe.formulario?.con_decreto_460_22);
+    const f = informe.formulario || {};
+    const c = informe.calculos || {};
+    const sancionable = Boolean(c.sancionable);
+    const con460 = Boolean(c.con_decreto_460_22);
 
     return limpiarObjeto({
       actas: sancionable ? 1 : 0,
@@ -28,7 +30,9 @@ export function construirIncrementosSugeridosInforme(informe) {
       decreto_460_22: con460 ? 1 : 0,
       alcoholemia_sancionable: sancionable ? 1 : 0,
       alcoholemia_no_sancionable: sancionable ? 0 : 1,
-      retencion_licencia: debeSugerirRetencionLicencia(informe) ? 1 : 0
+      // La retención ya no se infiere: la define expresamente el usuario
+      // mediante la medida cautelar "Retención" del formulario.
+      retencion_licencia: Boolean(f.medida_retencion) ? 1 : 0
     });
   }
 
@@ -50,14 +54,14 @@ function construirNumeralesAlcoholemia(informe) {
   const items = [];
 
   if (c.sancionable) {
-    items.push({
+    agregarItemUnico(items, {
       codigo: c.codigo_sancionable || "2016",
       cantidad: 1,
       detalle: "ALCOHOLEMIA POSITIVA SANCIONABLE",
       categoria: "ALCOHOLEMIA"
     });
   } else {
-    items.push({
+    agregarItemUnico(items, {
       codigo: "ALCO_NO_SANC",
       cantidad: 1,
       detalle: "ALCOHOLEMIA POSITIVA NO SANCIONABLE",
@@ -65,8 +69,20 @@ function construirNumeralesAlcoholemia(informe) {
     });
   }
 
-  if (debeSugerirRetencionLicencia(informe)) {
-    items.push({
+  for (const codigo of extraerCodigosFalta(f.otros_codigos)) {
+    const item = getNomencladorFalta(codigo);
+    if (!item) continue;
+
+    agregarItemUnico(items, {
+      codigo,
+      cantidad: 1,
+      detalle: String(item.referencia || "INFRACCIÓN").toUpperCase(),
+      categoria: "INFRACCION"
+    });
+  }
+
+  if (Boolean(f.medida_retencion)) {
+    agregarItemUnico(items, {
       codigo: "RET_LIC",
       cantidad: 1,
       detalle: "RETENCIÓN DE LICENCIA",
@@ -75,7 +91,7 @@ function construirNumeralesAlcoholemia(informe) {
   }
 
   if (debeSugerirSinLicencia(f)) {
-    items.push({
+    agregarItemUnico(items, {
       codigo: "9119",
       cantidad: 1,
       detalle: "NO POSEE LICENCIA DE CONDUCIR",
@@ -83,8 +99,8 @@ function construirNumeralesAlcoholemia(informe) {
     });
   }
 
-  if (Boolean(f.con_decreto_460_22)) {
-    items.push({
+  if (Boolean(c.con_decreto_460_22)) {
+    agregarItemUnico(items, {
       codigo: "460/22",
       cantidad: 1,
       detalle: "PROCEDIMIENTO POR DECRETO 460/22",
@@ -92,7 +108,7 @@ function construirNumeralesAlcoholemia(informe) {
     });
   }
 
-  return consolidarItems(items);
+  return items;
 }
 
 function construirNumeralesDecreto46022(informe) {
@@ -119,25 +135,16 @@ function construirNumeralesDecreto46022(informe) {
   return consolidarItems(items);
 }
 
-function debeSugerirRetencionLicencia(informe) {
-  const f = informe.formulario || {};
-  const c = informe.calculos || {};
-
-  if (!c.sancionable) return false;
-  if (Boolean(f.licencia_digital)) return false;
-
-  const clase = String(f.clase || "").trim();
-
-  if (!clase) return false;
-  if (debeSugerirSinLicencia(f)) return false;
-
-  return true;
-}
-
 function debeSugerirSinLicencia(formulario) {
   const clase = String(formulario?.clase || "").trim();
+  return /\b\d{7,8}\b/.test(clase);
+}
 
-  return /\d{7,8}/.test(clase);
+function agregarItemUnico(items, item) {
+  const codigo = String(item?.codigo || "").trim();
+  if (!codigo) return;
+  if (items.some((actual) => String(actual?.codigo || "").trim() === codigo)) return;
+  items.push({ ...item });
 }
 
 function consolidarItems(items) {
