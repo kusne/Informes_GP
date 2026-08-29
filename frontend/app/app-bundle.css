@@ -2270,3 +2270,78 @@ label.check input[type="checkbox"],
 body.informe-detalle-activo {
   overflow: hidden !important;
 }
+
+/* PASO 8 - ALCOHOLEMIA: mejora visual móvil, sin cambios funcionales. */
+[data-modelo-informe="ALCOHOLEMIA_POSITIVA"] .bloque-formulario > label {
+  font-size: 15px;
+  line-height: 1.2;
+}
+
+[data-modelo-informe="ALCOHOLEMIA_POSITIVA"] input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+[data-modelo-informe="ALCOHOLEMIA_POSITIVA"] select,
+[data-modelo-informe="ALCOHOLEMIA_POSITIVA"] textarea {
+  font-size: 17px;
+}
+
+[data-modelo-informe="ALCOHOLEMIA_POSITIVA"] .checkbox-linea {
+  gap: 10px;
+  min-height: 42px;
+  font-size: 16px;
+  line-height: 1.15;
+}
+
+[data-modelo-informe="ALCOHOLEMIA_POSITIVA"] .checkbox-linea label {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.15;
+}
+
+[data-modelo-informe="ALCOHOLEMIA_POSITIVA"] .checkbox-linea input[type="checkbox"] {
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  min-height: 30px;
+  margin: 0;
+  accent-color: var(--blue-strong);
+  cursor: pointer;
+}
+
+/* El atributo hidden debe prevalecer sobre display:flex de .checkbox-linea. */
+[data-modelo-informe="ALCOHOLEMIA_POSITIVA"] #alco460Bloque[hidden] {
+  display: none !important;
+}
+
+[data-modelo-informe="ALCOHOLEMIA_POSITIVA"] fieldset.bloque-formulario > legend {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+/* Medidas cautelares: siempre 2 columnas x 2 filas, también en teléfono. */
+[data-modelo-informe="ALCOHOLEMIA_POSITIVA"] fieldset.bloque-formulario > .grilla-doble {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 12px;
+  row-gap: 14px;
+}
+
+[data-modelo-informe="ALCOHOLEMIA_POSITIVA"] fieldset.bloque-formulario > .grilla-doble > .checkbox-linea {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+@media (max-width: 420px) {
+  [data-modelo-informe="ALCOHOLEMIA_POSITIVA"] fieldset.bloque-formulario > .grilla-doble {
+    column-gap: 8px;
+  }
+
+  [data-modelo-informe="ALCOHOLEMIA_POSITIVA"] fieldset.bloque-formulario > .grilla-doble > .checkbox-linea {
+    gap: 7px;
+  }
+
+  [data-modelo-informe="ALCOHOLEMIA_POSITIVA"] fieldset.bloque-formulario > .grilla-doble > .checkbox-linea label {
+    font-size: 15px;
+  }
+}
