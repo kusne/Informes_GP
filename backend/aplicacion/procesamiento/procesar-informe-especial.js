@@ -67,8 +67,10 @@ export function procesarInformeEspecialFormulario({
 function calcularDatosModelo(modelo, formulario) {
   if (modelo === "ALCOHOLEMIA_POSITIVA") {
     const tipoVehiculo = normalizarTipoVehiculo(formulario.tipo_vehiculo);
-    const resultado = Number(formulario.resultado || 0);
+    const resultado = parsearDecimal(formulario.resultado);
     const limite = resolverLimiteAlcoholemia(tipoVehiculo);
+    const esMoto = tipoVehiculo === "MOTO";
+
     return {
       tipo_vehiculo_normalizado: tipoVehiculo,
       resultado,
@@ -76,7 +78,9 @@ function calcularDatosModelo(modelo, formulario) {
       sancionable: Number.isFinite(resultado) && resultado > limite,
       codigo_sancionable: resolverCodigoSancionable(tipoVehiculo),
       licencia_digital: Boolean(formulario.licencia_digital),
-      con_decreto_460_22: Boolean(formulario.con_decreto_460_22)
+      // 460/22 sólo es válido dentro de este informe cuando el vehículo es moto.
+      // La UI también lo oculta y desmarca al cambiar a otro tipo.
+      con_decreto_460_22: esMoto && Boolean(formulario.con_decreto_460_22)
     };
   }
   if (modelo === "DECRETO_460_22") {
@@ -101,24 +105,61 @@ function resolverCodigoLicencia(motivo) {
 }
 function resolverLimiteAlcoholemia(tipo) {
   if (tipo === "MOTO") return 0.20;
-  if (["TRANSPORTE", "CAMION", "CHASIS", "TRACTOR", "CARRETON"].includes(tipo)) return 0;
+  if (esVehiculoLimiteCero(tipo)) return 0;
   return 0.50;
 }
 function resolverCodigoSancionable(tipo) {
   if (tipo === "MOTO") return "2020";
-  if (["TRANSPORTE", "CAMION", "CHASIS", "TRACTOR", "CARRETON"].includes(tipo)) return "2033";
+  if (esVehiculoLimiteCero(tipo)) return "2033";
   return "2016";
 }
+function esVehiculoLimiteCero(tipo) {
+  return [
+    "TRANSPORTE",
+    "TRANSPORTE_PASAJEROS",
+    "CAMION",
+    "CHASIS",
+    "CHASIS_CON_CABINA",
+    "CHASIS_SIN_CABINA",
+    "TRACTOR",
+    "TRACTOR_CARRETERA",
+    "CARRETON"
+  ].includes(tipo);
+}
 function normalizarTipoVehiculo(valor) {
-  const texto = normalizarTexto(valor);
+  const texto = normalizarTexto(valor).replace(/\s+/g, "_");
+
+  if (!texto) return "";
   if (texto.includes("MOTO")) return "MOTO";
-  if (texto.includes("TRANSPORTE")) return "TRANSPORTE";
-  if (texto.includes("CAMION")) return "CAMION";
-  if (texto.includes("CHASIS")) return "CHASIS";
-  if (texto.includes("TRACTOR")) return "TRACTOR";
+  if (texto.includes("TRANSPORTE") && texto.includes("PASAJ")) return "TRANSPORTE_PASAJEROS";
+  if (texto === "TRANSPORTE") return "TRANSPORTE";
+  if (texto === "CAMION") return "CAMION";
+  if (texto.includes("CHASIS_CON_CABINA")) return "CHASIS_CON_CABINA";
+  if (texto.includes("CHASIS_SIN_CABINA")) return "CHASIS_SIN_CABINA";
+  if (texto === "CHASIS") return "CHASIS";
+  if (texto.includes("TRACTOR_DE_CARRETERA") || texto === "TRACTOR_CARRETERA") return "TRACTOR_CARRETERA";
+  if (texto === "TRACTOR") return "TRACTOR";
   if (texto.includes("CARRETON")) return "CARRETON";
-  if (texto.includes("CAMIONETA") || texto.includes("PICK")) return "CAMIONETA";
-  return texto || "";
+  // CAMIONETA debe evaluarse antes que cualquier coincidencia genérica con CAMION.
+  if (texto.includes("CAMIONETA")) return "CAMIONETA";
+  if (texto.includes("PICK")) return "PICK_UP";
+  if (texto.includes("FURGONETA")) return "FURGONETA";
+  if (texto.includes("FURGON")) return "FURGON";
+  if (texto.includes("SEDAN")) return "SEDAN";
+  if (texto === "AUTO") return "AUTO";
+  if (texto === "OTROS" || texto === "OTRO") return "OTROS";
+
+  return texto;
+}
+function parsearDecimal(valor) {
+  const limpio = String(valor ?? "")
+    .trim()
+    .replace(/\s+/g, "")
+    .replace(",", ".");
+
+  if (!limpio) return NaN;
+  const numero = Number(limpio);
+  return Number.isFinite(numero) ? numero : NaN;
 }
 function normalizarModelo(valor) { return String(valor || "").trim().toUpperCase().replaceAll("-", "_").replace(/\s+/g, "_"); }
 function normalizarTipo(valor) { return String(valor || "GENERICO").trim().toUpperCase().replaceAll("-", "_").replace(/\s+/g, "_"); }
