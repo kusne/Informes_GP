@@ -206,9 +206,22 @@
         line-height: 1.25;
       }
 
+      /* Foco/selección de modelos: amarillo suave con halo difuso.
+         Se sobrescribe también :hover porque en móviles el toque puede
+         dejar activo el hover global azul de los botones. */
+      .igp-modelo-btn:hover,
+      .igp-modelo-btn:focus,
+      .igp-modelo-btn:focus-visible,
+      .igp-modelo-btn:active,
       .igp-modelo-btn.activo {
-        border-color: #0d4fa8;
-        box-shadow: 0 0 0 3px rgba(13,79,168,.18);
+        outline: none;
+        border-color: #d6a600;
+        background: #fff8d6;
+        color: #090e1a;
+        box-shadow:
+          0 0 0 3px rgba(255, 204, 0, .28),
+          0 0 18px rgba(255, 193, 7, .42),
+          0 3px 7px rgba(0,0,0,.16);
       }
 
       .igp-modelo-seleccionado {
