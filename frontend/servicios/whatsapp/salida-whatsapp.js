@@ -25,6 +25,12 @@ import { modoEnsayoActivo } from "../../../api/app-api.js";
 
 let cancelarSuscripcionPreview = null;
 let envioEnCurso = false;
+let sincronizacionPendientesEnCurso = false;
+
+const STORAGE_ENVIOS_PENDIENTES = "informesgp:envios-pendientes:v1";
+const MODOS_CON_RESPALDO_LOCAL = new Set(["INICIA", "FINALIZA", "INFORMES"]);
+
+registrarSincronizacionPendientes();
 
 export function renderBotonEnviarWhatsapp({
   hostSelector,
@@ -244,10 +250,94 @@ export async function manejarEnvioWhatsapp({ boton = null, getContexto } = {}) {
     });
 
     if (resultadoSupabase.bloqueaEnvio) {
-      cerrarVentanaWhatsappPreparada(ventanaWhatsapp);
-      alert(resultadoSupabase.mensaje || "No se pudo guardar en Supabase.");
+      // Regla operativa: una falla de Supabase NUNCA debe impedir abrir WhatsApp.
+      // Primero intentamos dejar respaldo local para sincronizarlo después; si el
+      // navegador tampoco permite ese respaldo, igualmente continuamos porque el
+      // usuario puede ingresar manualmente el informe desde WhatsApp a STATS.
+      const pendiente = MODOS_CON_RESPALDO_LOCAL.has(modo)
+        ? guardarEnvioPendienteLocal({
+            modo,
+            payload: salida.payload,
+            texto
+          })
+        : { ok: false, clave: "" };
+
+      marcarEstadoEnvio(
+        pendiente.ok
+          ? "Abriendo WhatsApp. Pendiente de sincronizar con el servidor..."
+          : "Abriendo WhatsApp. Sin guardar en servidor; cargar manualmente en STATS si corresponde."
+      );
+
+      abrirWhatsappConTexto(texto, {
+        ventanaPreparada: ventanaWhatsapp
+      });
+      whatsappEntregado = true;
+
+      if (pendiente.ok) {
+        window.dispatchEvent(new CustomEvent("informesgp:envio-whatsapp-pendiente", {
+          detail: {
+            modo,
+            textoFinal: texto,
+            clavePendiente: pendiente.clave,
+            motivo: resultadoSupabase.mensaje || "Error de persistencia"
+          }
+        }));
+      } else {
+        window.dispatchEvent(new CustomEvent("informesgp:envio-whatsapp-sin-persistencia", {
+          detail: {
+            modo,
+            textoFinal: texto,
+            motivo: resultadoSupabase.mensaje || "Error de persistencia"
+          }
+        }));
+      }
+
       return;
     }
+
+    if (resultadoSupabase.saltado && !resultadoSupabase.ensayo) {
+      const pendiente = MODOS_CON_RESPALDO_LOCAL.has(modo)
+        ? guardarEnvioPendienteLocal({
+            modo,
+            payload: salida.payload,
+            texto
+          })
+        : { ok: false, clave: "" };
+
+      marcarEstadoEnvio(
+        pendiente.ok
+          ? "Abriendo WhatsApp. Pendiente de sincronizar con el servidor..."
+          : "Abriendo WhatsApp. Sin guardar en servidor; cargar manualmente en STATS si corresponde."
+      );
+
+      abrirWhatsappConTexto(texto, {
+        ventanaPreparada: ventanaWhatsapp
+      });
+      whatsappEntregado = true;
+
+      if (pendiente.ok) {
+        window.dispatchEvent(new CustomEvent("informesgp:envio-whatsapp-pendiente", {
+          detail: {
+            modo,
+            textoFinal: texto,
+            clavePendiente: pendiente.clave,
+            motivo: resultadoSupabase.mensaje || "Supabase no disponible"
+          }
+        }));
+      } else {
+        window.dispatchEvent(new CustomEvent("informesgp:envio-whatsapp-sin-persistencia", {
+          detail: {
+            modo,
+            textoFinal: texto,
+            motivo: resultadoSupabase.mensaje || "Supabase no disponible"
+          }
+        }));
+      }
+
+      return;
+    }
+
+    eliminarEnvioPendienteLocal({ modo, payload: resultadoSupabase.payloadFinal || salida.payload });
 
     limpiarFotosPorModoPayload({
       modo,
@@ -462,6 +552,171 @@ function marcarEstadoEnvio(texto) {
 
   estadoBox.textContent = texto;
   estadoBox.className = "salida-whatsapp-estado salida-whatsapp-estado-ok";
+}
+
+function registrarSincronizacionPendientes() {
+  if (typeof window === "undefined") return;
+  if (window.__informesGpPendientesWhatsappRegistrado) return;
+
+  window.__informesGpPendientesWhatsappRegistrado = true;
+
+  const intentar = () => {
+    void sincronizarEnviosPendientesLocales();
+  };
+
+  window.addEventListener("online", intentar);
+  window.addEventListener("focus", intentar);
+
+  if (typeof document !== "undefined") {
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") intentar();
+    });
+  }
+
+  // Sin timers ni polling: un único intento al cargar el módulo.
+  queueMicrotask(intentar);
+}
+
+async function sincronizarEnviosPendientesLocales() {
+  if (sincronizacionPendientesEnCurso) return;
+  if (typeof navigator !== "undefined" && navigator.onLine === false) return;
+
+  const pendientes = leerEnviosPendientesLocales();
+  if (!pendientes.length) return;
+
+  sincronizacionPendientesEnCurso = true;
+
+  try {
+    const persistencia = await import("../../../api/persistencia-api.js");
+
+    for (const pendiente of pendientes) {
+      if (!MODOS_CON_RESPALDO_LOCAL.has(pendiente.modo)) {
+        eliminarPendientePorClave(pendiente.clave);
+        continue;
+      }
+
+      try {
+        const resultado = await persistencia.persistirEnvio({
+          modo: pendiente.modo,
+          payload: pendiente.payload
+        });
+
+        if (!resultado || resultado.ok === false || resultado.bloqueaEnvio) {
+          continue;
+        }
+
+        // "saltado" en producción significa que todavía no hubo persistencia
+        // real (por ejemplo, Supabase no configurado). Se conserva el respaldo.
+        if (resultado.saltado && !resultado.ensayo) {
+          continue;
+        }
+
+        eliminarPendientePorClave(pendiente.clave);
+
+        window.dispatchEvent(new CustomEvent("informesgp:envio-pendiente-sincronizado", {
+          detail: {
+            modo: pendiente.modo,
+            clavePendiente: pendiente.clave,
+            supabase: resultado
+          }
+        }));
+
+        marcarEstadoEnvio("Pendiente sincronizado correctamente con el servidor.");
+      } catch (error) {
+        console.warn("[Informes_GP] Pendiente todavía no sincronizado:", error);
+      }
+    }
+  } catch (error) {
+    console.warn("[Informes_GP] No se pudo iniciar la sincronización de pendientes:", error);
+  } finally {
+    sincronizacionPendientesEnCurso = false;
+  }
+}
+
+function guardarEnvioPendienteLocal({ modo, payload, texto = "" } = {}) {
+  const clave = construirClavePendiente({ modo, payload });
+  if (!clave || !payload) return { ok: false, clave: "" };
+
+  try {
+    const pendientes = leerEnviosPendientesLocales();
+    const mapa = new Map(pendientes.map((item) => [item.clave, item]));
+
+    mapa.set(clave, {
+      clave,
+      modo: String(modo || "").trim().toUpperCase(),
+      payload: clonarSerializable(payload),
+      texto: String(texto || ""),
+      guardado_at: new Date().toISOString()
+    });
+
+    const salida = Array.from(mapa.values())
+      .sort((a, b) => String(a.guardado_at || "").localeCompare(String(b.guardado_at || "")))
+      .slice(-50);
+
+    localStorage.setItem(STORAGE_ENVIOS_PENDIENTES, JSON.stringify(salida));
+    return { ok: true, clave };
+  } catch (error) {
+    console.error("[Informes_GP] No se pudo guardar el envío pendiente localmente:", error);
+    return { ok: false, clave };
+  }
+}
+
+function eliminarEnvioPendienteLocal({ modo, payload } = {}) {
+  const clave = construirClavePendiente({ modo, payload });
+  if (!clave) return;
+  eliminarPendientePorClave(clave);
+}
+
+function eliminarPendientePorClave(clave) {
+  if (!clave) return;
+
+  try {
+    const pendientes = leerEnviosPendientesLocales();
+    const restantes = pendientes.filter((item) => item.clave !== clave);
+
+    if (restantes.length) {
+      localStorage.setItem(STORAGE_ENVIOS_PENDIENTES, JSON.stringify(restantes));
+    } else {
+      localStorage.removeItem(STORAGE_ENVIOS_PENDIENTES);
+    }
+  } catch (error) {
+    console.warn("[Informes_GP] No se pudo limpiar un pendiente local:", error);
+  }
+}
+
+function leerEnviosPendientesLocales() {
+  try {
+    const raw = localStorage.getItem(STORAGE_ENVIOS_PENDIENTES);
+    if (!raw) return [];
+
+    const valor = JSON.parse(raw);
+    return Array.isArray(valor)
+      ? valor.filter((item) => item && item.clave && item.modo && item.payload)
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+function construirClavePendiente({ modo, payload } = {}) {
+  const modoNormalizado = String(modo || "").trim().toUpperCase();
+  const guardia = String(payload?.guardia_fecha || "").trim();
+
+  if (modoNormalizado === "INICIA" || modoNormalizado === "FINALIZA") {
+    const operativo = String(payload?.operativo_key || "").trim();
+    return operativo ? `${modoNormalizado}|${guardia}|${operativo}` : "";
+  }
+
+  if (modoNormalizado === "INFORMES") {
+    const informe = String(payload?.informe_key || "").trim();
+    return informe ? `${modoNormalizado}|${guardia}|${informe}` : "";
+  }
+
+  return "";
+}
+
+function clonarSerializable(valor) {
+  return JSON.parse(JSON.stringify(valor));
 }
 
 function limpiarBloqueLegacyFotos(valor) {
