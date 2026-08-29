@@ -32,6 +32,14 @@ export const MODELOS_INFORMES_GP = [
     modulo: "/frontend/pantallas/informes/modelos/control-armas/control-armas.js"
   },
   {
+    modelo_key: "REQUISA_VEHICULAR",
+    codigo: "REQUISA_VEHICULAR",
+    nombre: "REQUISA VEHICULAR",
+    label: "REQUISA VEHICULAR",
+    html: "/frontend/pantallas/informes/modelos/requisa-vehicular/requisa-vehicular.html",
+    modulo: "/frontend/pantallas/informes/modelos/requisa-vehicular/requisa-vehicular.js"
+  },
+  {
     modelo_key: "RETENCION_LICENCIA",
     codigo: "RETENCION_LICENCIA",
     nombre: "RETENCIÓN DE LICENCIA",
