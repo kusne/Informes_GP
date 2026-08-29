@@ -100,15 +100,20 @@ export function leerDatosFormulario(form) {
 function autocompletarDesdeOperativo(form, operativo = {}) {
   if (!form || !operativo) return;
   const datos = operativo?.datos && typeof operativo.datos === "object" ? operativo.datos : {};
+  const snapshot = datos?.inicio_snapshot && typeof datos.inicio_snapshot === "object"
+    ? datos.inicio_snapshot
+    : {};
   const fecha = fechaOperativoISO(operativo);
-  const lugar = primerValor(operativo.lugar, operativo.qth, operativo.ubicacion, datos.lugar, datos.qth, datos.ubicacion);
-  const personal = primerValor(operativo.personal, datos.personal, datos.personal_policial);
-  const moviles = primerValor(operativo.moviles_motos, datos.moviles_motos, datos.moviles, datos.movilidad);
+  const lugar = primerValor(operativo.lugar, operativo.qth, operativo.ubicacion, snapshot.lugar, datos.lugar, datos.qth, datos.ubicacion);
+  const personal = primerValor(snapshot.personal, operativo.personal, datos.personal, datos.personal_policial);
+  const moviles = primerValor(snapshot.moviles_motos, operativo.moviles_motos, datos.moviles_motos, datos.moviles, datos.movilidad);
+  const elementos = primerValor(snapshot.elementos, operativo.elementos, datos.elementos_inicio, datos.elementos);
 
   completarCampoSiVacio(form, ["fecha_hecho", "fecha_operativo", "fecha"], fecha);
   completarCampoSiVacio(form, ["lugar_hecho", "lugar"], lugar);
   completarCampoSiVacio(form, ["personal", "personal_policial"], personal);
   completarCampoSiVacio(form, ["moviles", "moviles_motos", "movilidad"], moviles);
+  completarCampoSiVacio(form, ["elementos"], elementos);
 }
 
 function completarCampoSiVacio(form, nombres, valor) {
