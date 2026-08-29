@@ -26,6 +26,10 @@ export function construirTextoInformeEspecial(informe) {
     return construirRetencionLicencia(informe);
   }
 
+  if (informe.modelo === "REQUISA_VEHICULAR") {
+    return construirRequisaVehicular(informe);
+  }
+
   return "";
 }
 
@@ -520,6 +524,101 @@ function tituloControlArmas(valor) {
   return limpio
     .toLocaleLowerCase("es-AR")
     .replace(/(^|[\s/-])\p{L}/gu, (coincidencia) => coincidencia.toLocaleUpperCase("es-AR"));
+}
+
+function construirRequisaVehicular(informe) {
+  const f = informe.formulario || {};
+  const recursos = resolverRecursosOperativoInforme(informe);
+  const lugar = primerTexto(f.lugar_hecho, informe.lugar) || "/";
+  const departamento = texto(f.departamento) || "La Capital";
+  const fecha = formatearFechaLargaRequisa(f.fecha_hecho || informe.fecha_informe || informe.fecha);
+  const horario = texto(f.hora_hecho) || resolverHoraInforme(informe);
+  const personal = normalizarPersonalInstitucional(primerTexto(f.personal, recursos.personal)) || "/";
+  const moviles = primerTexto(f.moviles, recursos.moviles) || "/";
+  const talonario = normalizarSiNoRequisa(f.talonario);
+
+  const lineas = [
+    "POLICÍA DE LA PROVINCIA DE SANTA FE GUARDIA  PROVINCIAL BRIGADA MOTORIZADA CENTRO NORTE",
+    "",
+    "TERCIO CHARLIE",
+    "",
+    "REQUISA VEHICULAR",
+    "",
+    `Lugar:  ${lugar}`,
+    `Departamento:  ${departamento}`,
+    `Fecha:  ${fecha}`,
+    `Horario:  ${horario}`,
+    "",
+    "Equipamiento y Recursos Utilizados:",
+    "",
+    `Talonario:  ${talonario}`,
+    `Alometro:  ${valorRecursoRequisa(f.alometro, "/")}`,
+    `Alcoholímetro: ${valorRecursoRequisa(f.alcoholimetro, "/")}`,
+    `Impresora: ${valorRecursoRequisa(f.impresora, "/")}`,
+    `PDA: ${valorRecursoRequisa(f.pda, "/")}`,
+    `HT: ${valorRecursoRequisa(f.ht, "/")}`,
+    `Escopeta: ${valorRecursoRequisa(f.escopeta, "//")}`,
+    "",
+    "Personal Policial:",
+    "",
+    personal,
+    "",
+    `Móviles Asignados: ${moviles}`,
+    "",
+    `OBSERVACIONES: ${texto(f.observaciones) || "/"}`
+  ];
+
+
+  return compactarSaltos(lineas.join("\n"));
+}
+
+function formatearFechaLargaRequisa(valor) {
+  const limpio = texto(valor);
+  let anio;
+  let mes;
+  let dia;
+
+  let m = limpio.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (m) {
+    anio = Number(m[1]);
+    mes = Number(m[2]);
+    dia = Number(m[3]);
+  } else {
+    m = limpio.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (m) {
+      dia = Number(m[1]);
+      mes = Number(m[2]);
+      anio = Number(m[3]);
+    }
+  }
+
+  if (!anio || !mes || !dia) {
+    const fecha = new Date(limpio || Date.now());
+    if (!Number.isNaN(fecha.getTime())) {
+      anio = fecha.getFullYear();
+      mes = fecha.getMonth() + 1;
+      dia = fecha.getDate();
+    }
+  }
+
+  const meses = [
+    "enero", "febrero", "marzo", "abril", "mayo", "junio",
+    "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
+  ];
+
+  if (!anio || !mes || !dia || !meses[mes - 1]) return limpio || "/";
+  return `${dia} de ${meses[mes - 1]} ${anio}`;
+}
+
+function normalizarSiNoRequisa(valor) {
+  const limpio = texto(valor).toUpperCase();
+  if (["SI", "SÍ", "YES", "TRUE", "1"].includes(limpio)) return "Sí";
+  return "No";
+}
+
+function valorRecursoRequisa(valor, fallback = "/") {
+  const limpio = texto(valor);
+  return limpio && limpio !== "[object Object]" ? limpio : fallback;
 }
 
 function construirRetencionLicencia(informe) {
