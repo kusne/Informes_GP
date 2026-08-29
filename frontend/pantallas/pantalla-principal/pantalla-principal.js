@@ -897,7 +897,7 @@ function actualizarTituloContador(modo) {
   }
 
   if (modo === "FINALIZA") {
-    titulo.textContent = "OPERATIVOS INICIADOS";
+    titulo.textContent = "OPERATIVOS EN CURSO";
     return;
   }
 
