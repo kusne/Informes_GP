@@ -3,7 +3,6 @@ const CATALOGO_RECURSOS_OPERATIVOS = Object.freeze({
     "JEFE",
     "SUBJEFE",
     "Subinspector Mariaux A.",
-    "Subinspector Fernandez M.",
     "Oficial Merlo D.",
     "Oficial Lascurain I.",
     "Suboficial Aquino F.",
