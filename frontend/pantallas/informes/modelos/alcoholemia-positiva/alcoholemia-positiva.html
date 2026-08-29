@@ -1,6 +1,51 @@
-<section class="formulario-informe-especial" data-modelo-informe="ALCOHOLEMIA_POSITIVA" data-foto-prefijo="alcoholemia-positiva">
+<section class="formulario-informe-especial" data-modelo-informe="ALCOHOLEMIA_POSITIVA">
   <h2>ALCOHOLEMIA POSITIVA</h2>
   <p>Informe especial de alcoholemia positiva vinculado al operativo seleccionado.</p>
+
+  <div id="alco460Bloque" class="bloque-formulario checkbox-linea" hidden>
+    <input id="alcoCon460" name="con_decreto_460_22" type="checkbox" value="SI">
+    <label for="alcoCon460">460/22</label>
+  </div>
+
+  <div class="grilla-doble">
+    <div class="bloque-formulario">
+      <label for="alcoTipoVehiculo">Tipo de vehículo</label>
+      <select id="alcoTipoVehiculo" name="tipo_vehiculo">
+        <option value="">Seleccionar</option>
+        <option value="MOTO">Moto / motovehículo</option>
+        <option value="CAMION">Camión</option>
+        <option value="TRANSPORTE_PASAJEROS">Transporte de pasajeros</option>
+        <option value="CHASIS_CON_CABINA">Chasis con cabina</option>
+        <option value="CHASIS_SIN_CABINA">Chasis sin cabina</option>
+        <option value="TRACTOR_CARRETERA">Tractor de carretera</option>
+        <option value="CARRETON">Carretón</option>
+        <option value="AUTO">Auto</option>
+        <option value="SEDAN">Sedán</option>
+        <option value="PICK_UP">Pick up</option>
+        <option value="CAMIONETA">Camioneta</option>
+        <option value="FURGON">Furgón</option>
+        <option value="FURGONETA">Furgoneta</option>
+        <option value="OTROS">Otros</option>
+      </select>
+    </div>
+
+    <div class="bloque-formulario">
+      <label for="alcoMarca">Marca</label>
+      <input id="alcoMarca" name="marca" type="text" placeholder="Marca">
+    </div>
+  </div>
+
+  <div class="grilla-doble">
+    <div class="bloque-formulario">
+      <label for="alcoDominio">Dominio</label>
+      <input id="alcoDominio" name="dominio" type="text" placeholder="Dominio">
+    </div>
+
+    <div class="bloque-formulario">
+      <label for="alcoModeloVehiculo">Modelo</label>
+      <input id="alcoModeloVehiculo" name="modelo_vehiculo" type="text" placeholder="Modelo">
+    </div>
+  </div>
 
   <div class="grilla-doble">
     <div class="bloque-formulario">
@@ -9,62 +54,58 @@
     </div>
 
     <div class="bloque-formulario">
-      <label for="alcoDni">DNI</label>
-      <input id="alcoDni" name="dni" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="DNI">
+      <label for="alcoResultado">Graduación g/l</label>
+      <input id="alcoResultado" name="resultado" type="text" inputmode="decimal" placeholder="0,51">
     </div>
   </div>
 
   <div class="grilla-doble">
     <div class="bloque-formulario">
-      <label for="alcoDominio">Dominio</label>
-      <input id="alcoDominio" name="dominio" type="text" placeholder="Patente / dominio">
+      <label for="alcoClase">Licencia Clase / DNI</label>
+      <input id="alcoClase" name="clase" type="text" placeholder="B1 o DNI si no posee">
     </div>
 
-    <div class="bloque-formulario">
-      <label for="alcoTipoVehiculo">Tipo de vehículo</label>
-      <select id="alcoTipoVehiculo" name="tipo_vehiculo">
-        <option value="">Seleccionar</option>
-        <option value="MOTO">MOTO</option>
-        <option value="AUTO">AUTO</option>
-        <option value="SEDAN">SEDAN</option>
-        <option value="CAMIONETA">CAMIONETA / PICK UP</option>
-        <option value="CAMION">CAMIÓN</option>
-        <option value="TRANSPORTE">TRANSPORTE</option>
-        <option value="CHASIS">CHASIS</option>
-        <option value="TRACTOR">TRACTOR</option>
-        <option value="CARRETON">CARRETÓN</option>
-      </select>
+    <div class="bloque-formulario checkbox-linea">
+      <input id="alcoLicenciaDigital" name="licencia_digital" type="checkbox" value="SI">
+      <label for="alcoLicenciaDigital">Digital</label>
     </div>
   </div>
 
   <div class="grilla-doble">
     <div class="bloque-formulario">
-      <label for="alcoResultado">Resultado</label>
-      <input id="alcoResultado" name="resultado" type="number" min="0" step="0.01" placeholder="Ej: 0.65">
+      <label for="alcoNumeroActa">N° de acta</label>
+      <input id="alcoNumeroActa" name="numero_acta" type="text" inputmode="numeric" placeholder="N° de acta">
     </div>
 
     <div class="bloque-formulario">
-      <label for="alcoClase">Clase / DNI sin licencia</label>
-      <input id="alcoClase" name="clase" type="text" placeholder="Clase o DNI si no posee licencia">
+      <label for="alcoOtrosCodigos">Otros códigos</label>
+      <input id="alcoOtrosCodigos" name="otros_codigos" type="text" placeholder="Ej: 9119 / 13018">
     </div>
   </div>
 
-  <div class="bloque-formulario checkbox-linea">
-    <input id="alcoLicenciaDigital" name="licencia_digital" type="checkbox" value="SI">
-    <label for="alcoLicenciaDigital">Posee licencia digital</label>
-  </div>
+  <fieldset class="bloque-formulario">
+    <legend>Medidas cautelares</legend>
 
-  <div class="bloque-formulario checkbox-linea">
-    <input id="alcoCon460" name="con_decreto_460_22" type="checkbox" value="SI">
-    <label for="alcoCon460">También corresponde Decreto 460/22</label>
-  </div>
+    <div class="grilla-doble">
+      <div class="checkbox-linea">
+        <input id="alcoMedidaProhibicion" name="medida_prohibicion" type="checkbox" value="SI">
+        <label for="alcoMedidaProhibicion">Prohibición</label>
+      </div>
 
-  <div class="bloque-formulario">
-    <label for="alcoObservaciones">Observaciones</label>
-    <textarea id="alcoObservaciones" name="observaciones" placeholder="Observaciones adicionales"></textarea>
-  </div>
+      <div class="checkbox-linea">
+        <input id="alcoMedidaCesion" name="medida_cesion" type="checkbox" value="SI">
+        <label for="alcoMedidaCesion">Cesión</label>
+      </div>
 
-  <div class="fotos-formulario-host"
-       data-fotos-html="/frontend/pantallas/informes/modelos/alcoholemia-positiva/fotos/fotos-alcoholemia-positiva.html"
-       data-fotos-module="/frontend/pantallas/informes/modelos/alcoholemia-positiva/fotos/fotos-alcoholemia-positiva.js"></div>
+      <div class="checkbox-linea">
+        <input id="alcoMedidaRemision" name="medida_remision" type="checkbox" value="SI">
+        <label for="alcoMedidaRemision">Remisión</label>
+      </div>
+
+      <div class="checkbox-linea">
+        <input id="alcoMedidaRetencion" name="medida_retencion" type="checkbox" value="SI">
+        <label for="alcoMedidaRetencion">Retención</label>
+      </div>
+    </div>
+  </fieldset>
 </section>
