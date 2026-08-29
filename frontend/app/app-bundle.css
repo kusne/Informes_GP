@@ -1571,6 +1571,150 @@ body.informe-detalle-activo {
   outline: 3px solid rgba(37, 99, 235, 0.34) !important;
   outline-offset: 3px !important;
 }
+
+/* PASO 8 - ALCOHOLEMIA: mejora visual móvil, sin cambios funcionales. */
+[data-modelo-informe="ALCOHOLEMIA_POSITIVA"] .bloque-formulario > label {
+  font-size: 15px;
+  line-height: 1.2;
+}
+
+[data-modelo-informe="ALCOHOLEMIA_POSITIVA"] input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+[data-modelo-informe="ALCOHOLEMIA_POSITIVA"] select,
+[data-modelo-informe="ALCOHOLEMIA_POSITIVA"] textarea {
+  font-size: 17px;
+}
+
+[data-modelo-informe="ALCOHOLEMIA_POSITIVA"] .checkbox-linea {
+  gap: 10px;
+  min-height: 42px;
+  font-size: 16px;
+  line-height: 1.15;
+}
+
+[data-modelo-informe="ALCOHOLEMIA_POSITIVA"] .checkbox-linea label {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.15;
+}
+
+[data-modelo-informe="ALCOHOLEMIA_POSITIVA"] .checkbox-linea input[type="checkbox"] {
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  min-height: 30px;
+  margin: 0;
+  accent-color: var(--blue-strong);
+  cursor: pointer;
+}
+
+/* El atributo hidden debe prevalecer sobre display:flex de .checkbox-linea. */
+[data-modelo-informe="ALCOHOLEMIA_POSITIVA"] #alco460Bloque[hidden] {
+  display: none !important;
+}
+
+[data-modelo-informe="ALCOHOLEMIA_POSITIVA"] fieldset.bloque-formulario > legend {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+/* Medidas cautelares: siempre 2 columnas x 2 filas, también en teléfono. */
+[data-modelo-informe="ALCOHOLEMIA_POSITIVA"] fieldset.bloque-formulario > .grilla-doble {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 12px;
+  row-gap: 14px;
+}
+
+[data-modelo-informe="ALCOHOLEMIA_POSITIVA"] fieldset.bloque-formulario > .grilla-doble > .checkbox-linea {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+@media (max-width: 420px) {
+  [data-modelo-informe="ALCOHOLEMIA_POSITIVA"] fieldset.bloque-formulario > .grilla-doble {
+    column-gap: 8px;
+  }
+
+  [data-modelo-informe="ALCOHOLEMIA_POSITIVA"] fieldset.bloque-formulario > .grilla-doble > .checkbox-linea {
+    gap: 7px;
+  }
+
+  [data-modelo-informe="ALCOHOLEMIA_POSITIVA"] fieldset.bloque-formulario > .grilla-doble > .checkbox-linea label {
+    font-size: 15px;
+  }
+}
+
+/* PASO 9 - ALCOHOLEMIA: orden visual solicitado. */
+[data-modelo-informe="ALCOHOLEMIA_POSITIVA"] .alco-datos-dos-columnas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 12px;
+  row-gap: 2px;
+  align-items: end;
+}
+
+[data-modelo-informe="ALCOHOLEMIA_POSITIVA"] .alco-datos-dos-columnas > .bloque-formulario {
+  min-width: 0;
+}
+
+[data-modelo-informe="ALCOHOLEMIA_POSITIVA"] .alco-licencia-digital {
+  align-self: end;
+  min-height: 54px;
+  margin-bottom: 10px;
+  padding: 0 4px;
+}
+
+[data-modelo-informe="ALCOHOLEMIA_POSITIVA"] .alco-licencia-digital label {
+  white-space: nowrap;
+}
+
+/* Esta grilla permanece en dos columnas también en celulares. */
+@media (max-width: 640px) {
+  [data-modelo-informe="ALCOHOLEMIA_POSITIVA"] .alco-datos-dos-columnas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 8px;
+  }
+}
+
+@media (max-width: 380px) {
+  [data-modelo-informe="ALCOHOLEMIA_POSITIVA"] .alco-datos-dos-columnas {
+    column-gap: 6px;
+  }
+
+  [data-modelo-informe="ALCOHOLEMIA_POSITIVA"] .alco-datos-dos-columnas .bloque-formulario > label {
+    font-size: 14px;
+  }
+
+  [data-modelo-informe="ALCOHOLEMIA_POSITIVA"] .alco-licencia-digital label {
+    font-size: 14px;
+  }
+}
+
+/* PASO 11 - CONTROL SUPERIOR: checkbox y texto más grandes, solo visual. */
+[data-modelo-informe="CONTROL_SUPERIOR"] .checkbox-opcion {
+  gap: 10px;
+  font-size: 19px !important;
+  line-height: 1.2;
+}
+
+[data-modelo-informe="CONTROL_SUPERIOR"] .checkbox-opcion input[type="checkbox"] {
+  flex: 0 0 30px;
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px;
+  min-height: 30px;
+  margin: 0;
+  accent-color: var(--blue-strong);
+  cursor: pointer;
+}
+
+[data-modelo-informe="CONTROL_SUPERIOR"] .opciones-control-superior {
+  gap: 14px 18px;
+}
+
 /* === FIN frontend/pantallas/informes/informes.css === */
 
 
