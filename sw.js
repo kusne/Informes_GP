@@ -1,4 +1,4 @@
-const CACHE_VERSION = "informes-gp-v20260829-alcoholemia-visual-v1";
+const CACHE_VERSION = "informes-gp-v20260829-alcoholemia-layout-v2";
 const CACHE_ESTATICO = `${CACHE_VERSION}-static`;
 
 const PRECACHE = [
