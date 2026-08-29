@@ -1,6 +1,12 @@
 import { listarModelosInformesGP } from "../informes/modelos-informes.js";
 import { renderAvisoModoEnsayo } from "./componentes/aviso-modo-ensayo/aviso-modo-ensayo.js";
-import { modoEnsayoActivo, obtenerGuardiaFechaActual } from "../../../api/app-api.js";
+import {
+  modoEnsayoActivo,
+  obtenerGuardiaFechaActual,
+  obtenerGuardiaFecha0600,
+  establecerGuardiaFechaOperativos,
+  registrarGuardiaFecha
+} from "../../../api/app-api.js";
 
 const estadoPantalla = {
   modo: "",
@@ -15,6 +21,7 @@ let listenerEnvioRegistrado = false;
 let listenerRealtimeRegistrado = false;
 let listenerModeloInformeRegistrado = false;
 let listenerVolverInformesRegistrado = false;
+let listenerReanudacionRegistrado = false;
 let timeoutRefresco = null;
 
 const ID_HOST_PANTALLA_PRINCIPAL = "pantallaPrincipalHost";
@@ -57,6 +64,7 @@ export async function iniciarPantallaPrincipal({ hostSelector }) {
 
   if (!modoEnsayoActivo()) {
     registrarListenerRealtime();
+    registrarListenerReanudacionApp();
     programarRealtimeSeguro();
   }
 }
@@ -79,11 +87,18 @@ async function recargarItemsPantalla({
   motivo = ""
 } = {}) {
   const modo = estadoPantalla.modo;
+  const refrescoNoDestructivo = esRefrescoNoDestructivo(motivo);
+  const operativoAnterior = refrescoNoDestructivo
+    ? estadoPantalla.operativoSeleccionado
+    : null;
 
-  estadoPantalla.operativoSeleccionado = null;
-  estadoPantalla.modeloInformeSeleccionado = null;
+  await sincronizarGuardiaFechaActualSeguro();
 
-  await registrarOperativoSeguro(null);
+  if (!refrescoNoDestructivo) {
+    estadoPantalla.operativoSeleccionado = null;
+    estadoPantalla.modeloInformeSeleccionado = null;
+    await registrarOperativoSeguro(null);
+  }
 
   let items = [];
 
@@ -104,6 +119,19 @@ async function recargarItemsPantalla({
     estadoPantalla.operativosDisponibles = [];
   } else {
     items = await obtenerOperativosSeguro(modo);
+
+    // Si Realtime actualiza la lista mientras el usuario está completando un
+    // formulario, el operativo que está editando se mantiene disponible en
+    // ESTE dispositivo hasta que el usuario envíe o cambie de selección.
+    // Esto también cubre el caso en que otro dispositivo haya FINALIZADO el
+    // mismo operativo: no se bloquea el formulario; el último envío guardado
+    // seguirá siendo el válido.
+    if (refrescoNoDestructivo && operativoAnterior) {
+      items = conservarOperativoSeleccionadoEnItems(items, operativoAnterior);
+      estadoPantalla.operativoSeleccionado = operativoAnterior;
+      await registrarOperativoSeguro(operativoAnterior);
+    }
+
     estadoPantalla.operativosDisponibles = items;
     estadoPantalla.modelosInformesDisponibles = [];
   }
@@ -133,6 +161,10 @@ async function recargarItemsPantalla({
       modo,
       items
     });
+
+    if (refrescoNoDestructivo && operativoAnterior) {
+      restaurarSeleccionVisualOperativo(operativoAnterior);
+    }
   } else {
     const selectorHost = document.querySelector("#selectorOperativoContextualHost");
     if (selectorHost) selectorHost.innerHTML = "";
@@ -142,7 +174,7 @@ async function recargarItemsPantalla({
     if (modo === "INFORMES" || modo === "CONTROL_MOVILES") {
       const hostDinamico = document.querySelector("#contenedorDinamicoHost");
       if (hostDinamico) hostDinamico.innerHTML = "";
-    } else {
+    } else if (!(refrescoNoDestructivo && operativoAnterior)) {
       await renderContenedorSeguro({
         modo,
         operativoSeleccionado: null,
@@ -492,14 +524,109 @@ function iniciarRealtimeSeguro() {
     .then((modulo) => {
       if (typeof modulo.iniciarRealtimeInformesGP === "function") {
         modulo.iniciarRealtimeInformesGP({
-          guardia_fecha: obtenerGuardiaFechaActual(),
-          onCambio: (detalle) => manejarCambioSupabase(detalle)
+          guardia_fecha: obtenerGuardiaFechaActual()
         });
       }
     })
     .catch((error) => {
       console.warn("[Informes_GP] Realtime desactivado por error:", error);
     });
+}
+
+function esRefrescoNoDestructivo(motivo) {
+  return ["realtime-operativos", "reanudacion-app"].includes(String(motivo || ""));
+}
+
+function conservarOperativoSeleccionadoEnItems(items = [], operativoSeleccionado = null) {
+  if (!operativoSeleccionado?.operativo_key) {
+    return Array.isArray(items) ? items : [];
+  }
+
+  const lista = Array.isArray(items) ? [...items] : [];
+  const key = String(operativoSeleccionado.operativo_key || "").trim();
+  const guardia = String(operativoSeleccionado.guardia_fecha || "").trim();
+  const indice = lista.findIndex((item) =>
+    String(item?.operativo_key || "").trim() === key &&
+    String(item?.guardia_fecha || "").trim() === guardia
+  );
+
+  if (indice >= 0) {
+    // Conservamos el snapshot que el usuario eligió al abrir el formulario.
+    // Evita que una actualización remota cambie datos bajo sus manos.
+    lista[indice] = operativoSeleccionado;
+    return lista;
+  }
+
+  lista.push(operativoSeleccionado);
+  return lista;
+}
+
+function restaurarSeleccionVisualOperativo(operativoSeleccionado) {
+  const selector = document.querySelector(
+    "#selectorOperativoContextualHost #operativoContextualSelect, " +
+    "#selectorOperativoContextualHost #selectorContextualFallback"
+  );
+
+  if (!selector || !operativoSeleccionado?.operativo_key) return;
+
+  selector.value = String(operativoSeleccionado.operativo_key);
+}
+
+async function sincronizarGuardiaFechaActualSeguro() {
+  const guardiaNueva = String(obtenerGuardiaFecha0600() || "").trim();
+  const guardiaAnterior = String(obtenerGuardiaFechaActual() || "").trim();
+
+  if (!guardiaNueva || guardiaNueva === guardiaAnterior) {
+    return false;
+  }
+
+  establecerGuardiaFechaOperativos(guardiaNueva);
+  registrarGuardiaFecha(guardiaNueva);
+
+  if (!modoEnsayoActivo()) {
+    await reiniciarRealtimeParaGuardiaSeguro(guardiaNueva);
+  }
+
+  console.log(
+    "[Informes_GP] Cambio de guardia detectado sin recargar la app:",
+    guardiaAnterior || "SIN_GUARDIA",
+    "->",
+    guardiaNueva
+  );
+
+  return true;
+}
+
+async function reiniciarRealtimeParaGuardiaSeguro(guardiaFecha) {
+  try {
+    const modulo = await import("../../../api/persistencia-api.js");
+
+    if (typeof modulo.detenerRealtimeInformesGP === "function") {
+      await modulo.detenerRealtimeInformesGP();
+    }
+
+    if (typeof modulo.iniciarRealtimeInformesGP === "function") {
+      modulo.iniciarRealtimeInformesGP({
+        guardia_fecha: guardiaFecha
+      });
+    }
+  } catch (error) {
+    console.warn("[Informes_GP] No se pudo reiniciar Realtime al cambiar de guardia:", error);
+  }
+}
+
+function registrarListenerReanudacionApp() {
+  if (listenerReanudacionRegistrado) return;
+  listenerReanudacionRegistrado = true;
+
+  const refrescarSiCorresponde = () => {
+    if (document.visibilityState && document.visibilityState !== "visible") return;
+    if (!["INICIA", "FINALIZA"].includes(estadoPantalla.modo)) return;
+    recargarItemsDebounce("reanudacion-app");
+  };
+
+  window.addEventListener("focus", refrescarSiCorresponde);
+  document.addEventListener("visibilitychange", refrescarSiCorresponde);
 }
 
 function aplicarPresentacionSegunModo(modo) {
