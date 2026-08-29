@@ -156,7 +156,7 @@ function resolverPlaceholder(modo) {
 
 function resolverTextoSinItems(modo) {
   if (modo === "INICIA") return "No hay operativos pendientes para iniciar.";
-  if (modo === "FINALIZA") return "No hay operativos iniciados para finalizar.";
+  if (modo === "FINALIZA") return "No hay operativos en curso para finalizar.";
   if (modo === "INFORMES") return "No hay modelos de informes disponibles.";
 
   return "No hay opciones disponibles.";
