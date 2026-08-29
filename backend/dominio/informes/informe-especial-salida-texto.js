@@ -434,70 +434,92 @@ function construirDecreto46022(informe) {
 
 function construirControlArmas(informe) {
   const f = informe.formulario || {};
-  const lineas = [];
-
-  lineas.push(ENCABEZADO_INFORMES);
-  lineas.push("");
-  lineas.push("*HECHO:* Requisa de vehículo y Transporte de armas de fuego");
-  lineas.push("");
-
-  agregarBloque(lineas, "*PERSONAL:*", f.personal);
-  if (texto(f.personal)) lineas.push("");
-  agregarLineaNegrita(lineas, "MÓVIL", f.moviles);
-  agregarLineaNegrita(lineas, "LUGAR", f.lugar_hecho || informe.lugar);
-
+  const recursos = resolverRecursosOperativoInforme(informe);
+  const personal = normalizarPersonalControlArmas(primerTexto(f.personal, recursos.personal));
+  const moviles = primerTexto(f.moviles, recursos.moviles);
+  const lugar = primerTexto(f.lugar_hecho, informe.lugar);
   const fechaHora = construirFechaHora(f.fecha_hecho, f.hora_hecho);
-  if (fechaHora) lineas.push(`*FECHA:* ${fechaHora}`);
 
-  lineas.push("");
-  lineas.push(`*CONTROL DE ARMAMENTO:* ${construirRelatoControlArmas(f)}`);
+  const lineas = [
+    "*POLICIA DE LA PROVINCIA DE SANTA FE -DIRECCION GENERAL GUARDIA PROVINCIAL-BRIGADA MOTORIZADA CENTRO NORTE TERCIO CHARLIE(SANTA FE )*",
+    "",
+    "*Hecho*: Requisa Vehicular y Transporte de armas de fuego",
+    "",
+    "*PERSONAL:*",
+    personal || "/",
+    "",
+    `*MOVIL* ${moviles || "/"}`,
+    "",
+    `*LUGAR*: ${lugar || "/"}`,
+    "",
+    `*Fecha* ${fechaHora || "/"}`,
+    "",
+    `*CONTROL DE ARMAMENTO:* ${construirRelatoControlArmas(f)}`
+  ];
 
-  if (texto(f.documentacion_armas).toUpperCase() !== "SIN NOVEDAD" && texto(f.observaciones)) {
-    lineas.push("");
-    lineas.push(`*OBSERVACIONES:* ${texto(f.observaciones)}`);
-  }
 
-  if (Array.isArray(informe.fotos) && informe.fotos.length > 0) {
-    lineas.push("");
-    lineas.push("*Se adjunta vista fotográfica.*");
-  }
-
-  return lineas.filter((linea, indice, arr) => linea !== "" || arr[indice - 1] !== "").join("\n").trim();
+  return compactarSaltos(lineas.join("\n"));
 }
 
-function construirRelatoControlArmas(f) {
-  const tipo = texto(f.tipo_vehiculo) || "VEHÍCULO";
-  const conductor = texto(f.conductor) || "un masculino mayor de edad";
-  const dni = texto(f.dni);
-  const dominio = texto(f.dominio);
+function construirRelatoControlArmas(f = {}) {
+  const tipo = tituloControlArmas(f.tipo_vehiculo) || "Vehículo";
+  const conductor = texto(f.conductor);
   const cantidad = Number(f.cantidad_armas || 0);
-  const tipoArma = texto(f.tipo_arma);
-  const documentacion = texto(f.documentacion_armas);
-  const hayNovedadDocumental = documentacion.toUpperCase() !== "SIN NOVEDAD";
-  const detalle = hayNovedadDocumental ? texto(f.detalle_armas) : "";
-  const resultado = texto(f.resultado_procedimiento);
+  const tipoArma = tituloControlArmas(f.tipo_arma) || "arma de fuego";
+  const documentacion = texto(f.documentacion_armas).toUpperCase();
+  const resultado = texto(f.resultado_procedimiento).toUpperCase();
+  const detalle = documentacion !== "SIN NOVEDAD" ? texto(f.detalle_armas) : "";
+  const observaciones = texto(f.observaciones);
+
+  const cantidadFormateada = cantidad > 0 ? `(${String(Math.trunc(cantidad)).padStart(2, "0")})` : "(00)";
+  const sujetoConductor = conductor || "un masculino mayor de edad";
 
   const partes = [
-    `En momentos en que nos encontrábamos cumplimentando operativo de control vehicular, detenemos la marcha de un vehículo *TIPO: ${tipo}*${dominio ? `, DOMINIO: ${dominio}` : ""}, conducido por ${conductor}${dni ? `, DNI ${dni}` : ""}.`,
-    "Se solicita la documentación para una mejor identificación del vehículo y autorización para realizar una inspección ocular del interior a los fines de descartar elementos de peligrosidad, accediendo sin reparo alguno.",
-    `En el interior se observa ${cantidad > 0 ? `(${String(cantidad).padStart(2, "0")})` : ""} ${tipoArma ? tipoArma.toLowerCase() : "arma(s) de fuego"}.`.replace(/\s+/g, " ")
+    `en momentos en que nos encontrábamos cumplimentando operativo de control vehicular, detenemos la marcha de un vehículo *Tipo* ${tipo}, conducido por ${sujetoConductor}, al solicitar la documentación para una mejor identificación del vehículo el cual arroja sin novedad, también se le solicita si nos permite realizar una inspección ocular del interior del vehículo para descartar que no transporte algún elemento de peligrosidad, accediendo sin reparo alguno, observando en el interior del vehiculo ${cantidadFormateada} armas de fuego, siendo ${cantidadFormateada} ${tipoArma}.`
   ];
 
   if (detalle) {
     partes.push(`Detalle del armamento: ${detalle}.`);
   }
 
-  if (documentacion) {
-    partes.push(`Se solicita documentación del armamento, arrojando ${documentacion.toLowerCase()}.`);
+  if (documentacion === "SIN NOVEDAD") {
+    partes.push("Se le solicita documentacion arrojando sin novedad.");
+  } else if (documentacion) {
+    partes.push(`Se le solicita documentacion del armamento, arrojando ${documentacion.toLowerCase()}.`);
   }
 
   if (resultado === "CONTINÚA SU MARCHA") {
-    partes.push("Una vez constatada la situación y encontrándose la documentación en regla, continúa su marcha.");
+    partes.push("Por lo que una vez constatado que todo está en regla sigue su marcha.");
   } else if (resultado === "SE ADOPTAN MEDIDAS") {
-    partes.push("Se adoptan las medidas correspondientes, conforme a las circunstancias del procedimiento.");
+    partes.push("Por lo que se adoptan las medidas correspondientes conforme a las circunstancias del procedimiento.");
   }
 
-  return partes.filter(Boolean).join(" ");
+  if (observaciones) partes.push(observaciones);
+
+  return partes.join(" ");
+}
+
+function normalizarPersonalControlArmas(valor) {
+  return texto(valor)
+    .split(/\r?\n/)
+    .map((linea) => linea.trim())
+    .filter(Boolean)
+    .map((linea) => {
+      const clave = linea.toUpperCase();
+      if (clave === "SUBJEFE") return "Sub Jefe de dependencia Inspector Fertonani";
+      if (clave === "JEFE") return "Jefe de dependencia SubCrio. Choque J.M.";
+      return linea;
+    })
+    .join("\n");
+}
+
+function tituloControlArmas(valor) {
+  const limpio = texto(valor).replaceAll("_", " ").replace(/\s+/g, " ").trim();
+  if (!limpio) return "";
+
+  return limpio
+    .toLocaleLowerCase("es-AR")
+    .replace(/(^|[\s/-])\p{L}/gu, (coincidencia) => coincidencia.toLocaleUpperCase("es-AR"));
 }
 
 function construirRetencionLicencia(informe) {
