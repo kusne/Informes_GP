@@ -2,7 +2,6 @@ import { validarInicioBase } from "../../dominio/inicia/inicio-validaciones-base
 import { construirTextoInicioBase } from "../../dominio/inicia/inicio-salida-texto-base.js";
 import { mapearInicioParaSupabase } from "../../dominio/inicia/inicio-mapper-supabase.js";
 import { usaElementosOpcionalesInicio } from "../../dominio/compartido/tipos/operativos-elementos-controlados-opcionales.js";
-import { obtenerFotosPorPrefijo } from "../estado/fotos-estado.js";
 import { obtenerEstadoInformes } from "../estado/informes-state.js";
 
 export function procesarInicioFormulario({
@@ -30,8 +29,8 @@ export function procesarInicioFormulario({
     hora_fin: operativoSeleccionado?.hora_fin || "",
     lugar: operativoSeleccionado?.lugar || "",
     formulario: datosFormulario,
-    foto_prefijo: fotoPrefijo || "",
-    fotos: fotoPrefijo ? obtenerFotosPorPrefijo(fotoPrefijo) : []
+    foto_prefijo: "",
+    fotos: []
   };
 
   const errores = validarInicioBase(actual);
