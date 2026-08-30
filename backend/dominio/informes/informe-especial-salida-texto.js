@@ -447,16 +447,14 @@ function construirControlArmas(informe) {
   const lineas = [
     "*POLICIA DE LA PROVINCIA DE SANTA FE -DIRECCION GENERAL GUARDIA PROVINCIAL-BRIGADA MOTORIZADA CENTRO NORTE TERCIO CHARLIE(SANTA FE )*",
     "",
-    "*Hecho*: Requisa Vehicular y Transporte de armas de fuego",
+    "*HECHO*: Requisa Vehicular y Transporte de armas de fuego",
     "",
     "*PERSONAL:*",
     personal || "/",
     "",
     `*MOVIL* ${moviles || "/"}`,
-    "",
     `*LUGAR*: ${lugar || "/"}`,
-    "",
-    `*Fecha* ${fechaHora || "/"}`,
+    `*FECHA* ${fechaHora || "/"}`,
     "",
     `*CONTROL DE ARMAMENTO:* ${construirRelatoControlArmas(f)}`
   ];
@@ -467,19 +465,21 @@ function construirControlArmas(informe) {
 
 function construirRelatoControlArmas(f = {}) {
   const tipo = tituloControlArmas(f.tipo_vehiculo) || "Vehículo";
-  const conductor = texto(f.conductor);
+  const conductor = texto(f.conductor).toLocaleUpperCase("es-AR");
   const cantidad = Number(f.cantidad_armas || 0);
   const tipoArma = tituloControlArmas(f.tipo_arma) || "arma de fuego";
-  const documentacion = texto(f.documentacion_armas).toUpperCase();
-  const resultado = texto(f.resultado_procedimiento).toUpperCase();
-  const detalle = documentacion !== "SIN NOVEDAD" ? texto(f.detalle_armas) : "";
-  const observaciones = texto(f.observaciones);
+  const documentacion = texto(f.documentacion_armas).toLocaleUpperCase("es-AR");
+  const resultado = texto(f.resultado_procedimiento).toLocaleUpperCase("es-AR");
+  const detalle = documentacion !== "SIN NOVEDAD"
+    ? texto(f.detalle_armas).toLocaleUpperCase("es-AR")
+    : "";
+  const observaciones = texto(f.observaciones).toLocaleUpperCase("es-AR");
 
   const cantidadFormateada = cantidad > 0 ? `(${String(Math.trunc(cantidad)).padStart(2, "0")})` : "(00)";
-  const sujetoConductor = conductor || "un masculino mayor de edad";
+  const sujetoConductor = conductor || "UN MASCULINO MAYOR DE EDAD";
 
   const partes = [
-    `en momentos en que nos encontrábamos cumplimentando operativo de control vehicular, detenemos la marcha de un vehículo *Tipo* ${tipo}, conducido por ${sujetoConductor}, al solicitar la documentación para una mejor identificación del vehículo el cual arroja sin novedad, también se le solicita si nos permite realizar una inspección ocular del interior del vehículo para descartar que no transporte algún elemento de peligrosidad, accediendo sin reparo alguno, observando en el interior del vehiculo ${cantidadFormateada} armas de fuego, siendo ${cantidadFormateada} ${tipoArma}.`
+    `en momentos en que nos encontrábamos cumplimentando operativo de control vehicular, detenemos la marcha de un vehículo *Tipo* ${tipo}, conducido por ${sujetoConductor}, se fiscaliza la documentación y preventivamente se consulta los datos del vehículo y ocupante/s resultando sin novedad. Acto se lo invita, nos permita realizar una inspección ocular del interior del vehículo para descartar que no transporte algún elemento ilegal, accediendo sin reparo alguno, observando en el interior del vehiculo ${cantidadFormateada} armas de fuego, siendo ${cantidadFormateada} ${tipoArma}.`
   ];
 
   if (detalle) {
@@ -487,9 +487,9 @@ function construirRelatoControlArmas(f = {}) {
   }
 
   if (documentacion === "SIN NOVEDAD") {
-    partes.push("Se le solicita documentacion arrojando sin novedad.");
+    partes.push("Se le solicita documentacion resultando sin novedad.");
   } else if (documentacion) {
-    partes.push(`Se le solicita documentacion del armamento, arrojando ${documentacion.toLowerCase()}.`);
+    partes.push(`Se le solicita documentacion del armamento, resultando ${documentacion.toLocaleLowerCase("es-AR")}.`);
   }
 
   if (resultado === "CONTINÚA SU MARCHA") {
