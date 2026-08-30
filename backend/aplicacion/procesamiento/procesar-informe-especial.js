@@ -18,6 +18,7 @@ export function procesarInformeEspecialFormulario({
   const modeloNormalizado = normalizarModelo(modelo);
   const ahora = new Date();
   const estado = obtenerEstadoInformes();
+  const fotosHabilitadas = admiteFotosModelo(modeloNormalizado) && Boolean(fotoPrefijo);
 
   const base = {
     modo: "INFORMES",
@@ -39,8 +40,8 @@ export function procesarInformeEspecialFormulario({
     hora_fin: operativoSeleccionado?.hora_fin || "",
     lugar: operativoSeleccionado?.lugar || "",
     formulario: { ...(formulario || {}) },
-    foto_prefijo: fotoPrefijo || "",
-    fotos: fotoPrefijo ? obtenerFotosPorPrefijo(fotoPrefijo) : [],
+    foto_prefijo: fotosHabilitadas ? fotoPrefijo : "",
+    fotos: fotosHabilitadas ? obtenerFotosPorPrefijo(fotoPrefijo) : [],
     calculos: calcularDatosModelo(modeloNormalizado, formulario || {})
   };
 
@@ -62,6 +63,18 @@ export function procesarInformeEspecialFormulario({
   const supabasePayload = mapearInformeEspecialParaSupabase({ ...actual, texto });
 
   return { actual, errores, texto, supabasePayload };
+}
+
+function admiteFotosModelo(modelo) {
+  // Estos modelos están definidos sin fotografías. El bloqueo también evita
+  // recuperar fotos antiguas que pudieran quedar en memoria del navegador.
+  return ![
+    "ALCOHOLEMIA_POSITIVA",
+    "CONTROL_ARMAS",
+    "REQUISA_VEHICULAR",
+    "DECRETO_460_22",
+    "RETENCION_LICENCIA"
+  ].includes(modelo);
 }
 
 function calcularDatosModelo(modelo, formulario) {
