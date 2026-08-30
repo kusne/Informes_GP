@@ -28,7 +28,37 @@ export async function iniciarModeloInformeUI({ form, operativoSeleccionado } = {
   };
 
   documentacion?.addEventListener("change", actualizarNovedad);
+
+  // Normalización visual y real: los datos escritos manualmente quedan en MAYÚSCULAS
+  // y así llegan también al generador del informe.
+  const camposMayusculas = [
+    form.querySelector('[name="conductor"]'),
+    form.querySelector('[name="dominio"]'),
+    form.querySelector('[name="detalle_armas"]'),
+    form.querySelector('[name="observaciones"]')
+  ].filter(Boolean);
+
+  camposMayusculas.forEach((campo) => {
+    campo.addEventListener("input", () => normalizarCampoMayusculas(campo));
+    normalizarCampoMayusculas(campo);
+  });
+
   actualizarNovedad();
+}
+
+function normalizarCampoMayusculas(campo) {
+  if (!campo) return;
+  const original = String(campo.value || "");
+  const normalizado = original.toLocaleUpperCase("es-AR");
+  if (original === normalizado) return;
+
+  const inicio = typeof campo.selectionStart === "number" ? campo.selectionStart : null;
+  const fin = typeof campo.selectionEnd === "number" ? campo.selectionEnd : null;
+  campo.value = normalizado;
+
+  if (inicio !== null && fin !== null && typeof campo.setSelectionRange === "function") {
+    try { campo.setSelectionRange(inicio, fin); } catch {}
+  }
 }
 
 function limpiarCampo(campo) {
