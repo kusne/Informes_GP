@@ -1,4 +1,4 @@
-const CACHE_VERSION = "informes-gp-v20260829-control-superior-visual-v1";
+const CACHE_VERSION = "informes-gp-v20260829-sin-fotos-flujos-v1";
 const CACHE_ESTATICO = `${CACHE_VERSION}-static`;
 
 const PRECACHE = [
