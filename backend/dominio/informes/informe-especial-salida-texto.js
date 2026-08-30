@@ -530,95 +530,71 @@ function construirRequisaVehicular(informe) {
   const f = informe.formulario || {};
   const recursos = resolverRecursosOperativoInforme(informe);
   const lugar = primerTexto(f.lugar_hecho, informe.lugar) || "/";
-  const departamento = texto(f.departamento) || "La Capital";
-  const fecha = formatearFechaLargaRequisa(f.fecha_hecho || informe.fecha_informe || informe.fecha);
-  const horario = texto(f.hora_hecho) || resolverHoraInforme(informe);
-  const personal = normalizarPersonalInstitucional(primerTexto(f.personal, recursos.personal)) || "/";
-  const moviles = primerTexto(f.moviles, recursos.moviles) || "/";
-  const talonario = normalizarSiNoRequisa(f.talonario);
+  const fecha = resolverFechaInformeDocumento(
+    { ...informe, fecha_informe: primerTexto(f.fecha_hecho, informe.fecha_informe) },
+    true
+  );
+  const horario = primerTexto(f.hora_hecho, resolverHoraInforme(informe)) || "--:--";
+  const personal = normalizarPersonalRequisa(primerTexto(f.personal, recursos.personal)) || "/";
+  const moviles = normalizarMovilesRequisa(primerTexto(f.moviles, recursos.moviles)) || "/";
+  const tipoVehiculo = formatearTipoVehiculoRequisa(f.tipo_vehiculo);
+  const dominio = texto(f.dominio) || "/";
+  const genero = texto(f.genero).toUpperCase();
+  const sujeto = genero === "FEMENINO" ? "una femenina mayor de edad" : "un masculino mayor de edad";
+  const pronombre = genero === "FEMENINO" ? "la" : "lo";
+
+  const relato = [
+    `en momentos en que nos encontrábamos cumplimentando operativo de control vehicular, detenemos la marcha de un vehículo *Tipo* ${tipoVehiculo}, *Dominio* ${dominio} conducido por ${sujeto},`,
+    "se fiscaliza documentación y se consulta preventivamente por sistema por impedimentos legales del vehículo y su/s ocupantes, arrojando sin novedad,",
+    `también se ${pronombre} invita a que nos permita realizar una inspección ocular del interior del vehículo para descartar que no transporte algún elemento ilegal, accediendo sin reparo alguno, resultando sin novedad.`,
+    "Por lo que una vez constatado que todo está en regla sigue su marcha"
+  ].join(" ");
 
   const lineas = [
-    "POLICÍA DE LA PROVINCIA DE SANTA FE GUARDIA  PROVINCIAL BRIGADA MOTORIZADA CENTRO NORTE",
+    "*POLICIA DE LA PROVINCIA DE SANTA FE -DIRECCION GENERAL GUARDIA PROVINCIAL-BRIGADA MOTORIZADA ZONA CENTRO NORTE*",
     "",
-    "TERCIO CHARLIE",
+    "*MOTIVO*: Requisa de vehiculo voluntaria",
     "",
-    "REQUISA VEHICULAR",
-    "",
-    `Lugar:  ${lugar}`,
-    `Departamento:  ${departamento}`,
-    `Fecha:  ${fecha}`,
-    `Horario:  ${horario}`,
-    "",
-    "Equipamiento y Recursos Utilizados:",
-    "",
-    `Talonario:  ${talonario}`,
-    `Alometro:  ${valorRecursoRequisa(f.alometro, "/")}`,
-    `Alcoholímetro: ${valorRecursoRequisa(f.alcoholimetro, "/")}`,
-    `Impresora: ${valorRecursoRequisa(f.impresora, "/")}`,
-    `PDA: ${valorRecursoRequisa(f.pda, "/")}`,
-    `HT: ${valorRecursoRequisa(f.ht, "/")}`,
-    `Escopeta: ${valorRecursoRequisa(f.escopeta, "//")}`,
-    "",
-    "Personal Policial:",
-    "",
+    "*PERSONAL:*",
     personal,
     "",
-    `Móviles Asignados: ${moviles}`,
+    `*MOVIL* ${moviles}`,
+    `*LUGAR*: ${lugar}`,
+    `*FECHA* ${fecha} -  ${horario} hs`,
     "",
-    `OBSERVACIONES: ${texto(f.observaciones) || "/"}`
+    `*REQUISA VOLUNTARIA:* ${relato}`,
+    "",
+    "*Se adjunta vista fotográfica.*"
   ];
-
 
   return compactarSaltos(lineas.join("\n"));
 }
 
-function formatearFechaLargaRequisa(valor) {
-  const limpio = texto(valor);
-  let anio;
-  let mes;
-  let dia;
-
-  let m = limpio.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
-  if (m) {
-    anio = Number(m[1]);
-    mes = Number(m[2]);
-    dia = Number(m[3]);
-  } else {
-    m = limpio.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-    if (m) {
-      dia = Number(m[1]);
-      mes = Number(m[2]);
-      anio = Number(m[3]);
-    }
-  }
-
-  if (!anio || !mes || !dia) {
-    const fecha = new Date(limpio || Date.now());
-    if (!Number.isNaN(fecha.getTime())) {
-      anio = fecha.getFullYear();
-      mes = fecha.getMonth() + 1;
-      dia = fecha.getDate();
-    }
-  }
-
-  const meses = [
-    "enero", "febrero", "marzo", "abril", "mayo", "junio",
-    "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
-  ];
-
-  if (!anio || !mes || !dia || !meses[mes - 1]) return limpio || "/";
-  return `${dia} de ${meses[mes - 1]} ${anio}`;
+function normalizarPersonalRequisa(valor) {
+  return texto(valor)
+    .split(/\r?\n/)
+    .map((linea) => linea.trim())
+    .filter(Boolean)
+    .map((linea) => {
+      const clave = linea.toUpperCase();
+      if (clave === "SUBJEFE") return "Sub Jefe de dependencia Inspector Fertonani";
+      if (clave === "JEFE") return "Jefe de dependencia SubCrio. Choque J.M.";
+      return linea;
+    })
+    .join("\n");
 }
 
-function normalizarSiNoRequisa(valor) {
-  const limpio = texto(valor).toUpperCase();
-  if (["SI", "SÍ", "YES", "TRUE", "1"].includes(limpio)) return "Sí";
-  return "No";
+function normalizarMovilesRequisa(valor) {
+  return texto(valor)
+    .split(/[\n,;]+|\s+\/\s+/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .join("/");
 }
 
-function valorRecursoRequisa(valor, fallback = "/") {
-  const limpio = texto(valor);
-  return limpio && limpio !== "[object Object]" ? limpio : fallback;
+function formatearTipoVehiculoRequisa(valor) {
+  const limpio = texto(valor).replaceAll("_", " ").replace(/\s+/g, " ").trim();
+  return limpio ? limpio.toLocaleLowerCase("es-AR") : "vehículo";
 }
 
 function construirRetencionLicencia(informe) {
