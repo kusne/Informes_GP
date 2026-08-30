@@ -155,10 +155,11 @@ function validarRequisaVehicular(informe, errores) {
 
   if (!texto(f.fecha_hecho)) errores.push("No se pudo resolver la fecha de la requisa.");
   if (!texto(f.hora_hecho)) errores.push("No se pudo resolver el horario de la requisa.");
-  if (!texto(f.departamento)) errores.push("Debe completar departamento.");
-  if (!texto(f.talonario)) errores.push("Debe indicar si se utilizó talonario.");
-  if (!texto(f.observaciones)) errores.push("Debe completar las observaciones de la requisa vehicular.");
-
+  if (!texto(f.tipo_vehiculo)) errores.push("Debe seleccionar tipo de vehículo.");
+  if (!texto(f.dominio)) errores.push("Debe completar dominio.");
+  if (!["MASCULINO", "FEMENINO"].includes(texto(f.genero).toUpperCase())) {
+    errores.push("Debe seleccionar género masculino o femenino.");
+  }
 }
 
 function parsearDecimal(valor) {
