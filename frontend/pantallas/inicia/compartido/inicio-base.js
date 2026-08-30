@@ -1,4 +1,3 @@
-import { obtenerFotosPorPrefijo } from "../../../../api/app-api.js";
 export function leerFormularioInicio(root = document) {
   const form = root.querySelector(".formulario-inicia");
   if (!form) return null;
@@ -30,8 +29,9 @@ export function leerFormularioInicio(root = document) {
 
   datos.tipo_formulario = form.dataset.formulario || "";
   datos.tipo_operativo = form.dataset.tipoOperativo || "";
-  datos.fotos_prefijo = datos.tipo_formulario || construirPrefijoFotos(datos.tipo_operativo);
-  datos.fotos = obtenerResumenFotos(datos.fotos_prefijo);
+  // INICIA ya no admite fotografías.
+  datos.fotos_prefijo = "";
+  datos.fotos = [];
 
   return datos;
 }
@@ -62,22 +62,4 @@ export function observarCambiosInicio({ root = document, onChange }) {
     form.removeEventListener("input", handler);
     form.removeEventListener("change", handler);
   };
-}
-
-function construirPrefijoFotos(tipoOperativo) {
-  const slug = String(tipoOperativo || "generico").trim().toLowerCase();
-  return `inicio-${slug}`;
-}
-
-function obtenerResumenFotos(prefijo) {
-  const fotos = obtenerFotosPorPrefijo(prefijo);
-
-  if (!Array.isArray(fotos)) {
-    return [];
-  }
-
-  return fotos.map((foto) => ({
-    indice: foto.indice,
-    nombre: foto.nombre
-  }));
 }
