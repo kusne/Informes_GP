@@ -7,7 +7,6 @@ import {
   CAMPOS_CONTROLADOS,
   resolverHoraFinFinalizadoEspecial
 } from "../../dominio/compartido/tipos/operativos-elementos-controlados-opcionales.js";
-import { obtenerFotosPorPrefijo } from "../estado/fotos-estado.js";
 import { obtenerEstadoInformes } from "../estado/informes-state.js";
 
 export function procesarFinalizadoFormulario({
@@ -46,8 +45,8 @@ export function procesarFinalizadoFormulario({
     hora_fin: resolverHoraFinFinalizadoEspecial(operativoSeleccionado, tipoFormulario),
     lugar: operativoSeleccionado?.lugar || "",
     formulario: datosFormulario,
-    foto_prefijo: fotoPrefijo || "",
-    fotos: fotoPrefijo ? obtenerFotosPorPrefijo(fotoPrefijo) : [],
+    foto_prefijo: "",
+    fotos: [],
     numeralesFinaliza: contexto?.numeralesFinaliza || estado?.numeralesFinaliza || { items: [], resumen: "" }
   };
 
