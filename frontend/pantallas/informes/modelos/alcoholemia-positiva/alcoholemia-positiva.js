@@ -10,6 +10,32 @@ export async function iniciarModeloInformeUI({ form } = {}) {
   const checkboxLicenciaDigital = form.querySelector('[name="licencia_digital"]');
   const checkboxRetencion = form.querySelector('[name="medida_retencion"]');
 
+  // Normalización visual y de valor: todo texto escrito por el usuario
+  // en los campos de Alcoholemia se transforma inmediatamente a MAYÚSCULAS.
+  // Los campos numéricos/decimales no se alteran.
+  const camposTextoMayusculas = Array.from(
+    form.querySelectorAll('input[type="text"], textarea')
+  ).filter((campo) => !["numero_acta", "resultado", "otros_codigos"].includes(campo.name));
+
+  const normalizarCampoMayusculas = (campo) => {
+    if (!campo) return;
+    const inicio = Number.isInteger(campo.selectionStart) ? campo.selectionStart : null;
+    const fin = Number.isInteger(campo.selectionEnd) ? campo.selectionEnd : null;
+    const nuevoValor = String(campo.value || "").toLocaleUpperCase("es-AR");
+    if (campo.value !== nuevoValor) {
+      campo.value = nuevoValor;
+      if (inicio !== null && fin !== null && typeof campo.setSelectionRange === "function") {
+        try { campo.setSelectionRange(inicio, fin); } catch {}
+      }
+    }
+  };
+
+  for (const campo of camposTextoMayusculas) {
+    campo.addEventListener("input", () => normalizarCampoMayusculas(campo));
+    campo.addEventListener("change", () => normalizarCampoMayusculas(campo));
+    normalizarCampoMayusculas(campo);
+  }
+
   const actualizarVisibilidad460 = () => {
     const esMoto = String(tipoVehiculo?.value || "").trim().toUpperCase() === "MOTO";
 
