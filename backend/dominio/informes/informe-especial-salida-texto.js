@@ -339,10 +339,10 @@ function construirLicenciaObservacionAlcoholemia(f = {}) {
   if (!clase) return "";
 
   if (contieneDni(clase)) {
-    return `NO POSEE LICENCIA DE CONDUCIR, POSEE DNI ${clase}.`;
+    return `Posee DNI ${clase}.`;
   }
 
-  return `LICENCIA CLASE ${clase}.`;
+  return `Posee LICENCIA CLASE ${clase}.`;
 }
 
 function construirCodigosAlcoholemia(f = {}, c = {}) {
