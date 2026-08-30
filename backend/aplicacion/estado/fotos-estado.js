@@ -6,16 +6,22 @@ import {
 export function resolverPrefijoFotoPorModoPayload({ modo, payload } = {}) {
   const modoNormalizado = normalizarModo(modo);
 
-  if (payload?.foto_prefijo) return String(payload.foto_prefijo || "").trim();
-  if (modoNormalizado === "INICIA") return `inicio-${slugTipo(payload?.tipo_operativo)}`;
-  if (modoNormalizado === "FINALIZA") return `finaliza-${slugTipo(payload?.tipo_operativo)}`;
+  // INICIA y FINALIZA ya no admiten fotografías.
+  if (modoNormalizado === "INICIA" || modoNormalizado === "FINALIZA") return "";
 
   if (modoNormalizado === "INFORMES") {
     const tipoInforme = normalizarModo(payload?.tipo_informe);
-    if (tipoInforme === "DECRETO_460_22") return "decreto-460-22";
-    if (tipoInforme === "RETENCION_LICENCIA") return "retencion-licencia";
+    if ([
+      "ALCOHOLEMIA_POSITIVA",
+      "CONTROL_ARMAS",
+      "REQUISA_VEHICULAR",
+      "DECRETO_460_22",
+      "RETENCION_LICENCIA"
+    ].includes(tipoInforme)) return "";
   }
 
+  // Se conserva la infraestructura para cualquier módulo futuro que sí use fotos.
+  if (payload?.foto_prefijo) return String(payload.foto_prefijo || "").trim();
   return "";
 }
 
