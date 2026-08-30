@@ -1,65 +1,48 @@
 <section class="formulario-informe-especial" data-modelo-informe="REQUISA_VEHICULAR">
   <h2>REQUISA VEHICULAR</h2>
-  <p>Informe de requisa vehicular vinculado al operativo seleccionado.</p>
+  <p>Informe de requisa vehicular voluntaria vinculado al operativo seleccionado.</p>
 
-  <!-- Contexto del operativo: se completa automáticamente y no se edita. -->
+  <!-- Contexto del operativo: no se muestra ni se edita. -->
   <input id="requisaFecha" name="fecha_hecho" type="hidden" data-contexto-operativo="fecha">
   <input id="requisaHora" name="hora_hecho" type="hidden" data-contexto-operativo="hora">
   <input id="requisaLugar" name="lugar_hecho" type="hidden" data-contexto-operativo="lugar">
   <input id="requisaPersonal" name="personal" type="hidden" data-contexto-operativo="personal">
   <input id="requisaMoviles" name="moviles" type="hidden" data-contexto-operativo="moviles">
-  <input id="requisaElementos" name="elementos" type="hidden" data-contexto-operativo="elementos">
+
+  <div class="bloque-formulario">
+    <label for="requisaTipoVehiculo">Tipo de vehículo</label>
+    <select id="requisaTipoVehiculo" name="tipo_vehiculo">
+      <option value="">Seleccionar</option>
+      <option value="MOTOVEHÍCULO">MOTOVEHÍCULO</option>
+      <option value="AUTO">AUTO</option>
+      <option value="SEDAN">SEDAN</option>
+      <option value="PICK UP">PICK UP</option>
+      <option value="CAMIONETA">CAMIONETA</option>
+      <option value="FURGÓN">FURGÓN</option>
+      <option value="FURGONETA">FURGONETA</option>
+      <option value="CAMIÓN">CAMIÓN</option>
+      <option value="TRANSPORTE DE PASAJEROS">TRANSPORTE DE PASAJEROS</option>
+      <option value="CHASIS CON CABINA">CHASIS CON CABINA</option>
+      <option value="CHASIS SIN CABINA">CHASIS SIN CABINA</option>
+      <option value="TRACTOR DE CARRETERA">TRACTOR DE CARRETERA</option>
+      <option value="CARRETÓN">CARRETÓN</option>
+      <option value="OTRO">OTRO</option>
+    </select>
+  </div>
 
   <div class="grilla-doble">
     <div class="bloque-formulario">
-      <label for="requisaDepartamento">Departamento</label>
-      <input id="requisaDepartamento" name="departamento" type="text" value="La Capital" placeholder="Departamento">
+      <label for="requisaDominio">Dominio</label>
+      <input id="requisaDominio" name="dominio" type="text" placeholder="DOMINIO">
     </div>
+
     <div class="bloque-formulario">
-      <label for="requisaTalonario">Talonario</label>
-      <select id="requisaTalonario" name="talonario">
-        <option value="NO" selected>No</option>
-        <option value="SI">Sí</option>
+      <label for="requisaGenero">Género</label>
+      <select id="requisaGenero" name="genero">
+        <option value="">Seleccionar</option>
+        <option value="MASCULINO">MASCULINO</option>
+        <option value="FEMENINO">FEMENINO</option>
       </select>
     </div>
   </div>
-
-  <div class="grilla-doble">
-    <div class="bloque-formulario">
-      <label for="requisaAlometro">Alómetro</label>
-      <input id="requisaAlometro" name="alometro" type="text" placeholder="Ej: 0127">
-    </div>
-    <div class="bloque-formulario">
-      <label for="requisaAlcoholimetro">Alcoholímetro</label>
-      <input id="requisaAlcoholimetro" name="alcoholimetro" type="text" placeholder="Ej: 0732">
-    </div>
-  </div>
-
-  <div class="grilla-doble">
-    <div class="bloque-formulario">
-      <label for="requisaImpresora">Impresora</label>
-      <input id="requisaImpresora" name="impresora" type="text" placeholder="Ej: N° 39/64">
-    </div>
-    <div class="bloque-formulario">
-      <label for="requisaPda">PDA</label>
-      <input id="requisaPda" name="pda" type="text" placeholder="Ej: N 67, 68, 05, 19">
-    </div>
-  </div>
-
-  <div class="grilla-doble">
-    <div class="bloque-formulario">
-      <label for="requisaHt">HT</label>
-      <input id="requisaHt" name="ht" type="text" placeholder="Ej: N° 02/06">
-    </div>
-    <div class="bloque-formulario">
-      <label for="requisaEscopeta">Escopeta</label>
-      <input id="requisaEscopeta" name="escopeta" type="text" placeholder="Ej: N° 650367">
-    </div>
-  </div>
-
-  <div class="bloque-formulario">
-    <label for="requisaObservaciones">Observaciones</label>
-    <textarea id="requisaObservaciones" name="observaciones" placeholder="Relato de la requisa vehicular"></textarea>
-  </div>
-
 </section>
