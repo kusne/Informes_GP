@@ -293,10 +293,10 @@ function construirObservacionAlcoholemia(informe, f = {}, c = {}) {
   const tipoVehiculo = formatearTipoVehiculoAlcoholemia(
     c.tipo_vehiculo_normalizado || f.tipo_vehiculo
   );
-  const marca = texto(f.marca);
-  const modelo = texto(f.modelo_vehiculo);
-  const dominio = texto(f.dominio);
-  const conductor = texto(f.conductor);
+  const marca = texto(f.marca).toLocaleUpperCase("es-AR");
+  const modelo = texto(f.modelo_vehiculo).toLocaleUpperCase("es-AR");
+  const dominio = texto(f.dominio).toLocaleUpperCase("es-AR");
+  const conductor = texto(f.conductor).toLocaleUpperCase("es-AR");
   const resultado = formatearNumero(c.resultado).replace(",", ".");
   const condicion = c.sancionable ? "sancionable" : "no sancionable";
   const operativo = construirDescripcionOperativo(informe, { mayusculas: true });
@@ -335,7 +335,7 @@ function construirObservacionAlcoholemia(informe, f = {}, c = {}) {
 }
 
 function construirLicenciaObservacionAlcoholemia(f = {}) {
-  const clase = texto(f.clase);
+  const clase = texto(f.clase).toLocaleUpperCase("es-AR");
   if (!clase) return "";
 
   if (contieneDni(clase)) {
