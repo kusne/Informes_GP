@@ -34,30 +34,27 @@ export function resolverPrefijoFoto({
 } = {}) {
   const modoNormalizado = normalizarModo(modo || estado?.modo || "");
 
-  if (payload?.foto_prefijo) {
-    return String(payload.foto_prefijo || "").trim();
-  }
-
-  if (modoNormalizado === "INICIA") {
-    const tipo = payload?.tipo_operativo || estado?.inicioActual?.tipo_operativo;
-    return `inicio-${slugTipo(tipo)}`;
-  }
-
-  if (modoNormalizado === "FINALIZA") {
-    const tipo = payload?.tipo_operativo || estado?.finalizadoActual?.tipo_operativo;
-    return `finaliza-${slugTipo(tipo)}`;
-  }
+  // INICIA y FINALIZA no comparten fotografías.
+  if (modoNormalizado === "INICIA" || modoNormalizado === "FINALIZA") return "";
 
   if (modoNormalizado === "INFORMES") {
     const tipoInforme =
       payload?.tipo_informe ||
       estado?.informeActual?.modelo ||
       "";
-
     const tipo = normalizarModo(tipoInforme);
 
-    if (tipo === "DECRETO_460_22") return "decreto-460-22";
-    if (tipo === "RETENCION_LICENCIA") return "retencion-licencia";
+    if ([
+      "ALCOHOLEMIA_POSITIVA",
+      "CONTROL_ARMAS",
+      "REQUISA_VEHICULAR",
+      "DECRETO_460_22",
+      "RETENCION_LICENCIA"
+    ].includes(tipo)) return "";
+  }
+
+  if (payload?.foto_prefijo) {
+    return String(payload.foto_prefijo || "").trim();
   }
 
   return "";
