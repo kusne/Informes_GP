@@ -81,10 +81,23 @@ export function renderBotonEnviarWhatsapp({
 
   if (!boton) return;
 
-  boton.addEventListener("click", async () => {
-    await manejarEnvioWhatsapp({
-      boton,
-      getContexto
+  boton.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    Promise.resolve(
+      manejarEnvioWhatsapp({
+        boton,
+        getContexto
+      })
+    ).catch((error) => {
+      // Última barrera de seguridad: ningún error de preparación/estado puede
+      // quedar como promesa rechazada sin controlar en navegadores móviles.
+      envioEnCurso = false;
+      console.error("[Informes_GP] Error no controlado en el envío:", error);
+      cambiarEstadoBoton(boton, false, resolverEtiquetaBoton(boton));
+      marcarEstadoEnvio("No se pudo completar el envío.");
+      alert(error?.message || "No se pudo enviar el informe por WhatsApp.");
     });
   });
 
