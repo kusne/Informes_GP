@@ -1,4 +1,4 @@
-import { iniciarApp } from "./app.js?v=20260808-arquitectura-aislada-v1";
+import { iniciarApp } from "./app.js?v=20260901-whatsapp-movil-estable-v1";
 import { iniciarInstanciaUnicaInformesGP } from "../servicios/navegacion/instancia-unica.js";
 
 iniciarInstanciaUnicaInformesGP();
