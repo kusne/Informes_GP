@@ -814,16 +814,46 @@ function registrarListenerPostEnvio() {
   if (listenerEnvioRegistrado) return;
 
   listenerEnvioRegistrado = true;
+  let refrescoPostEnvioPendiente = false;
+  let refrescoPostEnvioEnCurso = false;
 
-  window.addEventListener("informesgp:envio-whatsapp-ok", async () => {
-    if (estadoPantalla.modo === "INFORMES") {
-      await volverATarjetasInformes();
-      return;
+  const ejecutarRefrescoAlRegresar = async () => {
+    if (!refrescoPostEnvioPendiente || refrescoPostEnvioEnCurso) return;
+    if (document.visibilityState !== "visible") return;
+
+    refrescoPostEnvioPendiente = false;
+    refrescoPostEnvioEnCurso = true;
+
+    try {
+      if (estadoPantalla.modo === "INFORMES") {
+        await volverATarjetasInformes();
+        return;
+      }
+
+      await recargarItemsPantalla({
+        motivo: "post-envio-regreso"
+      });
+    } catch (error) {
+      console.warn("[Informes_GP] No se pudo refrescar la pantalla después del envío:", error);
+    } finally {
+      refrescoPostEnvioEnCurso = false;
     }
+  };
 
-    await recargarItemsPantalla({
-      motivo: "post-envio"
-    });
+  window.addEventListener("informesgp:envio-whatsapp-ok", () => {
+    // No recargar DOM/red en el mismo instante en que Android/iOS está
+    // transfiriendo el foco a WhatsApp. Se actualiza al volver a Informes GP.
+    refrescoPostEnvioPendiente = true;
+  });
+
+  window.addEventListener("focus", () => {
+    void ejecutarRefrescoAlRegresar();
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      void ejecutarRefrescoAlRegresar();
+    }
   });
 }
 
