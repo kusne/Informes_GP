@@ -90,7 +90,12 @@ function construirObservacionControlSuperior(f = {}) {
     ? `${plural || moviles.includes("/") ? " con móvil/es " : " con móvil "}${moviles}`
     : "";
 
-  return `${plural ? "Se hacen presentes" : "Se hace presente"} ${sujeto}${movilidad} realizando control superior y ${plural ? "se acoplan" : "se acopla"} al operativo.`;
+  const base = `${plural ? "Se hacen presentes" : "Se hace presente"} ${sujeto}${movilidad} realizando control superior`;
+  const seAcopla = f.se_acopla !== false;
+
+  return seAcopla
+    ? `${base} y ${plural ? "se acoplan" : "se acopla"} al operativo.`
+    : `${base}. Acto seguido se retira sin novedad.`;
 }
 
 function resolverRecursosOperativoInforme(informe = {}) {
