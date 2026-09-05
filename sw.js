@@ -1,4 +1,4 @@
-const CACHE_VERSION = "informes-gp-v20260901-whatsapp-movil-estable-v1";
+const CACHE_VERSION = "informes-gp-v20260904-control-moviles-ayuda-v2";
 const CACHE_ESTATICO = `${CACHE_VERSION}-static`;
 
 const PRECACHE = [
