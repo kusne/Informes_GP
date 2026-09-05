@@ -260,7 +260,7 @@ body.control-movil-seleccionado-activo #controlMovilesSalirCompat { display: non
 #controlMovilesAyudaWrap.control-moviles-ayuda-wrap {
   position: absolute !important;
   display: block !important;
-  top: -58px !important;
+  top: -83px !important;
   right: 31% !important;
   width: 34px !important;
   height: 34px !important;
@@ -330,5 +330,5 @@ body.control-movil-seleccionado-activo #controlMovilesSalirCompat { display: non
   .control-moviles-grupo-motos .control-movil-chip { font-size: 16px !important; }
   .control-moviles-grupo-motos .control-movil-chip small { font-size: 10px !important; }
   .control-moviles-grid-inputs, .control-moviles-fotos { grid-template-columns: repeat(2,minmax(0,1fr)); }
-  #controlMovilesAyudaWrap.control-moviles-ayuda-wrap { top: -57px !important; right: 31% !important; }
+  #controlMovilesAyudaWrap.control-moviles-ayuda-wrap { top: -82px !important; right: 31% !important; }
 }
