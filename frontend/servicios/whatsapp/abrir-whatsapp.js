@@ -1,7 +1,5 @@
 import {
-  WHATSAPP_CONFIG,
-  obtenerTelefonoWhatsappDestino,
-  normalizarTelefonoWhatsapp
+  WHATSAPP_CONFIG
 } from "../../../api/app-api.js";
 
 const NOMBRE_VENTANA_WHATSAPP = "InformesGPWhatsApp";
@@ -105,13 +103,7 @@ export function abrirWhatsappConTexto(texto, opciones = {}) {
   const mensaje = String(texto || "").trim();
   if (!mensaje) throw new Error("No hay texto para enviar por WhatsApp.");
 
-  const telefono = normalizarTelefonoWhatsapp(
-    opciones.telefono ||
-    opciones.telefonoDestino ||
-    obtenerTelefonoWhatsappDestino()
-  );
-
-  const destinos = construirDestinosWhatsapp({ texto: mensaje, telefono });
+  const destinos = construirDestinosWhatsapp({ texto: mensaje });
 
   return abrirUrlWhatsapp(destinos, {
     nuevaPestana: opciones.nuevaPestana ?? WHATSAPP_CONFIG.abrirEnNuevaPestana,
@@ -119,25 +111,17 @@ export function abrirWhatsappConTexto(texto, opciones = {}) {
   });
 }
 
-export function construirUrlWhatsapp({ texto, telefono = "" } = {}) {
-  return construirDestinosWhatsapp({ texto, telefono }).web;
-}
-
-export function construirDestinosWhatsapp({ texto, telefono = "" } = {}) {
+export function construirUrlWhatsapp({ texto } = {}) {
   const mensaje = String(texto || "").trim();
   if (!mensaje) throw new Error("No hay texto para construir enlace de WhatsApp.");
 
-  const telefonoLimpio = normalizarTelefonoWhatsapp(telefono);
-  const encoded = encodeURIComponent(mensaje);
-  const queryTelefono = telefonoLimpio ? `phone=${telefonoLimpio}&` : "";
+  return `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
+}
 
+export function construirDestinosWhatsapp({ texto } = {}) {
   return {
-    // En teléfonos se prioriza el esquema nativo. Evita pasar por wa.me y por
-    // la página web que a veces ofrece instalar WhatsApp aunque ya esté instalado.
-    app: `whatsapp://send?${queryTelefono}text=${encoded}`,
-    web: telefonoLimpio
-      ? `https://wa.me/${telefonoLimpio}?text=${encoded}`
-      : `https://wa.me/?text=${encoded}`
+    app: "",
+    web: construirUrlWhatsapp({ texto })
   };
 }
 
@@ -145,66 +129,53 @@ export function abrirUrlWhatsapp(destinos, {
   nuevaPestana = true,
   ventanaPreparada = null
 } = {}) {
-  const { app, web } = normalizarDestinos(destinos);
+  const { web } = normalizarDestinos(destinos);
 
-  if (!app && !web) throw new Error("No se pudo construir el enlace de WhatsApp.");
-  if (!nuevaPestana) throw new Error("WhatsApp debe abrirse fuera de la ventana de Informes GP.");
+  if (!web) throw new Error("No se pudo construir el enlace de WhatsApp.");
+
+  if (!nuevaPestana) {
+    window.location.href = web;
+    return web;
+  }
 
   let ventana = ventanaPreparada;
 
   if (!ventana || ventana.closed) {
     try {
-      ventana = window.open("about:blank", NOMBRE_VENTANA_WHATSAPP);
-    } catch {
-      ventana = null;
-    }
-  }
-
-  if (!ventana) {
-    // Última contingencia móvil: intentar el esquema nativo en la misma pestaña.
-    // Si WhatsApp está instalado el sistema operativo abre la app y conserva la
-    // PWA en el historial/tarea. No se usa wa.me aquí para no mandar al usuario
-    // a la página de instalación.
-    if (esDispositivoMovil() && app) {
-      window.location.href = app;
-      return app;
+      ventana = window.open(web, "_blank");
+      if (ventana) return web;
+    } catch (error) {
+      console.warn(
+        "[Informes_GP] No se pudo abrir WhatsApp en ventana nueva. Se usa navegación actual.",
+        error
+      );
     }
 
-    throw new Error(
-      "El navegador bloqueó la apertura de WhatsApp. Habilite ventanas emergentes para Informes GP y vuelva a tocar Enviar por WhatsApp."
-    );
+    window.location.href = web;
+    return web;
   }
 
   try { ventana.opener = null; } catch {}
 
-  const destinoPreferido = esDispositivoMovil() && app ? app : web || app;
-
   try {
-    ventana.location.href = destinoPreferido;
+    ventana.location.href = web;
   } catch (error) {
     cerrarVentanaWhatsappPreparada(ventana);
-    throw new Error("No se pudo abrir WhatsApp sin cerrar Informes GP.");
+    window.location.href = web;
+    return web;
   }
 
   try { ventana.focus(); } catch {}
 
-  return destinoPreferido;
+  return web;
 }
 
 function normalizarDestinos(valor) {
   if (typeof valor === "string") {
-    const enlace = valor.trim();
-    return { app: "", web: enlace };
+    return { web: valor.trim() };
   }
 
   return {
-    app: String(valor?.app || "").trim(),
     web: String(valor?.web || "").trim()
   };
-}
-
-function esDispositivoMovil() {
-  if (typeof navigator === "undefined") return false;
-  const ua = String(navigator.userAgent || "").toLowerCase();
-  return /android|iphone|ipad|ipod|mobile/.test(ua);
 }
