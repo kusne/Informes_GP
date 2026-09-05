@@ -5,7 +5,32 @@
   window.WSP.ui = window.WSP.ui || {};
   window.WSP.modules = window.WSP.modules || {};
 
+  function instalarAjusteVisualAyudaControlMoviles() {
+    const id = "informesgp-control-moviles-ayuda-posicion";
+    if (document.getElementById(id)) return;
+
+    const style = document.createElement("style");
+    style.id = id;
+    style.textContent = `
+      #controlMovilesAyudaWrap.control-moviles-ayuda-wrap {
+        top: -132px !important;
+      }
+
+      @media (max-width: 430px) {
+        #controlMovilesAyudaWrap.control-moviles-ayuda-wrap {
+          top: -132px !important;
+        }
+      }
+    `;
+
+    document.head.appendChild(style);
+  }
+
+  instalarAjusteVisualAyudaControlMoviles();
+
   function activarControlMoviles(config = {}) {
+    instalarAjusteVisualAyudaControlMoviles();
+
     if (typeof config.desactivarPantallasInformes === "function") {
       config.desactivarPantallasInformes();
     }
