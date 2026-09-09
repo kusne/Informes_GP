@@ -1,11 +1,10 @@
-const CACHE_VERSION = "informes-gp-v20260904-control-moviles-ayuda-v2";
+const CACHE_VERSION = "informes-gp-v20260909-actualizacion-inmediata-v1";
 const CACHE_ESTATICO = `${CACHE_VERSION}-static`;
 
 const PRECACHE = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
-  "./frontend/app/app-bundle.css",
   "./frontend/assets/logo-bmzcn-gold-black.png",
   "./frontend/assets/icon-192.png",
   "./frontend/assets/icon-512.png"
@@ -27,8 +26,6 @@ self.addEventListener("activate", (event) => {
           .filter((key) => key.startsWith("informes-gp-") && key !== CACHE_ESTATICO)
           .map((key) => caches.delete(key))
       ))
-      // La actualización del Service Worker NO navega ni recarga ventanas
-      // abiertas. El usuario puede terminar el formulario que está usando.
       .then(() => self.clients.claim())
   );
 });
@@ -45,10 +42,10 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // JS/HTML siempre por red y sin cache HTTP: evita que GitHub/PWA ejecute
-  // una versión anterior después de publicar una corrección de interfaz.
-  if (/\.(?:js|html)$/i.test(url.pathname)) {
-    event.respondWith(fetch(request, { cache: "no-store" }));
+  // Todo lo que pueda cambiar con una publicación se consulta primero en red.
+  // La caché queda únicamente como respaldo sin conexión.
+  if (esRecursoActualizable(url.pathname)) {
+    event.respondWith(recursoNetworkFirst(request));
     return;
   }
 
@@ -73,6 +70,22 @@ async function navigationNetworkFirst(request) {
   }
 }
 
+async function recursoNetworkFirst(request) {
+  const cache = await caches.open(CACHE_ESTATICO);
+
+  try {
+    const response = await fetch(request, { cache: "no-store" });
+    if (response?.ok) {
+      await cache.put(request, response.clone());
+    }
+    return response;
+  } catch {
+    const cached = await cache.match(request);
+    if (cached) return cached;
+    throw new Error(`Recurso no disponible: ${request.url}`);
+  }
+}
+
 async function cacheFirst(request) {
   const cache = await caches.open(CACHE_ESTATICO);
   const cached = await cache.match(request);
@@ -80,11 +93,15 @@ async function cacheFirst(request) {
 
   const response = await fetch(request, { cache: "no-store" });
   if (response?.ok) {
-    cache.put(request, response.clone());
+    await cache.put(request, response.clone());
   }
   return response;
 }
 
+function esRecursoActualizable(pathname) {
+  return /\.(?:js|css|html|json|webmanifest)$/i.test(pathname);
+}
+
 function esRecursoEstatico(pathname) {
-  return /\.(?:js|css|html|png|jpg|jpeg|webp|svg|json|webmanifest)$/i.test(pathname);
+  return /\.(?:png|jpg|jpeg|webp|svg|ico)$/i.test(pathname);
 }
