@@ -92,6 +92,7 @@ export async function iniciarFormularioFinaliza({
 
   form.addEventListener("submit", (event) => event.preventDefault());
   const actualizar = () => actualizarEstadoFinaliza({ form, operativoSeleccionado: ultimoOperativoFinaliza, getContexto });
+  configurarPresenciaActiva(form, actualizar);
   form.addEventListener("input", actualizar);
   form.addEventListener("change", actualizar);
   form.addEventListener("paste", () => setTimeout(actualizar, 0));
@@ -103,6 +104,40 @@ export async function iniciarFormularioFinaliza({
 export function obtenerFormularioFinalizaActual() { return ultimoFormularioFinaliza; }
 export function obtenerOperativoFinalizaActual() { return ultimoOperativoFinaliza; }
 
+function configurarPresenciaActiva(form, onChange) {
+  const check = form?.querySelector("#finalizaPresenciaActiva");
+  const motivo = form?.querySelector("#finalizaPresenciaActivaMotivo");
+  const motivoWrap = form?.querySelector("#finalizaPresenciaActivaMotivoWrap");
+  const otroWrap = form?.querySelector("#finalizaPresenciaActivaOtroWrap");
+  const otro = form?.querySelector("#finalizaPresenciaActivaOtro");
+  if (!check || !motivoWrap) return;
+
+  const inicio = recursosInicioActual?.datos?.presencia_activa ?? recursosInicioActual?.presencia_activa;
+  const motivoInicio = recursosInicioActual?.datos?.presencia_activa_motivo ?? recursosInicioActual?.presencia_activa_motivo;
+  if (inicio && !check.checked) {
+    check.checked = true;
+    const motivoNormalizado = String(motivoInicio || "").trim();
+    if (/^LLUVIA$/i.test(motivoNormalizado)) {
+      if (motivo) motivo.value = "LLUVIA";
+    } else if (motivoNormalizado) {
+      if (motivo) motivo.value = "OTROS";
+      if (otro) otro.value = motivoNormalizado;
+    }
+  }
+
+  const aplicar = () => {
+    motivoWrap.classList.toggle("hidden", !check.checked);
+    const esOtro = check.checked && String(motivo?.value || "").toUpperCase() === "OTROS";
+    otroWrap?.classList.toggle("hidden", !esOtro);
+    if (!check.checked && motivo) motivo.value = "";
+    if (!esOtro && otro) otro.value = "";
+  };
+
+  check.addEventListener("change", () => { aplicar(); onChange?.(); });
+  motivo?.addEventListener("change", () => { aplicar(); onChange?.(); });
+  aplicar();
+}
+
 function configurarMismosPorDefecto(form) {
   for (const id of ["finalizaMismoPersonal", "finalizaMismoMoviles", "finalizaMismosElementos"]) {
     const input = form.querySelector(`#${id}`);
@@ -112,29 +147,15 @@ function configurarMismosPorDefecto(form) {
 
 function configurarEventosMismos({ form, getContexto }) {
   const config = [
-    {
-      id: "finalizaMismoPersonal",
-      restaurar: () => aplicarPersonalFinaliza(form, recursosInicioActual?.seleccionInicial?.personal || [])
-    },
-    {
-      id: "finalizaMismoMoviles",
-      restaurar: () => aplicarMovilidadFinaliza(form, {
-        moviles: recursosInicioActual?.seleccionInicial?.moviles || [],
-        motos: recursosInicioActual?.seleccionInicial?.motos || []
-      })
-    },
-    {
-      id: "finalizaMismosElementos",
-      restaurar: () => aplicarElementosFinaliza(form, recursosInicioActual?.seleccionInicial?.elementos || {})
-    }
+    { id: "finalizaMismoPersonal", restaurar: () => aplicarPersonalFinaliza(form, recursosInicioActual?.seleccionInicial?.personal || []) },
+    { id: "finalizaMismoMoviles", restaurar: () => aplicarMovilidadFinaliza(form, { moviles: recursosInicioActual?.seleccionInicial?.moviles || [], motos: recursosInicioActual?.seleccionInicial?.motos || [] }) },
+    { id: "finalizaMismosElementos", restaurar: () => aplicarElementosFinaliza(form, recursosInicioActual?.seleccionInicial?.elementos || {}) }
   ];
 
   for (const item of config) {
     const check = form.querySelector(`#${item.id}`);
     if (!check) continue;
     check.addEventListener("change", () => {
-      // Al pasar de "mismo..." a edición manual se parte SIEMPRE de lo que
-      // tenía asignado el INICIA. El usuario modifica solo lo necesario.
       if (!check.checked) item.restaurar();
       aplicarVisibilidadMismos(form);
       actualizarEstadoFinaliza({ form, operativoSeleccionado: ultimoOperativoFinaliza, getContexto });
@@ -221,10 +242,7 @@ function configurarResultadosEspeciales(form, operativo) {
 function configurarCampoResultadoEspecial(form, wrapSelector, nombreCampo, visible) {
   const wrap = form.querySelector(wrapSelector);
   const input = form.querySelector(`[name="${nombreCampo}"]`);
-
   wrap?.classList.toggle("hidden", !visible);
-
-  // Evita que un valor residual de otro operativo se publique por error.
   if (!visible && input) input.value = "";
 }
 
