@@ -25,6 +25,11 @@ export const NOMENCLADOR_FINALIZA_FALLBACK = [
     categoria: "LICENCIA"
   },
   {
+    codigo: "11062",
+    detalle: "PATENTE ILEGIBLE",
+    categoria: "DOMINIO"
+  },
+  {
     codigo: "RET_LIC",
     detalle: "RETENCIÓN DE LICENCIA",
     categoria: "LICENCIA"
