@@ -3,6 +3,7 @@ const ESPERA_DETECCION_MS = 220;
 
 let canal = null;
 let instanciaId = "";
+let creadaEn = 0;
 
 /**
  * Detecta si Informes GP ya está abierto en otra pestaña.
@@ -12,6 +13,8 @@ let instanciaId = "";
  * - Sólo la pestaña nueva, después de confirmar que existe una anterior,
  *   intenta cerrarse a sí misma. Si Chrome no permite cerrarla, queda en modo
  *   liviano y el bootstrap no inicia una segunda copia de la aplicación.
+ * - Si dos pestañas nacen prácticamente juntas, gana de forma determinística
+ *   la más antigua (y, ante empate, el id menor) para que no se cierren ambas.
  */
 export function iniciarInstanciaUnicaInformesGP({ esperaMs = ESPERA_DETECCION_MS } = {}) {
   try {
@@ -23,6 +26,7 @@ export function iniciarInstanciaUnicaInformesGP({ esperaMs = ESPERA_DETECCION_MS
   }
 
   instanciaId = crearIdInstancia();
+  creadaEn = Date.now();
   canal = new BroadcastChannel(CANAL_INSTANCIA);
 
   return new Promise((resolve) => {
@@ -38,12 +42,15 @@ export function iniciarInstanciaUnicaInformesGP({ esperaMs = ESPERA_DETECCION_MS
       if (!mensaje || mensaje.instanciaId === instanciaId) return;
 
       if (mensaje.tipo === "IGP_BUSCAR_INSTANCIA") {
-        // La instancia anterior se conserva. Intentamos traerla al frente, pero
-        // la decisión final depende de Chrome/Android.
+        // Sólo responde la instancia que tiene prioridad de permanencia.
+        // Así dos aperturas simultáneas no se declaran duplicadas entre sí.
+        if (!estaInstanciaTienePrioridadSobre(mensaje)) return;
+
         try { window.focus(); } catch {}
         canal.postMessage({
           tipo: "IGP_INSTANCIA_PRESENTE",
           instanciaId,
+          creadaEn,
           para: mensaje.instanciaId,
           visible: document.visibilityState === "visible"
         });
@@ -59,15 +66,13 @@ export function iniciarInstanciaUnicaInformesGP({ esperaMs = ESPERA_DETECCION_MS
           instanciaExistenteId: mensaje.instanciaId
         });
 
-        // Sólo intentamos cerrar ESTA pestaña nueva. Nunca la instancia previa.
-        // Si el navegador no lo permite, el bootstrap mostrará un aviso liviano.
         setTimeout(() => {
           try { window.close(); } catch {}
         }, 80);
       }
     });
 
-    canal.postMessage({ tipo: "IGP_BUSCAR_INSTANCIA", instanciaId });
+    canal.postMessage({ tipo: "IGP_BUSCAR_INSTANCIA", instanciaId, creadaEn });
 
     setTimeout(() => {
       finalizar({ activo: true, duplicada: false, instanciaId });
@@ -75,6 +80,14 @@ export function iniciarInstanciaUnicaInformesGP({ esperaMs = ESPERA_DETECCION_MS
 
     window.addEventListener("pagehide", cerrarCanal, { once: true });
   });
+}
+
+function estaInstanciaTienePrioridadSobre(mensaje = {}) {
+  const otraCreadaEn = Number(mensaje.creadaEn || 0);
+  if (!otraCreadaEn) return true;
+  if (creadaEn < otraCreadaEn) return true;
+  if (creadaEn > otraCreadaEn) return false;
+  return String(instanciaId) < String(mensaje.instanciaId || "");
 }
 
 function cerrarCanal() {
