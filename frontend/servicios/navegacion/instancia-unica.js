@@ -1,4 +1,4 @@
-const CANAL_INSTANCIA = "informes-gp-instancia-unica-v3";
+const CANAL_INSTANCIA = "informes-gp-instancia-unica-v2";
 const ESPERA_DETECCION_MS = 220;
 
 let canal = null;
@@ -15,6 +15,10 @@ let creadaEn = 0;
  *   liviano y el bootstrap no inicia una segunda copia de la aplicación.
  * - Si dos pestañas nacen prácticamente juntas, gana de forma determinística
  *   la más antigua (y, ante empate, el id menor) para que no se cierren ambas.
+ *
+ * Se conserva el nombre de canal v2 a propósito: así una pestaña nueva puede
+ * detectar también una instancia que todavía esté ejecutando la versión
+ * anterior mientras termina de actualizarse el Service Worker.
  */
 export function iniciarInstanciaUnicaInformesGP({ esperaMs = ESPERA_DETECCION_MS } = {}) {
   try {
@@ -42,8 +46,6 @@ export function iniciarInstanciaUnicaInformesGP({ esperaMs = ESPERA_DETECCION_MS
       if (!mensaje || mensaje.instanciaId === instanciaId) return;
 
       if (mensaje.tipo === "IGP_BUSCAR_INSTANCIA") {
-        // Sólo responde la instancia que tiene prioridad de permanencia.
-        // Así dos aperturas simultáneas no se declaran duplicadas entre sí.
         if (!estaInstanciaTienePrioridadSobre(mensaje)) return;
 
         try { window.focus(); } catch {}
