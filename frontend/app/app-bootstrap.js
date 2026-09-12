@@ -1,21 +1,23 @@
-import { iniciarApp } from "./app.js?v=20260909-arranque-cache-operativos-v1";
+import { iniciarApp } from "./app.js?v=20260912-seis-correcciones-v1";
 import { iniciarInstanciaUnicaInformesGP } from "../servicios/navegacion/instancia-unica.js";
 
-const VERSION_DESPLIEGUE = "20260909-arranque-cache-operativos-v1";
+const VERSION_DESPLIEGUE = "20260912-seis-correcciones-v1";
+let appIniciada = false;
 
 aplicarCorreccionesVisualesGlobales();
-iniciarInstanciaUnicaInformesGP();
-registrarServiceWorkerYActualizar();
-
-window.addEventListener("informesgp:instancia-reemplazada", () => {
-  import("../../api/persistencia-api.js")
-    .then((modulo) => modulo.detenerRealtimeInformesGP?.())
-    .catch(() => {});
-});
+const deteccionInstancia = iniciarInstanciaUnicaInformesGP();
 
 window.addEventListener("DOMContentLoaded", async () => {
   try {
+    const instancia = await deteccionInstancia;
+    if (instancia?.duplicada) {
+      mostrarAvisoInstanciaDuplicada();
+      return;
+    }
+
+    registrarServiceWorkerYActualizar();
     await iniciarApp();
+    appIniciada = true;
     programarVerificacionOperativosInicial();
   } catch (error) {
     console.error("[Informes_GP] Error al iniciar app:", error);
@@ -28,11 +30,26 @@ window.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
+function mostrarAvisoInstanciaDuplicada() {
+  document.body.innerHTML = `
+    <main style="min-height:100vh;background:#171c20;color:#fff;display:grid;place-items:center;padding:24px;font-family:Arial,sans-serif;">
+      <section style="max-width:460px;text-align:center;background:#252d32;border-radius:18px;padding:28px;box-shadow:0 8px 30px rgba(0,0,0,.35);">
+        <h1 style="margin-top:0;font-size:1.35rem;">Informes GP ya está abierto</h1>
+        <p style="line-height:1.45;">Se detectó otra pestaña activa. Esta copia no se inició para evitar duplicados y cierres por exceso de pestañas.</p>
+        <button id="igpCerrarDuplicada" type="button" style="padding:12px 18px;border:0;border-radius:10px;font-weight:700;">Cerrar esta pestaña</button>
+      </section>
+    </main>
+  `;
+  document.getElementById("igpCerrarDuplicada")?.addEventListener("click", () => {
+    try { window.close(); } catch {}
+  });
+}
+
 function aplicarCorreccionesVisualesGlobales() {
-  if (document.getElementById("igp-correcciones-visuales-20260909")) return;
+  if (document.getElementById("igp-correcciones-visuales-20260912")) return;
 
   const style = document.createElement("style");
-  style.id = "igp-correcciones-visuales-20260909";
+  style.id = "igp-correcciones-visuales-20260912";
   style.textContent = `
     .inicio-opcion span,
     .finaliza-opcion span {
@@ -44,14 +61,26 @@ function aplicarCorreccionesVisualesGlobales() {
       overflow-wrap: anywhere !important;
       line-height: 1.15 !important;
     }
+    .inicio-presencia-activa-card,
+    .finaliza-presencia-activa-card {
+      margin: 10px 0;
+      padding: 10px 12px;
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 10px;
+    }
+    .inicio-presencia-activa-card select,
+    .inicio-presencia-activa-card input[type="text"],
+    .finaliza-presencia-activa-card select,
+    .finaliza-presencia-activa-card input[type="text"] {
+      width: 100%;
+      box-sizing: border-box;
+      margin-top: 6px;
+    }
   `;
   document.head.appendChild(style);
 }
 
 function programarVerificacionOperativosInicial() {
-  // La primera consulta puede coincidir con el arranque de red/CDN en móviles.
-  // Se hace una segunda lectura no destructiva automáticamente, equivalente a
-  // la actualización que antes el usuario conseguía sólo refrescando la página.
   setTimeout(() => {
     if (document.visibilityState && document.visibilityState !== "visible") return;
     window.dispatchEvent(new Event("focus"));
@@ -65,10 +94,10 @@ function registrarServiceWorkerYActualizar() {
   let recargaSolicitada = false;
 
   navigator.serviceWorker.addEventListener("controllerchange", () => {
-    // En una actualización real, el nuevo SW toma control y recargamos una sola
-    // vez para que HTML/JS/CSS queden todos en la misma versión. En la primera
-    // instalación no forzamos recarga.
-    if (!teniaControlador || recargaSolicitada) return;
+    // Sólo se recarga automáticamente si la app todavía no empezó. Una vez que
+    // el usuario está trabajando, una actualización del SW nunca debe cortar el
+    // formulario ni aparentar un cierre inesperado.
+    if (!teniaControlador || recargaSolicitada || appIniciada) return;
     recargaSolicitada = true;
     window.location.reload();
   });
