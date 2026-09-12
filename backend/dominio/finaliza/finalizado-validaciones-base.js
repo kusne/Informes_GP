@@ -63,10 +63,20 @@ export function validarFinalizadoBase(finalizado) {
   if (san + noSan > totalAlcohol) errores.push("La suma de positivas sancionables y no sancionables no puede superar los Test de Alcoholímetro.");
   validarGraduaciones(errores, "Positiva Sancionable", san, f.graduaciones_sancionable);
   validarGraduaciones(errores, "Positiva no Sancionable", noSan, f.graduaciones_no_sancionable);
-  // Los documentos QRZ y dominios asociados al numeral son datos opcionales.
-  // El usuario puede informar sólo la cantidad y enviar el FINALIZADO igualmente.
+  validarPresenciaActiva(errores, f);
 
   return errores;
+}
+
+function validarPresenciaActiva(errores, f = {}) {
+  if (!f.presencia_activa) return;
+  const motivo = texto(f.presencia_activa_motivo).toUpperCase();
+  if (!["LLUVIA", "OTROS"].includes(motivo)) {
+    errores.push("Seleccione el motivo de Presencia activa: Lluvia u Otros.");
+  }
+  if (motivo === "OTROS" && !texto(f.presencia_activa_otro)) {
+    errores.push("Escriba el motivo de Presencia activa en Otros.");
+  }
 }
 
 function texto(valor) { return String(valor || "").trim(); }
@@ -77,10 +87,6 @@ function validarGraduaciones(errores, etiqueta, cantidad, valores) {
   if (cantidad <= 0) return;
   if (lista.length !== cantidad || lista.some((v) => !v)) { errores.push(`Complete todas las graduaciones de ${etiqueta}.`); return; }
   if (lista.some((v) => !/^\d+[.,]\d{2}$/.test(v))) errores.push(`Las graduaciones de ${etiqueta} deben tener formato 0,85 o 0.85.`);
-}
-function validarListaCantidad(errores, etiqueta, cantidad, valores) {
-  const lista = array(valores);
-  if (cantidad > 0 && (lista.length !== cantidad || lista.some((v) => !v))) errores.push(`Complete los ${cantidad} datos de ${etiqueta}.`);
 }
 function array(valor) {
   if (Array.isArray(valor)) return valor.map((v) => String(v || "").trim());
