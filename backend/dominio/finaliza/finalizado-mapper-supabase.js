@@ -10,6 +10,8 @@ export function mapearFinalizadoParaSupabase(finalizado) {
   const numerales = finalizado.numeralesFinaliza || { items: [], resumen: "", texto: "" };
   const tipoNombre = resolverTipoNombreOperativo(finalizado, finalizado.operativo);
   const ordenesOrigen = resolverOrdenesOrigenOperativo(finalizado, finalizado.operativo);
+  const presenciaActiva = Boolean(f.presencia_activa);
+  const motivoPresenciaActiva = resolverMotivoPresenciaActiva(f);
 
   return limpiarObjeto({
     guardia_fecha: finalizado.guardia_fecha,
@@ -34,6 +36,8 @@ export function mapearFinalizadoParaSupabase(finalizado) {
       fecha_operativo: finalizado.fecha_operativo || finalizado.operativo?.fecha_operativo || finalizado.operativo?.datos?.fecha_operativo || "",
       tipo_nombre: tipoNombre,
       ordenes_origen: ordenesOrigen,
+      presencia_activa: presenciaActiva,
+      presencia_activa_motivo: motivoPresenciaActiva,
       fotos: normalizarFotos(finalizado.fotos),
       foto_prefijo: finalizado.foto_prefijo || "",
       recursos_finalizado: {
@@ -45,6 +49,7 @@ export function mapearFinalizadoParaSupabase(finalizado) {
         fuente_elementos: f.mismos_elementos ? "INICIO" : "FINALIZADO_MANUAL"
       },
       resultados: {
+        agregar_resultados: Boolean(f.agregar_controlados),
         vehiculos: numero(f.vehiculos),
         personas: numero(f.personas),
         test_alometro: numero(f.test_alometro),
@@ -80,6 +85,14 @@ export function mapearFinalizadoParaSupabase(finalizado) {
     origen: "Informes_GP",
     fecha_evento: finalizado.fecha
   });
+}
+
+function resolverMotivoPresenciaActiva(formulario = {}) {
+  if (!formulario.presencia_activa) return "";
+  const motivo = String(formulario.presencia_activa_motivo || "").trim().toUpperCase();
+  if (motivo === "LLUVIA") return "Lluvia";
+  if (motivo === "OTROS") return String(formulario.presencia_activa_otro || "").trim();
+  return "";
 }
 
 function normalizarFotos(fotos = []) { return Array.isArray(fotos) ? fotos.map((foto) => ({ indice: foto.indice, nombre: foto.nombre, urlTemporal: foto.urlTemporal || null })) : []; }
