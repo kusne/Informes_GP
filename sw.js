@@ -1,4 +1,4 @@
-const CACHE_VERSION = "informes-gp-v20260909-actualizacion-inmediata-v1";
+const CACHE_VERSION = "informes-gp-v20260912-seis-correcciones-v1";
 const CACHE_ESTATICO = `${CACHE_VERSION}-static`;
 
 const PRECACHE = [
@@ -42,8 +42,6 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Todo lo que pueda cambiar con una publicación se consulta primero en red.
-  // La caché queda únicamente como respaldo sin conexión.
   if (esRecursoActualizable(url.pathname)) {
     event.respondWith(recursoNetworkFirst(request));
     return;
@@ -59,9 +57,7 @@ async function navigationNetworkFirst(request) {
 
   try {
     const response = await fetch(request, { cache: "no-store" });
-    if (response?.ok) {
-      await cache.put("./index.html", response.clone());
-    }
+    if (response?.ok) await cache.put("./index.html", response.clone());
     return response;
   } catch {
     const cached = (await cache.match(request)) || (await cache.match("./index.html"));
@@ -75,9 +71,7 @@ async function recursoNetworkFirst(request) {
 
   try {
     const response = await fetch(request, { cache: "no-store" });
-    if (response?.ok) {
-      await cache.put(request, response.clone());
-    }
+    if (response?.ok) await cache.put(request, response.clone());
     return response;
   } catch {
     const cached = await cache.match(request);
@@ -92,9 +86,7 @@ async function cacheFirst(request) {
   if (cached) return cached;
 
   const response = await fetch(request, { cache: "no-store" });
-  if (response?.ok) {
-    await cache.put(request, response.clone());
-  }
+  if (response?.ok) await cache.put(request, response.clone());
   return response;
 }
 

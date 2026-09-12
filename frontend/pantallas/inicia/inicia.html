@@ -14,6 +14,25 @@
   <div id="inicioAgregarElementosPresenciaHost" class="hidden"></div>
   <div id="inicioElementosHost"></div>
 
+  <section class="inicio-presencia-activa-card" aria-label="Presencia activa">
+    <label for="inicioPresenciaActiva">
+      <input id="inicioPresenciaActiva" name="presencia_activa" type="checkbox">
+      <span>Presencia activa</span>
+    </label>
+    <div id="inicioPresenciaActivaMotivoWrap" class="hidden">
+      <label for="inicioPresenciaActivaMotivo">Motivo:</label>
+      <select id="inicioPresenciaActivaMotivo" name="presencia_activa_motivo">
+        <option value="">Seleccionar motivo</option>
+        <option value="LLUVIA">Lluvia</option>
+        <option value="OTROS">Otros</option>
+      </select>
+      <div id="inicioPresenciaActivaOtroWrap" class="hidden">
+        <label for="inicioPresenciaActivaOtro">Otro motivo:</label>
+        <input id="inicioPresenciaActivaOtro" name="presencia_activa_otro" type="text" autocomplete="off" placeholder="Escriba el motivo">
+      </div>
+    </div>
+  </section>
+
   <div class="inicio-observaciones">
     <label for="inicioObservaciones">Observaciones:</label>
     <textarea

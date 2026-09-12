@@ -1,9 +1,6 @@
 import { normalizarPersonalSalidaFinaliza } from "./recursos-finaliza.js";
 import { anexarOrdenesAlTitulo, resolverOrdenesOrigenOperativo } from "../compartido/operativo-identidad.js";
-import {
-  usaControladosOpcionalesFinaliza,
-  hayControladosFinaliza
-} from "../compartido/tipos/operativos-elementos-controlados-opcionales.js";
+import { usaControladosOpcionalesFinaliza } from "../compartido/tipos/operativos-elementos-controlados-opcionales.js";
 import { esOperativoPatrullaje } from "../compartido/tipos/patrullaje.js";
 import { usaResultadosAssalControlArmas } from "../compartido/tipos/resultados-especiales-finaliza.js";
 
@@ -14,8 +11,8 @@ export function construirTextoFinalizadoBase(finalizado) {
   const operativo = finalizado.operativo || {};
   const numerales = finalizado.numeralesFinaliza || {};
   const lineas = [];
-  const controladosOpcionales = usaControladosOpcionalesFinaliza(operativo, finalizado?.tipo_operativo);
-  const imprimirControlados = !controladosOpcionales || (Boolean(f.agregar_controlados) && hayControladosFinaliza(f));
+  const resultadosOpcionales = usaControladosOpcionalesFinaliza(operativo, finalizado?.tipo_operativo);
+  const imprimirResultados = !resultadosOpcionales || Boolean(f.agregar_controlados);
 
   lineas.push(negrita("Policia de la Provincia de Santa Fe - Direccion General Guardia Provincial"));
   lineas.push(negrita("Brigada Motorizada Centro Norte"));
@@ -26,6 +23,7 @@ export function construirTextoFinalizadoBase(finalizado) {
   lineas.push(`${negrita("Fecha:")} ${formatearFecha(finalizado.fecha_operativo || operativo?.fecha_operativo || finalizado.fecha)}`);
   lineas.push(`${negrita("Horario:")} ${formatearHorario(finalizado)}`);
   lineas.push(`${negrita("Lugar:")} ${normalizarLugar(finalizado.lugar)}`);
+  agregarPresenciaActiva(lineas, f);
   lineas.push("");
   lineas.push(negrita("Personal Policial:"));
   lineas.push(normalizarPersonalSalidaFinaliza(f.personal) || "/");
@@ -35,7 +33,7 @@ export function construirTextoFinalizadoBase(finalizado) {
   lineas.push(negrita("Elementos:"));
   lineas.push(texto(f.elementos) || construirElementosVacios());
 
-  if (imprimirControlados) {
+  if (imprimirResultados) {
     lineas.push("");
     lineas.push(negrita("Resultados:"));
     lineas.push(`Vehículos Fiscalizados: (${cantidad(f.vehiculos)})`);
@@ -97,6 +95,20 @@ export function construirTextoFinalizadoBase(finalizado) {
   return compactarSaltos(lineas.join("\n"));
 }
 
+function agregarPresenciaActiva(lineas, formulario = {}) {
+  if (!formulario.presencia_activa) return;
+  lineas.push(`${negrita("Presencia activa:")} Sí`);
+  const motivo = resolverMotivoPresenciaActiva(formulario);
+  if (motivo) lineas.push(`${negrita("Motivo:")} ${motivo}`);
+}
+
+function resolverMotivoPresenciaActiva(formulario = {}) {
+  const motivo = texto(formulario.presencia_activa_motivo).toUpperCase();
+  if (motivo === "LLUVIA") return "Lluvia";
+  if (motivo === "OTROS") return texto(formulario.presencia_activa_otro);
+  return "";
+}
+
 function construirObservacionesFinalizado({ observaciones, decreto460, esPatrullaje }) {
   const partes = [];
   const manual = texto(observaciones);
@@ -142,11 +154,7 @@ function normalizarAcronimosTitulo(valor) {
 function formatearFecha(valor) {
   const limpio = String(valor || "").trim();
   const fechaISO = limpio.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-
-  // Evita que una fecha DATE de Supabase cambie de día por conversión UTC/local.
-  if (fechaISO) {
-    return `${fechaISO[3]}/${fechaISO[2]}/${fechaISO[1]}`;
-  }
+  if (fechaISO) return `${fechaISO[3]}/${fechaISO[2]}/${fechaISO[1]}`;
 
   const fecha = limpio ? new Date(limpio) : new Date();
   const valida = Number.isFinite(fecha.getTime()) ? fecha : new Date();

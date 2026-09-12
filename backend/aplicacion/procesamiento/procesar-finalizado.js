@@ -3,7 +3,6 @@ import { construirTextoFinalizadoBase } from "../../dominio/finaliza/finalizado-
 import { mapearFinalizadoParaSupabase } from "../../dominio/finaliza/finalizado-mapper-supabase.js";
 import {
   usaControladosOpcionalesFinaliza,
-  hayControladosFinaliza,
   CAMPOS_CONTROLADOS,
   resolverHoraFinFinalizadoEspecial
 } from "../../dominio/compartido/tipos/operativos-elementos-controlados-opcionales.js";
@@ -19,9 +18,8 @@ export function procesarFinalizadoFormulario({
   const datosFormulario = normalizarFormularioFinalizado(formulario);
 
   if (usaControladosOpcionalesFinaliza(operativoSeleccionado, tipoFormulario)) {
-    const agregarControlados = Boolean(datosFormulario.agregar_controlados);
-    const conControlados = agregarControlados && hayControladosFinaliza(datosFormulario);
-    if (!conControlados) {
+    const agregarResultados = Boolean(datosFormulario.agregar_controlados);
+    if (!agregarResultados) {
       for (const campo of CAMPOS_CONTROLADOS) datosFormulario[campo] = 0;
       datosFormulario.graduaciones_sancionable = [];
       datosFormulario.graduaciones_no_sancionable = [];

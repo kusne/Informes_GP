@@ -6,35 +6,39 @@ import {
 
 /**
  * Detecta Ordenamiento Vehicular de forma tolerante a pequeñas faltas
- * ortográficas en la denominación recibida. La salida se normaliza por el
- * modo de la app (INICIA / FINALIZA), por lo que errores como "Iniia" en
- * textos externos no alteran el encabezado generado.
+ * ortográficas en la denominación recibida.
  */
 export function esOrdenamientoVehicular(operativo = {}, tipoFallback = "") {
-  const fuente = normalizar([
-    tipoFallback,
-    operativo?.tipo_operativo,
-    operativo?.tipo_codigo,
-    operativo?.tipo_nombre,
-    operativo?.tipo_descripcion,
-    operativo?.titulo,
-    operativo?.tipo
-  ].filter(Boolean).join(" "));
-
+  const fuente = fuenteOperativoNormalizada(operativo, tipoFallback);
   if (!fuente) return false;
 
   const palabras = fuente.split(/\s+/).filter(Boolean);
   const ordenamientoAproximado = palabras.some((palabra) =>
     distanciaLevenshtein(palabra, "ORDENAMIENTO") <= 2
   );
-
-  // Fallback para errores más groseros pero inequívocos cuando también
-  // aparece VEHICULAR (por ejemplo: "ORDENAMINETO VEHICULAR").
   const ordenVehicular = fuente.includes("VEHICULAR") && /\bORDEN\w*/.test(fuente);
 
   return ordenamientoAproximado || ordenVehicular;
 }
 
+export function esPresenciaActiva(operativo = {}, tipoFallback = "") {
+  return fuenteOperativoNormalizada(operativo, tipoFallback).includes("PRESENCIA ACTIVA");
+}
+
+export function esPuenteCarretero(operativo = {}, tipoFallback = "") {
+  const fuente = fuenteOperativoNormalizada(operativo, tipoFallback);
+  const lugar = normalizar([
+    operativo?.lugar,
+    operativo?.qth,
+    operativo?.ubicacion
+  ].filter(Boolean).join(" "));
+  return fuente.includes("PUENTE CARRETERO") || lugar.includes("PUENTE CARRETERO");
+}
+
+export function esOperativoNocturnidad(operativo = {}, tipoFallback = "") {
+  const fuente = fuenteOperativoNormalizada(operativo, tipoFallback);
+  return fuente.includes("NOCTURNIDAD") || fuente.includes("BOLICHES BAILABLES") || fuente.includes("ZONA DE BOLICHES");
+}
 
 /** Detecta operativos de RETORNO, sin depender de mayúsculas/minúsculas. */
 export function esOperativoRetorno(operativo = {}, tipoFallback = "") {
@@ -82,17 +86,20 @@ export function usaElementosOpcionalesInicio(operativo = {}, tipoFallback = "") 
 }
 
 /**
- * Tipos cuyo FINALIZA oculta Resultados/Detalles y muestra
- * "Agregar Controlados".
+ * Tipos cuyo FINALIZA no debe imprimir Resultados por defecto. Para estos
+ * casos la interfaz muestra el check "Agregar resultados". Si el usuario no
+ * lo tilda, Resultados y Detalles quedan fuera de la salida.
  */
 export function usaControladosOpcionalesFinaliza(operativo = {}, tipoFallback = "") {
-  return esPresenciaActivaPuenteCarretero(operativo, tipoFallback) ||
+  return esPresenciaActiva(operativo, tipoFallback) ||
+    esPuenteCarretero(operativo, tipoFallback) ||
+    esOperativoNocturnidad(operativo, tipoFallback) ||
     esOrdenamientoVehicular(operativo, tipoFallback) ||
     esOperativoRetornoOExodo(operativo, tipoFallback);
 }
 
 /**
- * Estos mismos tipos pueden llegar al FINALIZA con Elementos vacíos porque
+ * Estos tipos pueden llegar al FINALIZA con Elementos vacíos porque
  * en su INICIA el bloque es opt-in.
  */
 export function permiteElementosVaciosFinaliza(operativo = {}, tipoFallback = "") {
@@ -107,13 +114,16 @@ function fuenteOperativoNormalizada(operativo = {}, tipoFallback = "") {
     operativo?.tipo_operativo,
     operativo?.tipo_codigo,
     operativo?.tipo_nombre,
+    operativo?.tipo_original,
     operativo?.tipo_descripcion,
     operativo?.titulo,
     operativo?.tipo,
     operativo?.descripcion,
     operativo?.detalle,
     operativo?.observacion,
-    operativo?.etiqueta
+    operativo?.etiqueta,
+    operativo?.datos?.tipo_original,
+    operativo?.registro_original?.tipo
   ].filter(Boolean).join(" "));
 }
 

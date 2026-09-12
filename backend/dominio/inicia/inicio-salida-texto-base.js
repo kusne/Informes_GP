@@ -17,6 +17,7 @@ export function construirTextoInicioBase(inicio) {
   lineas.push(`${negrita("Fecha:")} ${formatearFecha(inicio.fecha_operativo || operativo?.fecha_operativo || inicio.fecha)}`);
   lineas.push(`${negrita("Horario:")} ${formatearHorario(inicio)}`);
   lineas.push(`${negrita("Lugar:")} ${normalizarLugar(inicio.lugar)}`);
+  agregarPresenciaActiva(lineas, formulario);
   lineas.push("");
 
   lineas.push(negrita("Personal Policial:"));
@@ -34,6 +35,20 @@ export function construirTextoInicioBase(inicio) {
   lineas.push(texto(formulario.observaciones) || "Sin novedad");
 
   return compactarSaltos(lineas.join("\n"));
+}
+
+function agregarPresenciaActiva(lineas, formulario = {}) {
+  if (!formulario.presencia_activa) return;
+  lineas.push(`${negrita("Presencia activa:")} Sí`);
+  const motivo = resolverMotivoPresenciaActiva(formulario);
+  if (motivo) lineas.push(`${negrita("Motivo:")} ${motivo}`);
+}
+
+function resolverMotivoPresenciaActiva(formulario = {}) {
+  const motivo = texto(formulario.presencia_activa_motivo).toUpperCase();
+  if (motivo === "LLUVIA") return "Lluvia";
+  if (motivo === "OTROS") return texto(formulario.presencia_activa_otro);
+  return "";
 }
 
 function formatearPersonalSalida(valor) {
@@ -95,53 +110,24 @@ function normalizarLugar(valor) {
 function formatearFecha(valor) {
   const limpio = String(valor || "").trim();
   const fechaISO = limpio.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-
-  // Una fecha DATE de Supabase no debe convertirse con new Date("YYYY-MM-DD"),
-  // porque el huso horario puede desplazarla al día anterior.
-  if (fechaISO) {
-    return `${fechaISO[3]}/${fechaISO[2]}/${fechaISO[1]}`;
-  }
+  if (fechaISO) return `${fechaISO[3]}/${fechaISO[2]}/${fechaISO[1]}`;
 
   const fecha = limpio ? new Date(limpio) : new Date();
   const valida = Number.isFinite(fecha.getTime()) ? fecha : new Date();
-
-  return valida.toLocaleDateString("es-AR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric"
-  });
+  return valida.toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
 function formatearHorario(inicio) {
   const horaInicio = texto(inicio?.hora_inicio);
   const horaFin = texto(inicio?.hora_fin);
-
   if (!horaInicio && !horaFin) return "/";
   return `${horaInicio || "--:--"} A ${horaFin || "--:--"} HS`;
 }
 
 function construirElementosVacios() {
-  return [
-    "Escopetas: /",
-    "Ht: /",
-    "Pda: /",
-    "Impresoras: /",
-    "Alómetros: /",
-    "Alcoholímetros: /"
-  ].join("\n");
+  return ["Escopetas: /", "Ht: /", "Pda: /", "Impresoras: /", "Alómetros: /", "Alcoholímetros: /"].join("\n");
 }
 
-function negrita(valor) {
-  return `*${texto(valor)}*`;
-}
-
-function texto(valor) {
-  return String(valor || "").trim();
-}
-
-function compactarSaltos(valor) {
-  return String(valor || "")
-    .replace(/[ \t]+\n/g, "\n")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
-}
+function negrita(valor) { return `*${texto(valor)}*`; }
+function texto(valor) { return String(valor || "").trim(); }
+function compactarSaltos(valor) { return String(valor || "").replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim(); }

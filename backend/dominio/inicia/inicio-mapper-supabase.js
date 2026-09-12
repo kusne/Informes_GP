@@ -10,6 +10,8 @@ export function mapearInicioParaSupabase(inicio) {
   const tipoNombre = resolverTipoNombreOperativo(inicio, inicio.operativo);
   const ordenesOrigen = resolverOrdenesOrigenOperativo(inicio, inicio.operativo);
   const fotos = normalizarFotos(inicio.fotos);
+  const presenciaActiva = Boolean(f.presencia_activa);
+  const motivoPresenciaActiva = resolverMotivoPresenciaActiva(f);
   const snapshot = {
     tipo_operativo: inicio.tipo_operativo,
     tipo_nombre: tipoNombre,
@@ -21,6 +23,8 @@ export function mapearInicioParaSupabase(inicio) {
     personal: f.personal || "",
     moviles_motos: f.moviles_motos || "",
     elementos: f.elementos || "",
+    presencia_activa: presenciaActiva,
+    presencia_activa_motivo: motivoPresenciaActiva,
     observaciones: f.observaciones || "",
     texto_salida: inicio.texto || "",
     foto_prefijo: inicio.foto_prefijo || "",
@@ -47,6 +51,8 @@ export function mapearInicioParaSupabase(inicio) {
       fecha_operativo: snapshot.fecha_operativo,
       tipo_nombre: tipoNombre,
       ordenes_origen: ordenesOrigen,
+      presencia_activa: presenciaActiva,
+      presencia_activa_motivo: motivoPresenciaActiva,
       fotos,
       foto_prefijo: inicio.foto_prefijo || "",
       inicio_snapshot: snapshot
@@ -54,6 +60,14 @@ export function mapearInicioParaSupabase(inicio) {
     origen: "Informes_GP",
     fecha_evento: inicio.fecha
   });
+}
+
+function resolverMotivoPresenciaActiva(formulario = {}) {
+  if (!formulario.presencia_activa) return "";
+  const motivo = String(formulario.presencia_activa_motivo || "").trim().toUpperCase();
+  if (motivo === "LLUVIA") return "Lluvia";
+  if (motivo === "OTROS") return String(formulario.presencia_activa_otro || "").trim();
+  return "";
 }
 
 function normalizarFotos(fotos = []) {
