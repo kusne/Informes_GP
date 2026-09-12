@@ -32,6 +32,25 @@
     </label>
   </section>
 
+  <section class="finaliza-presencia-activa-card" aria-label="Presencia activa">
+    <label for="finalizaPresenciaActiva">
+      <input id="finalizaPresenciaActiva" name="presencia_activa" type="checkbox">
+      <span>Presencia activa</span>
+    </label>
+    <div id="finalizaPresenciaActivaMotivoWrap" class="hidden">
+      <label for="finalizaPresenciaActivaMotivo">Motivo:</label>
+      <select id="finalizaPresenciaActivaMotivo" name="presencia_activa_motivo">
+        <option value="">Seleccionar motivo</option>
+        <option value="LLUVIA">Lluvia</option>
+        <option value="OTROS">Otros</option>
+      </select>
+      <div id="finalizaPresenciaActivaOtroWrap" class="hidden">
+        <label for="finalizaPresenciaActivaOtro">Otro motivo:</label>
+        <input id="finalizaPresenciaActivaOtro" name="presencia_activa_otro" type="text" autocomplete="off" placeholder="Escriba el motivo">
+      </div>
+    </div>
+  </section>
+
   <div id="finalizaAgregarControladosPresenciaHost" class="hidden"></div>
 
   <section class="finaliza-resultados-card">
