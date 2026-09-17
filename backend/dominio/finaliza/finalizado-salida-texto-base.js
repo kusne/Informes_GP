@@ -77,10 +77,11 @@ export function construirTextoFinalizadoBase(finalizado) {
       lineas.push(textoNumerales);
     }
 
-    if (texto(f.detalles)) {
+    const detallesNormalizados = consolidarDetallesPorCodigo(f.detalles);
+    if (detallesNormalizados) {
       lineas.push("");
       lineas.push(negrita("Detalles:"));
-      lineas.push(texto(f.detalles));
+      lineas.push(detallesNormalizados);
     }
   }
 
@@ -93,6 +94,48 @@ export function construirTextoFinalizadoBase(finalizado) {
   }));
 
   return compactarSaltos(lineas.join("\n"));
+}
+
+export function consolidarDetallesPorCodigo(valor) {
+  const lineas = String(valor || "").replace(/\r/g, "").split("\n");
+  const salida = [];
+  const porCodigo = new Map();
+
+  for (const lineaOriginal of lineas) {
+    const linea = String(lineaOriginal || "").trim();
+    if (!linea) continue;
+
+    const m = linea.match(/^(?:\(\s*(\d{1,3})\s*\)\s*)?(\d{4,5})(?:\s*[-:;,.–—]\s*|\s+)?(.*)$/i);
+    if (!m) {
+      salida.push({ tipo: "manual", texto: linea });
+      continue;
+    }
+
+    const codigo = String(m[2] || "").replace(/\D+/g, "");
+    if (!codigo) {
+      salida.push({ tipo: "manual", texto: linea });
+      continue;
+    }
+
+    const cantidadLinea = Math.max(1, parseInt(String(m[1] || "1"), 10) || 1);
+    const descripcion = String(m[3] || "").trim();
+    const existente = porCodigo.get(codigo);
+    if (existente) {
+      existente.cantidad += cantidadLinea;
+      if (!existente.descripcion && descripcion) existente.descripcion = descripcion;
+      continue;
+    }
+
+    const item = { tipo: "codigo", codigo, cantidad: cantidadLinea, descripcion };
+    porCodigo.set(codigo, item);
+    salida.push(item);
+  }
+
+  return salida.map((item) => {
+    if (item.tipo === "manual") return item.texto;
+    const descripcion = item.descripcion ? ` ${item.descripcion}` : "";
+    return `(${String(item.cantidad).padStart(2, "0")}) ${item.codigo}${descripcion}`;
+  }).join("\n");
 }
 
 function agregarPresenciaActiva(lineas, formulario = {}) {
