@@ -4,14 +4,21 @@ export function iniciarDetallesFinaliza({ textarea, onChange } = {}) {
   if (!textarea || textarea.dataset.detallesNomencladorIniciado === "1") return;
   textarea.dataset.detallesNomencladorIniciado = "1";
 
-  const aplicar = () => {
-    aplicarAutocompletadoDetalles(textarea);
+  const aplicarInput = (event) => {
+    const inputType = String(event?.inputType || "");
+    // Si el usuario esta borrando, no reconstruir la linea con el nomenclador:
+    // debe poder eliminar o editar manualmente cualquier detalle ya autocompletado.
+    if (!inputType.startsWith("delete")) aplicarAutocompletadoDetalles(textarea);
     onChange?.(textarea.value);
   };
 
-  // Mismo comportamiento de WSP histórico: completa mientras se escribe y al perder foco.
-  textarea.addEventListener("input", aplicar);
-  textarea.addEventListener("blur", aplicar);
+  const aplicarBlur = () => {
+    // Al salir del campo se conserva exactamente lo que dejo el usuario.
+    onChange?.(textarea.value);
+  };
+
+  textarea.addEventListener("input", aplicarInput);
+  textarea.addEventListener("blur", aplicarBlur);
 }
 
 export function aplicarAutocompletadoDetalles(textarea) {
@@ -51,6 +58,10 @@ export function autocompletarLineaDetalleConNomenclador(linea) {
     if (!m) continue;
     const cantidad = patron.conCantidad ? m[1] : null;
     const codigo = patron.conCantidad ? m[2] : m[1];
+    const resto = patron.conCantidad ? m[3] : m[2];
+
+    // Una descripcion ya escrita es contenido manual: no reemplazarla mientras se edita.
+    if (String(resto || "").trim()) return original;
 
     // Regla histórica de WSP: 17117 se deja manual por su ambigüedad operativa.
     if (String(codigo || "").replace(/\D+/g, "") === "17117") return original;
