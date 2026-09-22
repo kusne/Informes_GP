@@ -1,4 +1,4 @@
-const CANAL_INSTANCIA = "informes-gp-instancia-unica-v2";
+const CANAL_INSTANCIA = "informes-gp-instancia-unica-v3";
 const ESPERA_DETECCION_MS = 220;
 
 let canal = null;
@@ -9,18 +9,16 @@ let creadaEn = 0;
  * Detecta si Informes GP ya está abierto en otra pestaña.
  *
  * Regla de seguridad:
- * - NUNCA se cierra ni reemplaza la instancia que ya estaba trabajando.
- * - Sólo la pestaña nueva, después de confirmar que existe una anterior,
- *   intenta cerrarse a sí misma. Si Chrome no permite cerrarla, queda en modo
- *   liviano y el bootstrap no inicia una segunda copia de la aplicación.
- * - Si dos pestañas nacen prácticamente juntas, gana de forma determinística
- *   la más antigua (y, ante empate, el id menor) para que no se cierren ambas.
- *
- * Se conserva el nombre de canal v2 a propósito: así una pestaña nueva puede
- * detectar también una instancia que todavía esté ejecutando la versión
- * anterior mientras termina de actualizarse el Service Worker.
+ * - La instancia única se aplica sólo entre pestañas de la MISMA versión.
+ * - Una pestaña de una versión anterior nunca bloquea una versión nueva.
+ * - Entre dos pestañas de la misma versión gana de forma determinística
+ *   la más antigua (y, ante empate, el id menor).
  */
-export function iniciarInstanciaUnicaInformesGP({ esperaMs = ESPERA_DETECCION_MS } = {}) {
+export function iniciarInstanciaUnicaInformesGP({
+  esperaMs = ESPERA_DETECCION_MS,
+  versionActual = ""
+} = {}) {
+  const version = String(versionActual || "").trim() || "SIN_VERSION";
   try {
     window.name = window.name || "InformesGPPrincipal";
   } catch {}
@@ -46,6 +44,8 @@ export function iniciarInstanciaUnicaInformesGP({ esperaMs = ESPERA_DETECCION_MS
       if (!mensaje || mensaje.instanciaId === instanciaId) return;
 
       if (mensaje.tipo === "IGP_BUSCAR_INSTANCIA") {
+        const versionSolicitante = String(mensaje.version || "").trim();
+        if (versionSolicitante !== version) return;
         if (!estaInstanciaTienePrioridadSobre(mensaje)) return;
 
         try { window.focus(); } catch {}
@@ -53,6 +53,7 @@ export function iniciarInstanciaUnicaInformesGP({ esperaMs = ESPERA_DETECCION_MS
           tipo: "IGP_INSTANCIA_PRESENTE",
           instanciaId,
           creadaEn,
+          version,
           para: mensaje.instanciaId,
           visible: document.visibilityState === "visible"
         });
@@ -60,7 +61,10 @@ export function iniciarInstanciaUnicaInformesGP({ esperaMs = ESPERA_DETECCION_MS
       }
 
       if (mensaje.tipo === "IGP_INSTANCIA_PRESENTE" && mensaje.para === instanciaId) {
-        console.info("[Informes_GP] Instancia previa detectada; la nueva pestaña no iniciará otra copia de la app.");
+        const versionExistente = String(mensaje.version || "").trim();
+        if (versionExistente !== version) return;
+
+        console.info("[Informes_GP] Instancia previa de la misma versión detectada; la nueva pestaña no iniciará otra copia de la app.");
         finalizar({
           activo: true,
           duplicada: true,
@@ -74,7 +78,7 @@ export function iniciarInstanciaUnicaInformesGP({ esperaMs = ESPERA_DETECCION_MS
       }
     });
 
-    canal.postMessage({ tipo: "IGP_BUSCAR_INSTANCIA", instanciaId, creadaEn });
+    canal.postMessage({ tipo: "IGP_BUSCAR_INSTANCIA", instanciaId, creadaEn, version });
 
     setTimeout(() => {
       finalizar({ activo: true, duplicada: false, instanciaId });

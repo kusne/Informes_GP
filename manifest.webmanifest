@@ -10,7 +10,7 @@
   "theme_color": "#2b2f36",
   "orientation": "portrait-primary",
   "launch_handler": {
-    "client_mode": "focus-existing"
+    "client_mode": "navigate-existing"
   },
   "icons": [
     {

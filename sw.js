@@ -1,9 +1,10 @@
-const VERSION_SESION = new URL(self.location.href).searchParams.get("v") || String(Date.now());
-const CACHE_VERSION = `informes-gp-runtime-${VERSION_SESION}`;
+const PARAMS_SW = new URL(self.location.href).searchParams;
+const VERSION_DESPLIEGUE = PARAMS_SW.get("v") || `sesion-${Date.now()}`;
+const NONCE_SESION = PARAMS_SW.get("n") || String(Date.now());
+const CACHE_VERSION = `informes-gp-v-${VERSION_DESPLIEGUE}`;
 const CACHE_ESTATICO = `${CACHE_VERSION}-static`;
 
 const PRECACHE = [
-  "./manifest.webmanifest",
   "./frontend/assets/logo-bmzcn-gold-black.png",
   "./frontend/assets/icon-192.png",
   "./frontend/assets/icon-512.png"
@@ -102,7 +103,8 @@ async function cacheFirst(request) {
 
 function urlConVersion(valor) {
   const url = new URL(valor, self.location.origin);
-  url.searchParams.set("__igp", VERSION_SESION);
+  url.searchParams.set("__igp_v", VERSION_DESPLIEGUE);
+  url.searchParams.set("__igp_n", NONCE_SESION);
   return url.href;
 }
 

@@ -1,15 +1,20 @@
-const VERSION_SESION = new URL(import.meta.url).searchParams.get("v") || String(Date.now());
+const URL_ACTUAL = new URL(import.meta.url);
+const VERSION_DESPLIEGUE = URL_ACTUAL.searchParams.get("v") || `sesion-${Date.now()}`;
+const NONCE_SESION = URL_ACTUAL.searchParams.get("n") || String(Date.now());
+const SUFIJO_VERSION = `?v=${encodeURIComponent(VERSION_DESPLIEGUE)}&n=${encodeURIComponent(NONCE_SESION)}`;
 
 const [
   { iniciarApp },
   { iniciarInstanciaUnicaInformesGP }
 ] = await Promise.all([
-  import(`./app.js?v=${encodeURIComponent(VERSION_SESION)}`),
-  import(`../servicios/navegacion/instancia-unica.js?v=${encodeURIComponent(VERSION_SESION)}`)
+  import(`./app.js${SUFIJO_VERSION}`),
+  import(`../servicios/navegacion/instancia-unica.js${SUFIJO_VERSION}`)
 ]);
 
 aplicarCorreccionesVisualesGlobales();
-const deteccionInstancia = iniciarInstanciaUnicaInformesGP();
+const deteccionInstancia = iniciarInstanciaUnicaInformesGP({
+  versionActual: VERSION_DESPLIEGUE
+});
 
 window.addEventListener("DOMContentLoaded", async () => {
   try {

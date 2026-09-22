@@ -2554,7 +2554,6 @@ body.informe-detalle-activo {
 
   <!-- Los módulos JS se cargan después de actualizar el Service Worker para evitar mezclar versiones. -->
   <link rel="preload" href="./frontend/assets/logo-bmzcn-gold-black.png" as="image" fetchpriority="high">
-  <link rel="manifest" href="./manifest.webmanifest">
 </head>
 <body>
   <!--
@@ -2617,10 +2616,36 @@ body.informe-detalle-activo {
   </div>
 
   <script type="module">
-    // Cada apertura online usa un token nuevo. El SW lo propaga a HTML/JS/CSS para
-    // evitar que navegador/CDN mezclen archivos de despliegues diferentes.
-    const versionSesion = String(Date.now());
-    window.__IGP_VERSION_SESION__ = versionSesion;
+    // VERSION_DESPLIEGUE identifica el commit real de main. NONCE_SESION cambia
+    // en cada apertura y evita reutilizar copias viejas del navegador o del CDN.
+    const NONCE_SESION = String(Date.now());
+    const VERSION_FALLBACK = `sesion-${NONCE_SESION}`;
+
+    async function resolverVersionDespliegue() {
+      try {
+        const url = new URL("https://api.github.com/repos/kusne/Informes_GP/commits/main");
+        url.searchParams.set("_igp", NONCE_SESION);
+        const response = await fetch(url.href, {
+          cache: "no-store",
+          headers: { "Accept": "application/vnd.github+json" }
+        });
+        if (!response.ok) return VERSION_FALLBACK;
+        const data = await response.json();
+        const sha = String(data?.sha || "").trim();
+        return sha || VERSION_FALLBACK;
+      } catch {
+        return VERSION_FALLBACK;
+      }
+    }
+
+    const VERSION_DESPLIEGUE = await resolverVersionDespliegue();
+    window.__IGP_VERSION_DESPLIEGUE__ = VERSION_DESPLIEGUE;
+    window.__IGP_VERSION_SESION__ = NONCE_SESION;
+
+    const manifest = document.createElement("link");
+    manifest.rel = "manifest";
+    manifest.href = `./manifest.webmanifest?v=${encodeURIComponent(VERSION_DESPLIEGUE)}&n=${encodeURIComponent(NONCE_SESION)}`;
+    document.head.appendChild(manifest);
 
     function esperarEstado(worker, estadoEsperado, timeoutMs = 8000) {
       if (!worker || worker.state === estadoEsperado) return Promise.resolve();
@@ -2663,7 +2688,10 @@ body.informe-detalle-activo {
     async function prepararServiceWorker() {
       if (!("serviceWorker" in navigator)) return false;
 
-      const swUrl = new URL(`./sw.js?v=${encodeURIComponent(versionSesion)}`, window.location.href);
+      const swUrl = new URL(
+        `./sw.js?v=${encodeURIComponent(VERSION_DESPLIEGUE)}&n=${encodeURIComponent(NONCE_SESION)}`,
+        window.location.href
+      );
       const scopeUrl = new URL("./", window.location.href);
 
       const registro = await navigator.serviceWorker.register(swUrl.href, {
@@ -2700,7 +2728,9 @@ body.informe-detalle-activo {
     }
 
     const usarToken = swPreparado || !("serviceWorker" in navigator);
-    const sufijo = usarToken ? `?v=${encodeURIComponent(versionSesion)}` : "";
+    const sufijo = usarToken
+      ? `?v=${encodeURIComponent(VERSION_DESPLIEGUE)}&n=${encodeURIComponent(NONCE_SESION)}`
+      : "";
 
     const compatibilidad = [
       "./frontend/compatibilidad/control-moviles/wsp-control-moviles-flujo-ui.js",
