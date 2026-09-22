@@ -1,9 +1,8 @@
-const CACHE_VERSION = "informes-gp-v20260912-seis-correcciones-v1";
+const VERSION_SESION = new URL(self.location.href).searchParams.get("v") || String(Date.now());
+const CACHE_VERSION = `informes-gp-runtime-${VERSION_SESION}`;
 const CACHE_ESTATICO = `${CACHE_VERSION}-static`;
 
 const PRECACHE = [
-  "./",
-  "./index.html",
   "./manifest.webmanifest",
   "./frontend/assets/logo-bmzcn-gold-black.png",
   "./frontend/assets/icon-192.png",
@@ -54,13 +53,18 @@ self.addEventListener("fetch", (event) => {
 
 async function navigationNetworkFirst(request) {
   const cache = await caches.open(CACHE_ESTATICO);
+  const urlFresca = urlConVersion(request.url);
 
   try {
-    const response = await fetch(request, { cache: "no-store" });
+    const response = await fetch(urlFresca, {
+      cache: "no-store",
+      credentials: "same-origin",
+      redirect: "follow"
+    });
     if (response?.ok) await cache.put("./index.html", response.clone());
     return response;
   } catch {
-    const cached = (await cache.match(request)) || (await cache.match("./index.html"));
+    const cached = await cache.match("./index.html");
     if (cached) return cached;
     return new Response("Sin conexión", { status: 503 });
   }
@@ -68,13 +72,19 @@ async function navigationNetworkFirst(request) {
 
 async function recursoNetworkFirst(request) {
   const cache = await caches.open(CACHE_ESTATICO);
+  const claveCache = claveCanonica(request.url);
+  const urlFresca = urlConVersion(request.url);
 
   try {
-    const response = await fetch(request, { cache: "no-store" });
-    if (response?.ok) await cache.put(request, response.clone());
+    const response = await fetch(urlFresca, {
+      cache: "no-store",
+      credentials: "same-origin",
+      redirect: "follow"
+    });
+    if (response?.ok) await cache.put(claveCache, response.clone());
     return response;
   } catch {
-    const cached = await cache.match(request);
+    const cached = await cache.match(claveCache);
     if (cached) return cached;
     throw new Error(`Recurso no disponible: ${request.url}`);
   }
@@ -88,6 +98,19 @@ async function cacheFirst(request) {
   const response = await fetch(request, { cache: "no-store" });
   if (response?.ok) await cache.put(request, response.clone());
   return response;
+}
+
+function urlConVersion(valor) {
+  const url = new URL(valor, self.location.origin);
+  url.searchParams.set("__igp", VERSION_SESION);
+  return url.href;
+}
+
+function claveCanonica(valor) {
+  const url = new URL(valor, self.location.origin);
+  url.search = "";
+  url.hash = "";
+  return url.href;
 }
 
 function esRecursoActualizable(pathname) {

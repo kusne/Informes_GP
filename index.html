@@ -2552,10 +2552,7 @@ body.informe-detalle-activo {
 
 </style>
 
-  <!-- Descarga anticipada de los árboles JS que forman la pantalla inicial. -->
-  <link rel="modulepreload" href="./frontend/app/app-bootstrap.js?v=20260808-arquitectura-aislada-v1">
-  <link rel="modulepreload" href="./frontend/pantallas/inicia/inicia.js">
-  <link rel="modulepreload" href="./api/app-api.js?v=20260808-arquitectura-aislada-v1">
+  <!-- Los módulos JS se cargan después de actualizar el Service Worker para evitar mezclar versiones. -->
   <link rel="preload" href="./frontend/assets/logo-bmzcn-gold-black.png" as="image" fetchpriority="high">
   <link rel="manifest" href="./manifest.webmanifest">
 </head>
@@ -2619,12 +2616,108 @@ body.informe-detalle-activo {
     </div>
   </div>
 
-  <script type="module" src="./frontend/app/app-bootstrap.js?v=20260808-arquitectura-aislada-v1"></script>
+  <script type="module">
+    // Cada apertura online usa un token nuevo. El SW lo propaga a HTML/JS/CSS para
+    // evitar que navegador/CDN mezclen archivos de despliegues diferentes.
+    const versionSesion = String(Date.now());
+    window.__IGP_VERSION_SESION__ = versionSesion;
 
-  <!-- Compatibilidad temporal: conserva los parches activos de la versión recibida. -->
-  <script src="./frontend/compatibilidad/control-moviles/wsp-control-moviles-flujo-ui.js?v=20260804-speed2"></script>
-  <script src="./frontend/compatibilidad/control-moviles/wsp-control-moviles-ui.js?v=20260804-speed2"></script>
-  <script src="./frontend/compatibilidad/control-moviles/control-moviles.js?v=20260804-speed2"></script>
-  <script src="./frontend/compatibilidad/pantalla-principal/pantalla-principal-flujo.js?v=20260808-arquitectura-aislada-v1"></script>
+    function esperarEstado(worker, estadoEsperado, timeoutMs = 8000) {
+      if (!worker || worker.state === estadoEsperado) return Promise.resolve();
+
+      return new Promise((resolve) => {
+        let terminado = false;
+        const finalizar = () => {
+          if (terminado) return;
+          terminado = true;
+          clearTimeout(timer);
+          worker.removeEventListener("statechange", revisar);
+          resolve();
+        };
+        const revisar = () => {
+          if (worker.state === estadoEsperado || worker.state === "redundant") finalizar();
+        };
+        const timer = setTimeout(finalizar, timeoutMs);
+        worker.addEventListener("statechange", revisar);
+        revisar();
+      });
+    }
+
+    function esperarControllerChange(timeoutMs = 5000) {
+      if (navigator.serviceWorker.controller) return Promise.resolve();
+
+      return new Promise((resolve) => {
+        let terminado = false;
+        const finalizar = () => {
+          if (terminado) return;
+          terminado = true;
+          clearTimeout(timer);
+          navigator.serviceWorker.removeEventListener("controllerchange", finalizar);
+          resolve();
+        };
+        const timer = setTimeout(finalizar, timeoutMs);
+        navigator.serviceWorker.addEventListener("controllerchange", finalizar, { once: true });
+      });
+    }
+
+    async function prepararServiceWorker() {
+      if (!("serviceWorker" in navigator)) return false;
+
+      const swUrl = new URL(`./sw.js?v=${encodeURIComponent(versionSesion)}`, window.location.href);
+      const scopeUrl = new URL("./", window.location.href);
+
+      const registro = await navigator.serviceWorker.register(swUrl.href, {
+        scope: scopeUrl.pathname,
+        updateViaCache: "none"
+      });
+
+      await registro.update().catch(() => {});
+
+      const candidato = registro.installing || registro.waiting;
+      if (candidato) await esperarEstado(candidato, "activated");
+
+      await navigator.serviceWorker.ready;
+      await esperarControllerChange();
+      return true;
+    }
+
+    function cargarScript(ruta) {
+      return new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = ruta;
+        script.async = false;
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error(`No se pudo cargar ${ruta}`));
+        document.head.appendChild(script);
+      });
+    }
+
+    let swPreparado = false;
+    try {
+      swPreparado = await prepararServiceWorker();
+    } catch (error) {
+      console.warn("[Informes_GP] No se pudo actualizar el Service Worker:", error);
+    }
+
+    const usarToken = swPreparado || !("serviceWorker" in navigator);
+    const sufijo = usarToken ? `?v=${encodeURIComponent(versionSesion)}` : "";
+
+    const compatibilidad = [
+      "./frontend/compatibilidad/control-moviles/wsp-control-moviles-flujo-ui.js",
+      "./frontend/compatibilidad/control-moviles/wsp-control-moviles-ui.js",
+      "./frontend/compatibilidad/control-moviles/control-moviles.js",
+      "./frontend/compatibilidad/pantalla-principal/pantalla-principal-flujo.js"
+    ];
+
+    for (const ruta of compatibilidad) {
+      try {
+        await cargarScript(`${ruta}${sufijo}`);
+      } catch (error) {
+        console.warn("[Informes_GP] Módulo de compatibilidad no disponible:", error);
+      }
+    }
+
+    await import(`./frontend/app/app-bootstrap.js${sufijo}`);
+  </script>
 </body>
 </html>

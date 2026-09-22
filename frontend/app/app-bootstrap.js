@@ -1,8 +1,12 @@
-import { iniciarApp } from "./app.js?v=20260912-seis-correcciones-v1";
-import { iniciarInstanciaUnicaInformesGP } from "../servicios/navegacion/instancia-unica.js";
+const VERSION_SESION = new URL(import.meta.url).searchParams.get("v") || String(Date.now());
 
-const VERSION_DESPLIEGUE = "20260912-seis-correcciones-v1";
-let appIniciada = false;
+const [
+  { iniciarApp },
+  { iniciarInstanciaUnicaInformesGP }
+] = await Promise.all([
+  import(`./app.js?v=${encodeURIComponent(VERSION_SESION)}`),
+  import(`../servicios/navegacion/instancia-unica.js?v=${encodeURIComponent(VERSION_SESION)}`)
+]);
 
 aplicarCorreccionesVisualesGlobales();
 const deteccionInstancia = iniciarInstanciaUnicaInformesGP();
@@ -15,9 +19,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    registrarServiceWorkerYActualizar();
     await iniciarApp();
-    appIniciada = true;
     programarVerificacionOperativosInicial();
   } catch (error) {
     console.error("[Informes_GP] Error al iniciar app:", error);
@@ -111,33 +113,4 @@ function programarVerificacionOperativosInicial() {
     if (document.visibilityState && document.visibilityState !== "visible") return;
     window.dispatchEvent(new Event("focus"));
   }, 900);
-}
-
-function registrarServiceWorkerYActualizar() {
-  if (!("serviceWorker" in navigator)) return;
-
-  const teniaControlador = Boolean(navigator.serviceWorker.controller);
-  let recargaSolicitada = false;
-
-  navigator.serviceWorker.addEventListener("controllerchange", () => {
-    // Sólo se recarga automáticamente si la app todavía no empezó. Una vez que
-    // el usuario está trabajando, una actualización del SW nunca debe cortar el
-    // formulario ni aparentar un cierre inesperado.
-    if (!teniaControlador || recargaSolicitada || appIniciada) return;
-    recargaSolicitada = true;
-    window.location.reload();
-  });
-
-  const swUrl = new URL(`../../sw.js?v=${VERSION_DESPLIEGUE}`, import.meta.url);
-  const scopeUrl = new URL("../../", import.meta.url);
-
-  navigator.serviceWorker
-    .register(swUrl.href, {
-      scope: scopeUrl.pathname,
-      updateViaCache: "none"
-    })
-    .then((registro) => registro.update().catch(() => {}))
-    .catch((error) => {
-      console.warn("[Informes_GP] Service Worker no disponible:", error);
-    });
 }
