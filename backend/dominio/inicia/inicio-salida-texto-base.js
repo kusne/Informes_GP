@@ -17,7 +17,6 @@ export function construirTextoInicioBase(inicio) {
   lineas.push(`${negrita("Fecha:")} ${formatearFecha(inicio.fecha_operativo || operativo?.fecha_operativo || inicio.fecha)}`);
   lineas.push(`${negrita("Horario:")} ${formatearHorario(inicio)}`);
   lineas.push(`${negrita("Lugar:")} ${normalizarLugar(inicio.lugar)}`);
-  agregarPresenciaActiva(lineas, formulario);
   lineas.push("");
 
   lineas.push(negrita("Personal Policial:"));
@@ -32,16 +31,22 @@ export function construirTextoInicioBase(inicio) {
   lineas.push("");
 
   lineas.push(negrita("Observaciones:"));
-  lineas.push(texto(formulario.observaciones) || "Sin novedad");
+  lineas.push(construirObservacionesInicio(formulario));
 
   return compactarSaltos(lineas.join("\n"));
 }
 
-function agregarPresenciaActiva(lineas, formulario = {}) {
-  if (!formulario.presencia_activa) return;
-  lineas.push(`${negrita("Presencia activa:")} Sí`);
-  const motivo = resolverMotivoPresenciaActiva(formulario);
-  if (motivo) lineas.push(`${negrita("Motivo:")} ${motivo}`);
+function construirObservacionesInicio(formulario = {}) {
+  const partes = [];
+  const manual = texto(formulario.observaciones);
+  const motivoPresenciaActiva = formulario.presencia_activa
+    ? resolverMotivoPresenciaActiva(formulario)
+    : "";
+
+  if (manual) partes.push(manual);
+  if (motivoPresenciaActiva) partes.push(motivoPresenciaActiva);
+
+  return partes.length ? partes.join("\n") : "Sin novedad";
 }
 
 function resolverMotivoPresenciaActiva(formulario = {}) {

@@ -23,7 +23,6 @@ export function construirTextoFinalizadoBase(finalizado) {
   lineas.push(`${negrita("Fecha:")} ${formatearFecha(finalizado.fecha_operativo || operativo?.fecha_operativo || finalizado.fecha)}`);
   lineas.push(`${negrita("Horario:")} ${formatearHorario(finalizado)}`);
   lineas.push(`${negrita("Lugar:")} ${normalizarLugar(finalizado.lugar)}`);
-  agregarPresenciaActiva(lineas, f);
   lineas.push("");
   lineas.push(negrita("Personal Policial:"));
   lineas.push(normalizarPersonalSalidaFinaliza(f.personal) || "/");
@@ -89,6 +88,8 @@ export function construirTextoFinalizadoBase(finalizado) {
   lineas.push(negrita("Observaciones:"));
   lineas.push(construirObservacionesFinalizado({
     observaciones: f.observaciones,
+    presenciaActiva: Boolean(f.presencia_activa),
+    motivoPresenciaActiva: resolverMotivoPresenciaActiva(f),
     decreto460: f.decreto_460_22,
     esPatrullaje: esOperativoPatrullaje(operativo, finalizado?.tipo_operativo)
   }));
@@ -138,13 +139,6 @@ export function consolidarDetallesPorCodigo(valor) {
   }).join("\n");
 }
 
-function agregarPresenciaActiva(lineas, formulario = {}) {
-  if (!formulario.presencia_activa) return;
-  lineas.push(`${negrita("Presencia activa:")} Sí`);
-  const motivo = resolverMotivoPresenciaActiva(formulario);
-  if (motivo) lineas.push(`${negrita("Motivo:")} ${motivo}`);
-}
-
 function resolverMotivoPresenciaActiva(formulario = {}) {
   const motivo = texto(formulario.presencia_activa_motivo).toUpperCase();
   if (motivo === "LLUVIA") return "Lluvia";
@@ -152,12 +146,20 @@ function resolverMotivoPresenciaActiva(formulario = {}) {
   return "";
 }
 
-function construirObservacionesFinalizado({ observaciones, decreto460, esPatrullaje }) {
+function construirObservacionesFinalizado({
+  observaciones,
+  presenciaActiva,
+  motivoPresenciaActiva,
+  decreto460,
+  esPatrullaje
+}) {
   const partes = [];
   const manual = texto(observaciones);
+  const motivo = texto(motivoPresenciaActiva);
   const cantidadDecreto = Math.max(0, Math.trunc(numero(decreto460)));
 
   if (manual) partes.push(manual);
+  if (presenciaActiva && motivo) partes.push(motivo);
 
   if (esPatrullaje && cantidadDecreto > 0) {
     partes.push(`Se remitieron ${cantidad(cantidadDecreto)} Motovehiculos al Corralon de San Jose del Rincon por Decto 460/22.`);

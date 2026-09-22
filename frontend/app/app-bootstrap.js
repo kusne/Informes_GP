@@ -68,6 +68,32 @@ function aplicarCorreccionesVisualesGlobales() {
       border: 1px solid rgba(255,255,255,.16);
       border-radius: 10px;
     }
+    .inicio-presencia-activa-card > label,
+    .finaliza-presencia-activa-card > label {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 10px;
+      color: #fff;
+      font-size: 17px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+    .inicio-presencia-activa-card > label input[type="checkbox"],
+    .finaliza-presencia-activa-card > label input[type="checkbox"] {
+      flex: 0 0 auto;
+      width: 30px !important;
+      height: 30px !important;
+      margin: 0;
+      padding: 0;
+      accent-color: #1556a6;
+      cursor: pointer;
+    }
+    .inicio-presencia-activa-card > label span,
+    .finaliza-presencia-activa-card > label span {
+      flex: 0 1 auto;
+      color: #fff;
+    }
     .inicio-presencia-activa-card select,
     .inicio-presencia-activa-card input[type="text"],
     .finaliza-presencia-activa-card select,

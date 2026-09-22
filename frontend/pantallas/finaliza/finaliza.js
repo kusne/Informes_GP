@@ -112,18 +112,11 @@ function configurarPresenciaActiva(form, onChange) {
   const otro = form?.querySelector("#finalizaPresenciaActivaOtro");
   if (!check || !motivoWrap) return;
 
-  const inicio = recursosInicioActual?.datos?.presencia_activa ?? recursosInicioActual?.presencia_activa;
-  const motivoInicio = recursosInicioActual?.datos?.presencia_activa_motivo ?? recursosInicioActual?.presencia_activa_motivo;
-  if (inicio && !check.checked) {
-    check.checked = true;
-    const motivoNormalizado = String(motivoInicio || "").trim();
-    if (/^LLUVIA$/i.test(motivoNormalizado)) {
-      if (motivo) motivo.value = "LLUVIA";
-    } else if (motivoNormalizado) {
-      if (motivo) motivo.value = "OTROS";
-      if (otro) otro.value = motivoNormalizado;
-    }
-  }
+  // Presencia Activa de FINALIZA es independiente de INICIA.
+  // Nunca se hereda el estado ni el motivo del inicio: debe marcarse nuevamente.
+  check.checked = false;
+  if (motivo) motivo.value = "";
+  if (otro) otro.value = "";
 
   const aplicar = () => {
     motivoWrap.classList.toggle("hidden", !check.checked);
