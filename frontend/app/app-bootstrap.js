@@ -16,7 +16,7 @@ const deteccionInstancia = iniciarInstanciaUnicaInformesGP({
   versionActual: VERSION_DESPLIEGUE
 });
 
-window.addEventListener("DOMContentLoaded", async () => {
+async function iniciarAppCuandoDOMDisponible() {
   try {
     const instancia = await deteccionInstancia;
     if (instancia?.duplicada) {
@@ -35,7 +35,13 @@ window.addEventListener("DOMContentLoaded", async () => {
       </pre>
     `;
   }
-});
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", iniciarAppCuandoDOMDisponible, { once: true });
+} else {
+  void iniciarAppCuandoDOMDisponible();
+}
 
 function mostrarAvisoInstanciaDuplicada() {
   document.body.innerHTML = `
