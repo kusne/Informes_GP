@@ -25,6 +25,9 @@ export async function renderContenedorDinamico({
     }
 
     if (modoNormalizado === "INICIA") {
+      // No volver a construir el mismo formulario por una notificación
+      // indirecta: conservar exactamente los checkbox y valores del DOM.
+      if (host.querySelector(".formulario-inicia")) return;
       await renderFormularioIniciaContinuo({
         host,
         operativoSeleccionado,
@@ -34,6 +37,11 @@ export async function renderContenedorDinamico({
     }
 
     if (modoNormalizado === "FINALIZA") {
+      const actual = host.querySelector(".formulario-finaliza");
+      if (actual && operativoSeleccionado?.operativo_key &&
+          actual.dataset.operativoSeleccionado === String(operativoSeleccionado.operativo_key)) {
+        return;
+      }
       await renderFormularioFinalizaContinuo({
         host,
         operativoSeleccionado,

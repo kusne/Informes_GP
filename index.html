@@ -2619,7 +2619,7 @@ body.informe-detalle-activo {
     // VERSION_DESPLIEGUE identifica el commit real de main. NONCE_SESION cambia
     // en cada apertura y evita reutilizar copias viejas del navegador o del CDN.
     const NONCE_SESION = String(Date.now());
-    const VERSION_FALLBACK = `sesion-${NONCE_SESION}`;
+    const VERSION_FALLBACK = "";
 
     async function resolverVersionDespliegue() {
       try {
@@ -2629,12 +2629,15 @@ body.informe-detalle-activo {
           cache: "no-store",
           headers: { "Accept": "application/vnd.github+json" }
         });
-        if (!response.ok) return VERSION_FALLBACK;
+        if (!response.ok) throw new Error("No fue posible verificar la versión actual en GitHub.");
         const data = await response.json();
         const sha = String(data?.sha || "").trim();
-        return sha || VERSION_FALLBACK;
-      } catch {
-        return VERSION_FALLBACK;
+        if (!sha) throw new Error("GitHub no informó la versión actual.");
+        return sha;
+      } catch (error) {
+        document.body.innerHTML = '<main style="min-height:100vh;background:#151b23;color:white;padding:28px;font:18px Arial,sans-serif"><h2>Informes GP: no se pudo verificar la versión actual</h2><p>Conéctese a Internet y vuelva a abrir el enlace. No se cargará una versión anterior.</p><button type="button" id="igpReintentarVersion" style="padding:12px 18px">Reintentar</button></main>';
+        document.getElementById("igpReintentarVersion").addEventListener("click", () => window.location.reload());
+        throw error;
       }
     }
 
@@ -2720,17 +2723,15 @@ body.informe-detalle-activo {
       });
     }
 
-    let swPreparado = false;
-    try {
-      swPreparado = await prepararServiceWorker();
-    } catch (error) {
+    // No demorar la primera carga esperando la instalación o activación del
+    // Service Worker: puede tardar varios segundos en conexiones móviles.
+    // El shell ya fue obtenido de la red y todos los módulos llevan nonce.
+    void prepararServiceWorker().catch((error) => {
       console.warn("[Informes_GP] No se pudo actualizar el Service Worker:", error);
-    }
+    });
 
-    const usarToken = swPreparado || !("serviceWorker" in navigator);
-    const sufijo = usarToken
-      ? `?v=${encodeURIComponent(VERSION_DESPLIEGUE)}&n=${encodeURIComponent(NONCE_SESION)}`
-      : "";
+    // La versión y el nonce se aplican siempre, incluso si SW falló.
+    const sufijo = `?v=${encodeURIComponent(VERSION_DESPLIEGUE)}&n=${encodeURIComponent(NONCE_SESION)}`;
 
     const compatibilidad = [
       "./frontend/compatibilidad/control-moviles/wsp-control-moviles-flujo-ui.js",

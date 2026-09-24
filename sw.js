@@ -1,10 +1,9 @@
-const PARAMS_SW = new URL(self.location.href).searchParams;
-const VERSION_DESPLIEGUE = PARAMS_SW.get("v") || `sesion-${Date.now()}`;
-const NONCE_SESION = PARAMS_SW.get("n") || String(Date.now());
-const CACHE_VERSION = `informes-gp-v-${VERSION_DESPLIEGUE}`;
-const CACHE_ESTATICO = `${CACHE_VERSION}-static`;
-
-const PRECACHE = [
+// Informes GP funciona online: los informes nunca se ejecutan desde código
+// obsoleto de Cache Storage cuando no se puede verificar la versión.
+const PARAMS = new URL(self.location.href).searchParams;
+const VERSION = PARAMS.get("v") || "";
+const CACHE_ICONOS = `igp-iconos-${VERSION}`;
+const ICONOS = [
   "./frontend/assets/logo-bmzcn-gold-black.png",
   "./frontend/assets/icon-192.png",
   "./frontend/assets/icon-512.png"
@@ -12,113 +11,82 @@ const PRECACHE = [
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_ESTATICO)
-      .then((cache) => cache.addAll(PRECACHE))
+    caches.open(CACHE_ICONOS)
+      .then((cache) => cache.addAll(ICONOS))
       .then(() => self.skipWaiting())
   );
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(
-    caches.keys()
-      .then((keys) => Promise.all(
-        keys
-          .filter((key) => key.startsWith("informes-gp-") && key !== CACHE_ESTATICO)
-          .map((key) => caches.delete(key))
-      ))
-      .then(() => self.clients.claim())
-  );
+  event.waitUntil((async () => {
+    // Limpiar también los cachés de JS/HTML creados por versiones anteriores.
+    const claves = await caches.keys();
+    await Promise.all(
+      claves.filter((key) =>
+        (key.startsWith("informes-gp-") || key.startsWith("igp-iconos-")) &&
+        key !== CACHE_ICONOS
+      ).map((key) => caches.delete(key))
+    );
+    await self.clients.claim();
+    // Una PWA que permaneció abierta recibe la nueva versión al activarse SW.
+    const ventanas = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    for (const ventana of ventanas) {
+      ventana.postMessage({ tipo: "IGP_SW_ACTIVADO", version: VERSION });
+    }
+  })());
 });
 
 self.addEventListener("fetch", (event) => {
   const request = event.request;
   if (request.method !== "GET") return;
-
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  if (request.mode === "navigate") {
-    event.respondWith(navigationNetworkFirst(request));
+  // La única cache que se permite para la PWA es la de los iconos. NO servir
+  // index, fragmentos HTML, CSS, JS, JSON o manifest desde Cache Storage.
+  if (request.mode === "navigate" || /\.(?:js|css|html|json|webmanifest)$/i.test(url.pathname)) {
+    event.respondWith(descargarVersionVigente(request));
     return;
   }
 
-  if (esRecursoActualizable(url.pathname)) {
-    event.respondWith(recursoNetworkFirst(request));
-    return;
-  }
-
-  if (esRecursoEstatico(url.pathname)) {
-    event.respondWith(cacheFirst(request));
+  if (/\.(?:png|jpg|jpeg|webp|svg|ico)$/i.test(url.pathname)) {
+    event.respondWith(descargarImagen(request));
   }
 });
 
-async function navigationNetworkFirst(request) {
-  const cache = await caches.open(CACHE_ESTATICO);
-  const urlFresca = urlConVersion(request.url);
-
+async function descargarVersionVigente(request) {
   try {
-    const response = await fetch(urlFresca, {
-      cache: "no-store",
-      credentials: "same-origin",
-      redirect: "follow"
-    });
-    if (response?.ok) await cache.put("./index.html", response.clone());
+    const response = await fetch(new Request(request, { cache: "no-store" }));
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
     return response;
   } catch {
-    const cached = await cache.match("./index.html");
-    if (cached) return cached;
-    return new Response("Sin conexión", { status: 503 });
+    return new Response(
+      "No se pudo verificar la versión vigente de Informes GP. Conéctese a Internet y vuelva a ingresar.",
+      {
+        status: 503,
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+          "Cache-Control": "no-store"
+        }
+      }
+    );
   }
 }
 
-async function recursoNetworkFirst(request) {
-  const cache = await caches.open(CACHE_ESTATICO);
-  const claveCache = claveCanonica(request.url);
-  const urlFresca = urlConVersion(request.url);
-
+async function descargarImagen(request) {
   try {
-    const response = await fetch(urlFresca, {
-      cache: "no-store",
-      credentials: "same-origin",
-      redirect: "follow"
-    });
-    if (response?.ok) await cache.put(claveCache, response.clone());
+    const response = await fetch(new Request(request, { cache: "no-store" }));
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
     return response;
   } catch {
-    const cached = await cache.match(claveCache);
-    if (cached) return cached;
-    throw new Error(`Recurso no disponible: ${request.url}`);
+    // Solo se permiten los iconos de instalación existentes en el precaché.
+    const url = new URL(request.url);
+    const path = url.pathname;
+    if (ICONOS.some((icono) => new URL(icono, self.location.href).pathname === path)) {
+      const cache = await caches.open(CACHE_ICONOS);
+      const icono = ICONOS.find((item) => new URL(item, self.location.href).pathname === path);
+      return (await cache.match(icono)) || new Response("", { status: 503 });
+    }
+    return new Response("", { status: 503 });
   }
-}
-
-async function cacheFirst(request) {
-  const cache = await caches.open(CACHE_ESTATICO);
-  const cached = await cache.match(request);
-  if (cached) return cached;
-
-  const response = await fetch(request, { cache: "no-store" });
-  if (response?.ok) await cache.put(request, response.clone());
-  return response;
-}
-
-function urlConVersion(valor) {
-  const url = new URL(valor, self.location.origin);
-  url.searchParams.set("__igp_v", VERSION_DESPLIEGUE);
-  url.searchParams.set("__igp_n", NONCE_SESION);
-  return url.href;
-}
-
-function claveCanonica(valor) {
-  const url = new URL(valor, self.location.origin);
-  url.search = "";
-  url.hash = "";
-  return url.href;
-}
-
-function esRecursoActualizable(pathname) {
-  return /\.(?:js|css|html|json|webmanifest)$/i.test(pathname);
-}
-
-function esRecursoEstatico(pathname) {
-  return /\.(?:png|jpg|jpeg|webp|svg|ico)$/i.test(pathname);
 }

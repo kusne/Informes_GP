@@ -89,6 +89,12 @@ export async function iniciarFormularioInicia({
   const actualizar = () => actualizarEstadoInicio({ form, operativoSeleccionado: ultimoOperativoInicia, getContexto });
   configurarPresenciaActiva(form, actualizar);
 
+  form.addEventListener("informesgp:preparar-envio", (event) => {
+    const seleccionado = event?.detail?.operativoSeleccionado ||
+      resolverContexto(getContexto)?.operativoSeleccionado;
+    if (seleccionado?.operativo_key) ultimoOperativoInicia = seleccionado;
+    actualizarEstadoInicio({ form, operativoSeleccionado: ultimoOperativoInicia, getContexto });
+  });
   form.addEventListener("submit", (event) => event.preventDefault());
   form.addEventListener("input", actualizar);
   form.addEventListener("change", actualizar);
@@ -100,6 +106,20 @@ export async function iniciarFormularioInicia({
 export function obtenerFormularioIniciaActual() { return ultimoFormularioInicia; }
 export function obtenerOperativoIniciaActual() { return ultimoOperativoInicia; }
 
+// Ejecutar antes de validar/enviar: el dato válido es el formulario todavía
+// visible, no un snapshot que pudo quedar desactualizado por el navegador.
+export function reconstruirInicioVisibleParaEnvio({ operativoSeleccionado, getContexto } = {}) {
+  const form = document.querySelector("#contenedorDinamicoHost .formulario-inicia");
+  if (!form || !form.isConnected) return false;
+  const op = operativoSeleccionado || ultimoOperativoInicia;
+  if (op?.operativo_key) {
+    ultimoOperativoInicia = op;
+    configurarFormularioSegunOperativo(form, op);
+  }
+  actualizarEstadoInicio({ form, operativoSeleccionado: ultimoOperativoInicia, getContexto });
+  return true;
+}
+
 export function actualizarOperativoFormularioInicia({ operativoSeleccionado = null, getContexto } = {}) {
   ultimoOperativoInicia = operativoSeleccionado || null;
 
@@ -110,7 +130,7 @@ export function actualizarOperativoFormularioInicia({ operativoSeleccionado = nu
   configurarAgregarElementosPresenciaActiva({
     form,
     activo: usaElementosOpcionalesInicio(ultimoOperativoInicia, form.dataset.tipoOperativo),
-    reset: true
+    reset: false
   });
 
   actualizarEstadoInicio({ form, operativoSeleccionado: ultimoOperativoInicia, getContexto });

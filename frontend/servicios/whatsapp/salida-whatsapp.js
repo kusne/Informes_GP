@@ -121,6 +121,31 @@ export async function manejarEnvioWhatsapp({ boton = null, getContexto } = {}) {
     return;
   }
 
+  // Leer las selecciones visibles inmediatamente antes de validar. Un
+  // snapshot previo puede carecer del operativo aunque siga seleccionado.
+  const contextoInicial = typeof getContexto === "function" ? getContexto() : {};
+  const modoInicial = resolverModoActual(obtenerEstadoInformes(), contextoInicial);
+  if (modoInicial === "INICIA" || modoInicial === "FINALIZA") {
+    const formulario = document.querySelector(
+      modoInicial === "INICIA"
+        ? "#contenedorDinamicoHost .formulario-inicia"
+        : "#contenedorDinamicoHost .formulario-finaliza"
+    );
+    const selector = document.querySelector("#selectorOperativoContextualHost select");
+    const keyVisible = String(selector?.value || "").trim();
+    const seleccionadoVisible = keyVisible
+      ? contextoInicial.operativosDisponibles?.find((op) => String(op.operativo_key) === keyVisible) || null
+      : null;
+    formulario?.dispatchEvent(new CustomEvent("informesgp:preparar-envio", {
+      detail: {
+        operativoSeleccionado: seleccionadoVisible ||
+          (keyVisible && String(contextoInicial.operativoSeleccionado?.operativo_key) === keyVisible
+            ? contextoInicial.operativoSeleccionado
+            : null)
+      }
+    }));
+  }
+
   const estado = obtenerEstadoInformes();
   const contexto = typeof getContexto === "function" ? getContexto() : {};
   const modo = resolverModoActual(estado, contexto);
@@ -136,7 +161,7 @@ export async function manejarEnvioWhatsapp({ boton = null, getContexto } = {}) {
   }
 
   if (Array.isArray(salida.errores) && salida.errores.length) {
-    alert(`No se puede enviar todavía:\n\n${salida.errores.join("\n")}`);
+    mostrarAvisoValidacionSinDesmontarFormulario(salida.errores);
     return;
   }
 
@@ -391,6 +416,42 @@ export async function manejarEnvioWhatsapp({ boton = null, getContexto } = {}) {
       getContexto
     });
   }
+}
+
+/**
+ * Un alert() nativo en Android puede disparar focus/visibilitychange al
+ * cerrarse; esos eventos reactivan las consultas y el montaje del formulario.
+ * Este aviso crea sólo un nodo independiente y nunca modifica la pantalla,
+ * los checkboxes ni el operativo seleccionado.
+ */
+function mostrarAvisoValidacionSinDesmontarFormulario(errores = []) {
+  document.getElementById("igpAvisoValidacionEnvio")?.remove();
+  const fondo = document.createElement("div");
+  fondo.id = "igpAvisoValidacionEnvio";
+  fondo.setAttribute("role", "alertdialog");
+  fondo.setAttribute("aria-modal", "true");
+  fondo.setAttribute("aria-label", "Campos obligatorios pendientes");
+  fondo.style.cssText = "position:fixed;inset:0;z-index:2147483646;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:18px;";
+  const panel = document.createElement("section");
+  panel.style.cssText = "background:#f8fbff;color:#172332;border-radius:20px;padding:24px;width:min(100%,460px);max-height:85vh;overflow:auto;font:17px Arial,sans-serif;box-sizing:border-box;";
+  const titulo = document.createElement("h2");
+  titulo.textContent = "No se puede enviar todavía:";
+  titulo.style.cssText = "margin:0 0 18px;font-size:21px;";
+  const lista = document.createElement("ul");
+  lista.style.cssText = "padding-left:20px;margin:0 0 24px;line-height:1.45;";
+  for (const error of errores) {
+    const item = document.createElement("li");
+    item.textContent = String(error);
+    lista.appendChild(item);
+  }
+  const aceptar = document.createElement("button");
+  aceptar.type = "button";
+  aceptar.textContent = "Aceptar";
+  aceptar.style.cssText = "display:block;margin-left:auto;background:#17619b;color:white;border:0;border-radius:10px;padding:12px 20px;font:700 17px Arial,sans-serif;";
+  aceptar.addEventListener("click", () => fondo.remove(), { once: true });
+  panel.append(titulo, lista, aceptar);
+  fondo.appendChild(panel);
+  document.body.appendChild(fondo);
 }
 
 function obtenerArchivosFotosLocales({ modo, payload } = {}) {

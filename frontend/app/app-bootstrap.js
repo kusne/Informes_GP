@@ -20,7 +20,8 @@ async function iniciarAppCuandoDOMDisponible() {
   try {
     const instancia = await deteccionInstancia;
     if (instancia?.duplicada) {
-      mostrarAvisoInstanciaDuplicada();
+      // La capa de sesión ya está visible: no reemplazar el DOM ni descartar
+      // datos que puedan estar pendientes en una pestaña anterior.
       return;
     }
 

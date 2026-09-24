@@ -90,6 +90,12 @@ export async function iniciarFormularioFinaliza({
     onChange: () => actualizarEstadoFinaliza({ form, operativoSeleccionado: ultimoOperativoFinaliza, getContexto })
   });
 
+  form.addEventListener("informesgp:preparar-envio", (event) => {
+    const seleccionado = event?.detail?.operativoSeleccionado ||
+      resolverContexto(getContexto)?.operativoSeleccionado;
+    if (seleccionado?.operativo_key) ultimoOperativoFinaliza = seleccionado;
+    actualizarEstadoFinaliza({ form, operativoSeleccionado: ultimoOperativoFinaliza, getContexto });
+  });
   form.addEventListener("submit", (event) => event.preventDefault());
   const actualizar = () => actualizarEstadoFinaliza({ form, operativoSeleccionado: ultimoOperativoFinaliza, getContexto });
   configurarPresenciaActiva(form, actualizar);
@@ -103,6 +109,15 @@ export async function iniciarFormularioFinaliza({
 
 export function obtenerFormularioFinalizaActual() { return ultimoFormularioFinaliza; }
 export function obtenerOperativoFinalizaActual() { return ultimoOperativoFinaliza; }
+
+export function reconstruirFinalizadoVisibleParaEnvio({ operativoSeleccionado, getContexto } = {}) {
+  const form = document.querySelector("#contenedorDinamicoHost .formulario-finaliza");
+  if (!form || !form.isConnected) return false;
+  const operativo = operativoSeleccionado || ultimoOperativoFinaliza;
+  if (operativo?.operativo_key) ultimoOperativoFinaliza = operativo;
+  actualizarEstadoFinaliza({ form, operativoSeleccionado: ultimoOperativoFinaliza, getContexto });
+  return true;
+}
 
 function configurarPresenciaActiva(form, onChange) {
   const check = form?.querySelector("#finalizaPresenciaActiva");

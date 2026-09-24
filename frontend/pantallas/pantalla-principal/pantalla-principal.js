@@ -14,7 +14,8 @@ const estadoPantalla = {
   modeloInformeSeleccionado: null,
   cantidadOperativos: 0,
   operativosDisponibles: [],
-  modelosInformesDisponibles: []
+  modelosInformesDisponibles: [],
+  errorCargaOperativos: ""
 };
 
 let listenerEnvioRegistrado = false;
@@ -34,7 +35,9 @@ export async function iniciarPantallaPrincipal({ hostSelector }) {
     throw new Error(`No se encontró host de pantalla principal: ${hostSelector}`);
   }
 
-  await iniciarCoordinadorSeguro();
+  // La UI ya viene pintada en index.html. No se debe esperar a importar
+  // coordinadores antes de activar el selector o iniciar la carga de operativos.
+  void iniciarCoordinadorSeguro();
 
   // El markup principal puede venir ya pintado desde index.html para evitar
   // una pantalla vacía mientras GitHub Pages descarga módulos.
@@ -88,11 +91,11 @@ async function recargarItemsPantalla({
 } = {}) {
   const modo = estadoPantalla.modo;
   const refrescoNoDestructivo = esRefrescoNoDestructivo(motivo);
-  const operativoAnterior = refrescoNoDestructivo
-    ? estadoPantalla.operativoSeleccionado
-    : null;
-
   await sincronizarGuardiaFechaActualSeguro();
+
+  // Una consulta iniciada bajo otro modo no puede tocar el selector ni el
+  // formulario que el usuario abrió mientras la consulta estaba pendiente.
+  if (modo !== estadoPantalla.modo) return;
 
   if (!refrescoNoDestructivo) {
     estadoPantalla.operativoSeleccionado = null;
@@ -105,7 +108,10 @@ async function recargarItemsPantalla({
   // El formulario INICIA es completamente local. Se empieza a construir de
   // inmediato mientras viaja la consulta de operativos. Antes esta pantalla
   // quedaba esperando a Supabase y daba sensación de app bloqueada.
-  const renderLocalInicial = modo === "INICIA"
+  // Realtime y la reanudación de la app solamente actualizan el selector.
+  // Volver a montar INICIA aquí desvincula el operativo y borra lo que el
+  // usuario está escribiendo, aunque el selector siga mostrando su elección.
+  const renderLocalInicial = modo === "INICIA" && !refrescoNoDestructivo
     ? renderContenedorSeguro({
         modo,
         operativoSeleccionado: null,
@@ -118,7 +124,18 @@ async function recargarItemsPantalla({
     estadoPantalla.modelosInformesDisponibles = items;
     estadoPantalla.operativosDisponibles = [];
   } else {
-    items = await obtenerOperativosSeguro(modo);
+    try {
+      items = await obtenerOperativosSeguro(modo);
+      if (modo !== estadoPantalla.modo) return;
+      estadoPantalla.errorCargaOperativos = "";
+    } catch (error) {
+      if (modo !== estadoPantalla.modo) return;
+      estadoPantalla.errorCargaOperativos = error?.message || "No se pudieron cargar los operativos.";
+      // Nunca reemplazar la lista confirmada por cero ni limpiar un formulario
+      // en curso por un error transitorio de red.
+      mostrarErrorCargaOperativos(modo, estadoPantalla.errorCargaOperativos);
+      return;
+    }
 
     // Si Realtime actualiza la lista mientras el usuario está completando un
     // formulario, el operativo que está editando se mantiene disponible en
@@ -126,10 +143,15 @@ async function recargarItemsPantalla({
     // Esto también cubre el caso en que otro dispositivo haya FINALIZADO el
     // mismo operativo: no se bloquea el formulario; el último envío guardado
     // seguirá siendo el válido.
-    if (refrescoNoDestructivo && operativoAnterior) {
-      items = conservarOperativoSeleccionadoEnItems(items, operativoAnterior);
-      estadoPantalla.operativoSeleccionado = operativoAnterior;
-      await registrarOperativoSeguro(operativoAnterior);
+    // Leer la selección DESPUÉS de la consulta: el usuario puede haber elegido
+    // un operativo mientras Supabase respondía.
+    const operativoActual = refrescoNoDestructivo
+      ? estadoPantalla.operativoSeleccionado
+      : null;
+    if (operativoActual) {
+      items = conservarOperativoSeleccionadoEnItems(items, operativoActual);
+      // El coordinador ya conserva la selección. No volver a publicarla:
+      // notificar suscriptores mientras FINALIZA se edita es innecesario.
     }
 
     estadoPantalla.operativosDisponibles = items;
@@ -141,6 +163,7 @@ async function recargarItemsPantalla({
   if (renderLocalInicial) {
     await renderLocalInicial;
   }
+  if (modo !== estadoPantalla.modo) return;
 
   estadoPantalla.cantidadOperativos = items.length;
 
@@ -153,6 +176,7 @@ async function recargarItemsPantalla({
 
   actualizarTituloContador(modo);
   aplicarSuperficieExclusivaControlMoviles(modo);
+  document.getElementById("igpErrorCargaOperativos")?.remove();
 
   if (modo !== "INFORMES" && modo !== "CONTROL_MOVILES") {
     await renderContadorSeguro(estadoPantalla.cantidadOperativos);
@@ -162,8 +186,8 @@ async function recargarItemsPantalla({
       items
     });
 
-    if (refrescoNoDestructivo && operativoAnterior) {
-      restaurarSeleccionVisualOperativo(operativoAnterior);
+    if (refrescoNoDestructivo && estadoPantalla.operativoSeleccionado) {
+      restaurarSeleccionVisualOperativo(estadoPantalla.operativoSeleccionado);
     }
   } else {
     const selectorHost = document.querySelector("#selectorOperativoContextualHost");
@@ -174,7 +198,10 @@ async function recargarItemsPantalla({
     if (modo === "INFORMES" || modo === "CONTROL_MOVILES") {
       const hostDinamico = document.querySelector("#contenedorDinamicoHost");
       if (hostDinamico) hostDinamico.innerHTML = "";
-    } else if (!(refrescoNoDestructivo && operativoAnterior)) {
+    } else if (!refrescoNoDestructivo) {
+      // INICIA y FINALIZA: los refrescos automáticos nunca desmontan el
+      // formulario. FINALIZA sólo se monta por selección explícita y debe
+      // conservar las cifras, detalles y vínculo con el operativo elegido.
       await renderContenedorSeguro({
         modo,
         operativoSeleccionado: null,
@@ -185,6 +212,34 @@ async function recargarItemsPantalla({
 
   if (motivo) {
     console.log("[Informes_GP] Pantalla refrescada:", motivo);
+  }
+}
+
+function mostrarErrorCargaOperativos(modo, mensaje) {
+  const host = document.querySelector("#selectorOperativoContextualHost");
+  if (!host) return;
+  let aviso = document.getElementById("igpErrorCargaOperativos");
+  if (!aviso) {
+    aviso = document.createElement("div");
+    aviso.id = "igpErrorCargaOperativos";
+    aviso.setAttribute("role", "alert");
+    aviso.style.cssText = "padding:12px;margin:10px 0;background:#fff1f0;color:#761515;border:2px solid #b42318;border-radius:10px;font-weight:700";
+    host.parentElement?.insertBefore(aviso, host);
+  }
+  aviso.textContent = mensaje + " ";
+  const boton = document.createElement("button");
+  boton.type = "button";
+  boton.textContent = "Reintentar carga";
+  boton.style.cssText = "display:block;margin-top:8px;padding:9px 12px";
+  boton.addEventListener("click", () => {
+    void recargarItemsPantalla({ motivo: "reanudacion-app" });
+  });
+  aviso.appendChild(boton);
+  // Si no hay una lista previamente verificada no permitir seleccionar una
+  // entrada antigua presentada por un selector que aún permanece en el DOM.
+  if (!estadoPantalla.operativosDisponibles.length || !estadoPantalla.operativoSeleccionado) {
+    const selector = host.querySelector("select");
+    if (selector) selector.disabled = true;
   }
 }
 
@@ -504,7 +559,7 @@ async function obtenerOperativosSeguro(modo) {
     return await modulo.obtenerOperativosPorModo(modo);
   } catch (error) {
     console.error("[Informes_GP] Error leyendo operativos:", error);
-    return [];
+    throw error;
   }
 }
 
