@@ -65,9 +65,11 @@ async function navigationNetworkFirst(request) {
     if (response?.ok) await cache.put("./index.html", response.clone());
     return response;
   } catch {
-    const cached = await cache.match("./index.html");
-    if (cached) return cached;
-    return new Response("Sin conexión", { status: 503 });
+    // Nunca iniciar la aplicación desde un HTML anterior sin conexión.
+    return new Response("No se pudo verificar la versión vigente de Informes GP. Conéctese a Internet y vuelva a ingresar.", {
+      status: 503,
+      headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" }
+    });
   }
 }
 
@@ -85,9 +87,12 @@ async function recursoNetworkFirst(request) {
     if (response?.ok) await cache.put(claveCache, response.clone());
     return response;
   } catch {
-    const cached = await cache.match(claveCache);
-    if (cached) return cached;
-    throw new Error(`Recurso no disponible: ${request.url}`);
+    // JS/HTML/CSS obsoletos pueden romper la asociación entre operativo
+    // y formulario; nunca entregar copias viejas como si fueran vigentes.
+    return new Response("No se pudo cargar un recurso actualizado de Informes GP.", {
+      status: 503,
+      headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" }
+    });
   }
 }
 
