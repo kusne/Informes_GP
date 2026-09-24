@@ -5,7 +5,7 @@ const CACHE_VERSION = `informes-gp-v-${VERSION_DESPLIEGUE}`;
 const CACHE_ESTATICO = `${CACHE_VERSION}-static`;
 
 const PRECACHE = [
-  "./frontend/assets/logo-bmzcn-gold-black.png",
+  "./frontend/assets/logo-bmzcn-white-vector.svg",
   "./frontend/assets/icon-192.png",
   "./frontend/assets/icon-512.png"
 ];
