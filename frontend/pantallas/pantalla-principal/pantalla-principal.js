@@ -75,6 +75,12 @@ async function cambiarModoPantalla(modo) {
   estadoPantalla.operativoSeleccionado = null;
   estadoPantalla.modeloInformeSeleccionado = null;
 
+  // Mostrar INICIA/FINALIZA sin cargar aún los componentes del formulario.
+  // La consulta de operativos es la primera tarea de contenido del arranque.
+  if (estadoPantalla.modo === "INICIA" || estadoPantalla.modo === "FINALIZA") {
+    mostrarEsperaSeleccionOperativo(estadoPantalla.modo);
+  }
+
   await registrarModoSeguro(estadoPantalla.modo);
   await registrarOperativoSeguro(null);
 
@@ -88,10 +94,6 @@ async function recargarItemsPantalla({
 } = {}) {
   const modo = estadoPantalla.modo;
   const refrescoNoDestructivo = esRefrescoNoDestructivo(motivo);
-  const operativoAnterior = refrescoNoDestructivo
-    ? estadoPantalla.operativoSeleccionado
-    : null;
-
   await sincronizarGuardiaFechaActualSeguro();
 
   if (!refrescoNoDestructivo) {
@@ -102,16 +104,10 @@ async function recargarItemsPantalla({
 
   let items = [];
 
-  // El formulario INICIA es completamente local. Se empieza a construir de
-  // inmediato mientras viaja la consulta de operativos. Antes esta pantalla
-  // quedaba esperando a Supabase y daba sensación de app bloqueada.
-  const renderLocalInicial = modo === "INICIA"
-    ? renderContenedorSeguro({
-        modo,
-        operativoSeleccionado: null,
-        modeloInformeSeleccionado: null
-      })
-    : null;
+  // Hasta que se elija un operativo sólo se consultan los operativos y se
+  // actualiza selector/contador. No importar ni montar personal, móviles,
+  // elementos, fotos o WhatsApp durante el arranque.
+  const renderLocalInicial = null;
 
   if (modo === "INFORMES") {
     items = listarModelosInformesGP();
@@ -126,10 +122,8 @@ async function recargarItemsPantalla({
     // Esto también cubre el caso en que otro dispositivo haya FINALIZADO el
     // mismo operativo: no se bloquea el formulario; el último envío guardado
     // seguirá siendo el válido.
-    if (refrescoNoDestructivo && operativoAnterior) {
-      items = conservarOperativoSeleccionadoEnItems(items, operativoAnterior);
-      estadoPantalla.operativoSeleccionado = operativoAnterior;
-      await registrarOperativoSeguro(operativoAnterior);
+    if (refrescoNoDestructivo && estadoPantalla.operativoSeleccionado) {
+      items = conservarOperativoSeleccionadoEnItems(items, estadoPantalla.operativoSeleccionado);
     }
 
     estadoPantalla.operativosDisponibles = items;
@@ -162,30 +156,34 @@ async function recargarItemsPantalla({
       items
     });
 
-    if (refrescoNoDestructivo && operativoAnterior) {
-      restaurarSeleccionVisualOperativo(operativoAnterior);
+    if (refrescoNoDestructivo && estadoPantalla.operativoSeleccionado) {
+      restaurarSeleccionVisualOperativo(estadoPantalla.operativoSeleccionado);
     }
   } else {
     const selectorHost = document.querySelector("#selectorOperativoContextualHost");
     if (selectorHost) selectorHost.innerHTML = "";
   }
 
-  if (!renderLocalInicial) {
-    if (modo === "INFORMES" || modo === "CONTROL_MOVILES") {
-      const hostDinamico = document.querySelector("#contenedorDinamicoHost");
-      if (hostDinamico) hostDinamico.innerHTML = "";
-    } else if (!(refrescoNoDestructivo && operativoAnterior)) {
-      await renderContenedorSeguro({
-        modo,
-        operativoSeleccionado: null,
-        modeloInformeSeleccionado: null
-      });
-    }
+  if (modo === "INFORMES" || modo === "CONTROL_MOVILES") {
+    const hostDinamico = document.querySelector("#contenedorDinamicoHost");
+    if (hostDinamico) hostDinamico.innerHTML = "";
   }
+  // INICIA y FINALIZA se montan únicamente al elegir un operativo. Ningún
+  // refresco de Realtime ni una respuesta tardía de Supabase toca el formulario.
 
   if (motivo) {
     console.log("[Informes_GP] Pantalla refrescada:", motivo);
   }
+}
+
+function mostrarEsperaSeleccionOperativo(modo) {
+  const host = document.getElementById("contenedorDinamicoHost");
+  if (!host) return;
+  const titulo = modo === "FINALIZA" ? "FINALIZA" : "INICIA";
+  const mensaje = modo === "FINALIZA"
+    ? "Seleccione un operativo iniciado para finalizar."
+    : "Seleccione un operativo programado para iniciar.";
+  host.innerHTML = `<section class="pantalla-mensaje"><h2>${titulo}</h2><p>${mensaje}</p></section>`;
 }
 
 function aplicarSuperficieExclusivaControlMoviles(modo) {
@@ -339,6 +337,10 @@ async function renderSelectorOperativoSeguro({
           estadoPantalla.modeloInformeSeleccionado = null;
 
           await registrarOperativoSeguro(item);
+          if (!item?.operativo_key) {
+            mostrarEsperaSeleccionOperativo(estadoPantalla.modo);
+            return;
+          }
 
           if (estadoPantalla.modo === "INICIA") {
             const actualizado = await actualizarOperativoIniciaSinRerenderSeguro(item);
@@ -413,6 +415,10 @@ function renderSelectorFallback({
 
     estadoPantalla.operativoSeleccionado = item;
     await registrarOperativoSeguro(item);
+    if (!item?.operativo_key) {
+      mostrarEsperaSeleccionOperativo(modo);
+      return;
+    }
 
     if (modo === "INICIA") {
       const actualizado = await actualizarOperativoIniciaSinRerenderSeguro(item);
