@@ -89,8 +89,9 @@ export async function iniciarFormularioInicia({
   const actualizar = () => actualizarEstadoInicio({ form, operativoSeleccionado: ultimoOperativoInicia, getContexto });
   configurarPresenciaActiva(form, actualizar);
 
-  form.addEventListener("informesgp:preparar-envio", () => {
-    const seleccionado = resolverContexto(getContexto)?.operativoSeleccionado;
+  form.addEventListener("informesgp:preparar-envio", (event) => {
+    const seleccionado = event?.detail?.operativoSeleccionado ||
+      resolverContexto(getContexto)?.operativoSeleccionado;
     if (seleccionado?.operativo_key) ultimoOperativoInicia = seleccionado;
     actualizarEstadoInicio({ form, operativoSeleccionado: ultimoOperativoInicia, getContexto });
   });
