@@ -154,7 +154,9 @@ async function obtenerOperativosDesdeSupabase({ modo, guardiaFecha, ahora = new 
   }
 
   if (modo === "INFORMES") {
-    return listarUltimosEstadosOperativosRestRapido({ limite: 2 });
+    // Consultar más filas antes de elegir los dos últimos INICIADOS;
+    // las últimas dos filas de la tabla podrían no corresponder a INICIO.
+    return listarUltimosEstadosOperativosRestRapido({ limite: 500 });
   }
 
   return [];
@@ -231,7 +233,6 @@ function fueIniciado(op = {}) {
 
   return Boolean(
     op?.inicio_evento_id ||
-    op?.created_at ||
     datos?.inicio_snapshot ||
     ["INICIO", "FINALIZADO"].includes(tipoEvento) ||
     ["EN_CURSO", "INICIADO", "ACTIVO", "FINALIZADO", "CERRADO"].includes(estado)
@@ -367,6 +368,9 @@ export function enriquecerFechaOperativoDesdeProgramacion(enCurso = [], programa
     return {
       ...op,
       fecha_operativo: String(programado.fecha_operativo || op.fecha_operativo || "").trim(),
+      hora_inicio: horaConfirmada(op.hora_inicio) || horaConfirmada(programado.hora_inicio),
+      hora_fin: horaConfirmada(op.hora_fin) || horaConfirmada(programado.hora_fin),
+      lugar: lugarConfirmado(op.lugar) || lugarConfirmado(programado.lugar),
       tipo_nombre: String(programado.tipo_nombre || programado.tipo_original || op.tipo_nombre || op.tipo_operativo || "OPERATIVO").trim(),
       tipo_original: String(programado.tipo_original || programado.tipo_nombre || op.tipo_original || "").trim(),
       ordenes_origen: ordenesProgramadas.length ? ordenesProgramadas : (Array.isArray(op.ordenes_origen) ? op.ordenes_origen : []),
@@ -399,10 +403,15 @@ export function normalizarOperativos(operativos) {
 }
 
 export function normalizarOperativo(op) {
+  const datos = op?.datos && typeof op.datos === "object" ? op.datos : {};
+  const snapshot = datos.inicio_snapshot && typeof datos.inicio_snapshot === "object" ? datos.inicio_snapshot : {};
   const operativoKey = op?.operativo_key || op?.id_operativo || op?.id || construirKeyFallback(op);
-  const horaInicio = op?.hora_inicio || op?.inicio || extraerHoraInicioDesdeFranja(op?.franja_horaria) || "";
-  const horaFin = op?.hora_fin || op?.hora_finalizacion || op?.fin || extraerHoraFinDesdeFranja(op?.franja_horaria) || "";
-  const tipoOperativo = op?.tipo_operativo || op?.tipo || op?.tipo_codigo || "GENERICO";
+  const horaInicio = horaConfirmada(op?.hora_inicio) || horaConfirmada(op?.inicio) ||
+    horaConfirmada(snapshot.hora_inicio) || extraerHoraInicioDesdeFranja(op?.franja_horaria) || "";
+  const horaFin = horaConfirmada(op?.hora_fin) || horaConfirmada(op?.hora_finalizacion) ||
+    horaConfirmada(op?.fin) || horaConfirmada(snapshot.hora_fin) ||
+    extraerHoraFinDesdeFranja(op?.franja_horaria) || "";
+  const tipoOperativo = op?.tipo_operativo || op?.tipo || op?.tipo_codigo || snapshot.tipo_operativo || "GENERICO";
 
   return {
     ...op,
@@ -410,7 +419,8 @@ export function normalizarOperativo(op) {
     guardia_fecha: String(op?.guardia_fecha || op?.fecha_guardia || op?.fecha || "").trim(),
     hora_inicio: String(horaInicio || "").trim(),
     hora_fin: normalizarHoraFinAbierta(horaFin),
-    lugar: String(op?.lugar || op?.qth || op?.ubicacion || "SIN LUGAR").trim(),
+    lugar: lugarConfirmado(op?.lugar) || lugarConfirmado(op?.qth) ||
+      lugarConfirmado(op?.ubicacion) || lugarConfirmado(snapshot.lugar) || "",
     tipo_operativo: String(tipoOperativo || "GENERICO").trim().toUpperCase(),
     tipo_nombre: String(op?.tipo_nombre || op?.tipo_descripcion || tipoOperativo || "OPERATIVO").trim(),
     estado: String(op?.estado || "").trim().toUpperCase()
@@ -457,6 +467,16 @@ function extraerHoraFinDesdeFranja(franja) {
   const matches = [...texto.matchAll(/(\d{1,2}:\d{2})/g)];
   if (matches.length >= 2) return matches[1][1];
   return /A\s+FINALIZAR/i.test(texto) ? "FINALIZAR" : "";
+}
+
+function lugarConfirmado(valor) {
+  const lugar = String(valor || "").trim();
+  return /^(?:SIN LUGAR|SIN DATOS|NO INFORMADO)$/i.test(lugar) ? "" : lugar;
+}
+
+function horaConfirmada(valor) {
+  const hora = String(valor || "").trim();
+  return /^(?:SIN HORARIO|--:--|NO INFORMADO)$/i.test(hora) ? "" : hora;
 }
 
 function normalizarHoraFinAbierta(valor) {
