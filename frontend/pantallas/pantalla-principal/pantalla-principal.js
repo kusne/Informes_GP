@@ -35,7 +35,9 @@ export async function iniciarPantallaPrincipal({ hostSelector }) {
     throw new Error(`No se encontró host de pantalla principal: ${hostSelector}`);
   }
 
-  await iniciarCoordinadorSeguro();
+  // La UI ya viene pintada en index.html. No se debe esperar a importar
+  // coordinadores antes de activar el selector o iniciar la carga de operativos.
+  void iniciarCoordinadorSeguro();
 
   // El markup principal puede venir ya pintado desde index.html para evitar
   // una pantalla vacía mientras GitHub Pages descarga módulos.
