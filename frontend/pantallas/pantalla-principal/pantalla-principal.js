@@ -88,10 +88,6 @@ async function recargarItemsPantalla({
 } = {}) {
   const modo = estadoPantalla.modo;
   const refrescoNoDestructivo = esRefrescoNoDestructivo(motivo);
-  const operativoAnterior = refrescoNoDestructivo
-    ? estadoPantalla.operativoSeleccionado
-    : null;
-
   await sincronizarGuardiaFechaActualSeguro();
 
   if (!refrescoNoDestructivo) {
@@ -105,7 +101,10 @@ async function recargarItemsPantalla({
   // El formulario INICIA es completamente local. Se empieza a construir de
   // inmediato mientras viaja la consulta de operativos. Antes esta pantalla
   // quedaba esperando a Supabase y daba sensación de app bloqueada.
-  const renderLocalInicial = modo === "INICIA"
+  // Realtime y la reanudación de la app solamente actualizan el selector.
+  // Volver a montar INICIA aquí desvincula el operativo y borra lo que el
+  // usuario está escribiendo, aunque el selector siga mostrando su elección.
+  const renderLocalInicial = modo === "INICIA" && !refrescoNoDestructivo
     ? renderContenedorSeguro({
         modo,
         operativoSeleccionado: null,
@@ -126,10 +125,14 @@ async function recargarItemsPantalla({
     // Esto también cubre el caso en que otro dispositivo haya FINALIZADO el
     // mismo operativo: no se bloquea el formulario; el último envío guardado
     // seguirá siendo el válido.
-    if (refrescoNoDestructivo && operativoAnterior) {
-      items = conservarOperativoSeleccionadoEnItems(items, operativoAnterior);
-      estadoPantalla.operativoSeleccionado = operativoAnterior;
-      await registrarOperativoSeguro(operativoAnterior);
+    // Leer la selección DESPUÉS de la consulta: el usuario puede haber elegido
+    // un operativo mientras Supabase respondía.
+    const operativoActual = refrescoNoDestructivo
+      ? estadoPantalla.operativoSeleccionado
+      : null;
+    if (operativoActual) {
+      items = conservarOperativoSeleccionadoEnItems(items, operativoActual);
+      await registrarOperativoSeguro(operativoActual);
     }
 
     estadoPantalla.operativosDisponibles = items;
@@ -162,8 +165,8 @@ async function recargarItemsPantalla({
       items
     });
 
-    if (refrescoNoDestructivo && operativoAnterior) {
-      restaurarSeleccionVisualOperativo(operativoAnterior);
+    if (refrescoNoDestructivo && estadoPantalla.operativoSeleccionado) {
+      restaurarSeleccionVisualOperativo(estadoPantalla.operativoSeleccionado);
     }
   } else {
     const selectorHost = document.querySelector("#selectorOperativoContextualHost");
@@ -174,7 +177,8 @@ async function recargarItemsPantalla({
     if (modo === "INFORMES" || modo === "CONTROL_MOVILES") {
       const hostDinamico = document.querySelector("#contenedorDinamicoHost");
       if (hostDinamico) hostDinamico.innerHTML = "";
-    } else if (!(refrescoNoDestructivo && operativoAnterior)) {
+    } else if (!(refrescoNoDestructivo &&
+      (modo === "INICIA" || estadoPantalla.operativoSeleccionado))) {
       await renderContenedorSeguro({
         modo,
         operativoSeleccionado: null,
