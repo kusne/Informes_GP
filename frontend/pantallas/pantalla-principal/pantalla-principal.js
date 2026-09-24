@@ -95,6 +95,7 @@ async function recargarItemsPantalla({
   const modo = estadoPantalla.modo;
   const refrescoNoDestructivo = esRefrescoNoDestructivo(motivo);
   await sincronizarGuardiaFechaActualSeguro();
+  if (modo !== estadoPantalla.modo) return;
 
   if (!refrescoNoDestructivo) {
     estadoPantalla.operativoSeleccionado = null;
@@ -107,14 +108,13 @@ async function recargarItemsPantalla({
   // Hasta que se elija un operativo sólo se consultan los operativos y se
   // actualiza selector/contador. No importar ni montar personal, móviles,
   // elementos, fotos o WhatsApp durante el arranque.
-  const renderLocalInicial = null;
-
   if (modo === "INFORMES") {
     items = listarModelosInformesGP();
     estadoPantalla.modelosInformesDisponibles = items;
     estadoPantalla.operativosDisponibles = [];
   } else {
     items = await obtenerOperativosSeguro(modo);
+    if (modo !== estadoPantalla.modo) return;
 
     // Si Realtime actualiza la lista mientras el usuario está completando un
     // formulario, el operativo que está editando se mantiene disponible en
@@ -130,11 +130,7 @@ async function recargarItemsPantalla({
     estadoPantalla.modelosInformesDisponibles = [];
   }
 
-  // Esperamos el montaje local sólo después de que ambas tareas ya corrieron
-  // en paralelo. Evita la carrera de selección sin volver al arranque serial.
-  if (renderLocalInicial) {
-    await renderLocalInicial;
-  }
+  if (modo !== estadoPantalla.modo) return;
 
   estadoPantalla.cantidadOperativos = items.length;
 
@@ -342,7 +338,8 @@ async function renderSelectorOperativoSeguro({
             return;
           }
 
-          if (estadoPantalla.modo === "INICIA") {
+          if (estadoPantalla.modo === "INICIA" &&
+              document.querySelector("#contenedorDinamicoHost .formulario-inicia")) {
             const actualizado = await actualizarOperativoIniciaSinRerenderSeguro(item);
             if (actualizado) return;
           }
@@ -420,7 +417,8 @@ function renderSelectorFallback({
       return;
     }
 
-    if (modo === "INICIA") {
+    if (modo === "INICIA" &&
+        document.querySelector("#contenedorDinamicoHost .formulario-inicia")) {
       const actualizado = await actualizarOperativoIniciaSinRerenderSeguro(item);
       if (actualizado) return;
     }
