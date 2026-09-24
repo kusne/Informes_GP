@@ -56,6 +56,7 @@ export function iniciarInstanciaUnicaInformesGP({
 
   window.addEventListener("pagehide", cerrarCanal, { once: true });
   registrarVerificacionAlVolver();
+  registrarAvisosServiceWorker();
   void verificarVersionPublicada();
 
   return new Promise((resolve) => {
@@ -64,6 +65,32 @@ export function iniciarInstanciaUnicaInformesGP({
       duplicada: obsoleta,
       instanciaId
     }), Math.max(80, Number(esperaMs) || ESPERA_DETECCION_MS));
+  });
+}
+
+function registrarAvisosServiceWorker() {
+  if (!("serviceWorker" in navigator)) return;
+
+  navigator.serviceWorker.addEventListener("message", (event) => {
+    const mensaje = event?.data || {};
+    if (mensaje.tipo !== "IGP_SW_ACTIVADO") return;
+    const versionActivada = String(mensaje.version || "").trim();
+    if (versionActivada && versionActivada !== versionInstancia) {
+      bloquearInstancia("Informes GP recibió una actualización. Cargue la versión actual para continuar.");
+    }
+  });
+
+  // Al regresar desde segundo plano puede haberse reemplazado el SW durante
+  // la suspensión del teléfono, sin entregar el mensaje a esta pestaña.
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    const controlador = navigator.serviceWorker.controller;
+    if (!controlador || obsoleta) return;
+    try {
+      const versionControlador = new URL(controlador.scriptURL).searchParams.get("v");
+      if (versionControlador && versionControlador !== versionInstancia) {
+        bloquearInstancia("El controlador de Informes GP cambió a otra versión. Actualice para continuar.");
+      }
+    } catch {}
   });
 }
 
