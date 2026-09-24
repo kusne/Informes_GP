@@ -35,26 +35,10 @@ export function iniciarInstanciaUnicaInformesGP({
     const mensaje = event?.data || {};
     if (!mensaje || mensaje.instanciaId === instanciaId) return;
 
-    // Las copias anteriores de la aplicación solo entienden IGP_BUSCAR_INSTANCIA.
-    // Se conserva el mismo canal; una pestaña nueva jamás debe ceder ante una
-    // anterior de la misma versión.
-    if (mensaje.tipo === "IGP_BUSCAR_INSTANCIA") {
-      // Los clientes nuevos contestan anunciando que otra pestaña más reciente
-      // ya está activa; los clientes viejos no conocen este mensaje.
-      canal?.postMessage({
-        tipo: "IGP_INSTANCIA_NUEVA",
-        instanciaId, version: versionInstancia, para: mensaje.instanciaId
-      });
-      return;
-    }
-
-    if (mensaje.tipo === "IGP_INSTANCIA_NUEVA" &&
-        (!mensaje.para || mensaje.para === instanciaId)) {
-      // Sólo bloqueamos una pestaña si otra declara estar más actualizada,
-      // o si la propia pestaña ya perdió la titularidad.
-      if (mensaje.version !== versionInstancia || mensaje.para === instanciaId) {
-        bloquearInstancia("Hay otra sesión de Informes GP abierta. Utilice la pestaña más reciente.");
-      }
+    if (mensaje.tipo === "IGP_INSTANCIA_NUEVA") {
+      // La pestaña recién abierta toma prioridad también si la versión es igual.
+      // El mensaje se envía sólo al entrar, no se reenvía desde pestañas viejas.
+      bloquearInstancia("Hay otra sesión de Informes GP abierta. Utilice la pestaña más reciente.");
       return;
     }
 
