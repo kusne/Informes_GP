@@ -90,6 +90,10 @@ async function recargarItemsPantalla({
   const refrescoNoDestructivo = esRefrescoNoDestructivo(motivo);
   await sincronizarGuardiaFechaActualSeguro();
 
+  // Una consulta iniciada bajo otro modo no puede tocar el selector ni el
+  // formulario que el usuario abrió mientras la consulta estaba pendiente.
+  if (modo !== estadoPantalla.modo) return;
+
   if (!refrescoNoDestructivo) {
     estadoPantalla.operativoSeleccionado = null;
     estadoPantalla.modeloInformeSeleccionado = null;
@@ -118,6 +122,7 @@ async function recargarItemsPantalla({
     estadoPantalla.operativosDisponibles = [];
   } else {
     items = await obtenerOperativosSeguro(modo);
+    if (modo !== estadoPantalla.modo) return;
 
     // Si Realtime actualiza la lista mientras el usuario está completando un
     // formulario, el operativo que está editando se mantiene disponible en
@@ -132,7 +137,8 @@ async function recargarItemsPantalla({
       : null;
     if (operativoActual) {
       items = conservarOperativoSeleccionadoEnItems(items, operativoActual);
-      await registrarOperativoSeguro(operativoActual);
+      // El coordinador ya conserva la selección. No volver a publicarla:
+      // notificar suscriptores mientras FINALIZA se edita es innecesario.
     }
 
     estadoPantalla.operativosDisponibles = items;
@@ -144,6 +150,7 @@ async function recargarItemsPantalla({
   if (renderLocalInicial) {
     await renderLocalInicial;
   }
+  if (modo !== estadoPantalla.modo) return;
 
   estadoPantalla.cantidadOperativos = items.length;
 
@@ -177,8 +184,10 @@ async function recargarItemsPantalla({
     if (modo === "INFORMES" || modo === "CONTROL_MOVILES") {
       const hostDinamico = document.querySelector("#contenedorDinamicoHost");
       if (hostDinamico) hostDinamico.innerHTML = "";
-    } else if (!(refrescoNoDestructivo &&
-      (modo === "INICIA" || estadoPantalla.operativoSeleccionado))) {
+    } else if (!refrescoNoDestructivo) {
+      // INICIA y FINALIZA: los refrescos automáticos nunca desmontan el
+      // formulario. FINALIZA sólo se monta por selección explícita y debe
+      // conservar las cifras, detalles y vínculo con el operativo elegido.
       await renderContenedorSeguro({
         modo,
         operativoSeleccionado: null,
