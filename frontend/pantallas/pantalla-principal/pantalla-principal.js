@@ -14,7 +14,8 @@ const estadoPantalla = {
   modeloInformeSeleccionado: null,
   cantidadOperativos: 0,
   operativosDisponibles: [],
-  modelosInformesDisponibles: []
+  modelosInformesDisponibles: [],
+  errorCargaOperativos: ""
 };
 
 let listenerEnvioRegistrado = false;
@@ -121,8 +122,18 @@ async function recargarItemsPantalla({
     estadoPantalla.modelosInformesDisponibles = items;
     estadoPantalla.operativosDisponibles = [];
   } else {
-    items = await obtenerOperativosSeguro(modo);
-    if (modo !== estadoPantalla.modo) return;
+    try {
+      items = await obtenerOperativosSeguro(modo);
+      if (modo !== estadoPantalla.modo) return;
+      estadoPantalla.errorCargaOperativos = "";
+    } catch (error) {
+      if (modo !== estadoPantalla.modo) return;
+      estadoPantalla.errorCargaOperativos = error?.message || "No se pudieron cargar los operativos.";
+      // Nunca reemplazar la lista confirmada por cero ni limpiar un formulario
+      // en curso por un error transitorio de red.
+      mostrarErrorCargaOperativos(modo, estadoPantalla.errorCargaOperativos);
+      return;
+    }
 
     // Si Realtime actualiza la lista mientras el usuario está completando un
     // formulario, el operativo que está editando se mantiene disponible en
@@ -163,6 +174,7 @@ async function recargarItemsPantalla({
 
   actualizarTituloContador(modo);
   aplicarSuperficieExclusivaControlMoviles(modo);
+  document.getElementById("igpErrorCargaOperativos")?.remove();
 
   if (modo !== "INFORMES" && modo !== "CONTROL_MOVILES") {
     await renderContadorSeguro(estadoPantalla.cantidadOperativos);
@@ -198,6 +210,34 @@ async function recargarItemsPantalla({
 
   if (motivo) {
     console.log("[Informes_GP] Pantalla refrescada:", motivo);
+  }
+}
+
+function mostrarErrorCargaOperativos(modo, mensaje) {
+  const host = document.querySelector("#selectorOperativoContextualHost");
+  if (!host) return;
+  let aviso = document.getElementById("igpErrorCargaOperativos");
+  if (!aviso) {
+    aviso = document.createElement("div");
+    aviso.id = "igpErrorCargaOperativos";
+    aviso.setAttribute("role", "alert");
+    aviso.style.cssText = "padding:12px;margin:10px 0;background:#fff1f0;color:#761515;border:2px solid #b42318;border-radius:10px;font-weight:700";
+    host.parentElement?.insertBefore(aviso, host);
+  }
+  aviso.textContent = mensaje + " ";
+  const boton = document.createElement("button");
+  boton.type = "button";
+  boton.textContent = "Reintentar carga";
+  boton.style.cssText = "display:block;margin-top:8px;padding:9px 12px";
+  boton.addEventListener("click", () => {
+    void recargarItemsPantalla({ motivo: "reanudacion-app" });
+  });
+  aviso.appendChild(boton);
+  // Si no hay una lista previamente verificada no permitir seleccionar una
+  // entrada antigua presentada por un selector que aún permanece en el DOM.
+  if (!estadoPantalla.operativosDisponibles.length || !estadoPantalla.operativoSeleccionado) {
+    const selector = host.querySelector("select");
+    if (selector) selector.disabled = true;
   }
 }
 
@@ -517,7 +557,7 @@ async function obtenerOperativosSeguro(modo) {
     return await modulo.obtenerOperativosPorModo(modo);
   } catch (error) {
     console.error("[Informes_GP] Error leyendo operativos:", error);
-    return [];
+    throw error;
   }
 }
 
