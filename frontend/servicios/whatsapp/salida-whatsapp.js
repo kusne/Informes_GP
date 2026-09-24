@@ -121,6 +121,19 @@ export async function manejarEnvioWhatsapp({ boton = null, getContexto } = {}) {
     return;
   }
 
+  // Leer las selecciones visibles inmediatamente antes de validar. Un
+  // snapshot previo puede carecer del operativo aunque siga seleccionado.
+  const contextoInicial = typeof getContexto === "function" ? getContexto() : {};
+  const modoInicial = resolverModoActual(obtenerEstadoInformes(), contextoInicial);
+  if (modoInicial === "INICIA" || modoInicial === "FINALIZA") {
+    const formulario = document.querySelector(
+      modoInicial === "INICIA"
+        ? "#contenedorDinamicoHost .formulario-inicia"
+        : "#contenedorDinamicoHost .formulario-finaliza"
+    );
+    formulario?.dispatchEvent(new Event("informesgp:preparar-envio"));
+  }
+
   const estado = obtenerEstadoInformes();
   const contexto = typeof getContexto === "function" ? getContexto() : {};
   const modo = resolverModoActual(estado, contexto);
