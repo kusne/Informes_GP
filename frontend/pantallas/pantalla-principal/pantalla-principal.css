@@ -213,3 +213,29 @@ body.informe-detalle-activo {
 body.informe-detalle-activo {
   overflow: hidden !important;
 }
+
+/* El color blanco se aplica a títulos sobre el fondo oscuro únicamente. */
+html[data-igp-logo="blanco"] .brand h1,
+html[data-igp-logo="blanco"] .brand .brand-sub,
+html[data-igp-logo="blanco"] #selectorModoInformeHost .top-label,
+html[data-igp-logo="blanco"] .operativos-title-row .top-label {
+  color: #fff !important;
+}
+.igp-logo-config {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 9px;
+  color: #fff;
+  font: 600 12px/1.25 system-ui, sans-serif;
+}
+.igp-logo-config select {
+  max-width: 110px;
+  min-height: 30px;
+  padding: 3px 6px;
+  border: 1px solid #818b99;
+  border-radius: 7px;
+  background: #303843;
+  color: #fff;
+  font: inherit;
+}
