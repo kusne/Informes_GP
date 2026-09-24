@@ -104,6 +104,15 @@ export async function iniciarFormularioFinaliza({
 export function obtenerFormularioFinalizaActual() { return ultimoFormularioFinaliza; }
 export function obtenerOperativoFinalizaActual() { return ultimoOperativoFinaliza; }
 
+export function reconstruirFinalizadoVisibleParaEnvio({ operativoSeleccionado, getContexto } = {}) {
+  const form = document.querySelector("#contenedorDinamicoHost .formulario-finaliza");
+  if (!form || !form.isConnected) return false;
+  const operativo = operativoSeleccionado || ultimoOperativoFinaliza;
+  if (operativo?.operativo_key) ultimoOperativoFinaliza = operativo;
+  actualizarEstadoFinaliza({ form, operativoSeleccionado: ultimoOperativoFinaliza, getContexto });
+  return true;
+}
+
 function configurarPresenciaActiva(form, onChange) {
   const check = form?.querySelector("#finalizaPresenciaActiva");
   const motivo = form?.querySelector("#finalizaPresenciaActivaMotivo");
