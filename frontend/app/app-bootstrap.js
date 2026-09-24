@@ -12,14 +12,6 @@ const [
 ]);
 
 aplicarCorreccionesVisualesGlobales();
-// El selector se prepara sobre el encabezado ya incluido en index.html.
-// No agrega esperas a la consulta de operativos ni reconstruye formularios.
-const moduloLogo = import(`../servicios/identidad/logo-selector.js${SUFIJO_VERSION}`)
-  .catch((error) => {
-    console.warn("[Informes_GP] Selector de logos no disponible:", error);
-    return null;
-  });
-void moduloLogo.then((modulo) => modulo?.iniciarSelectorColorLogo());
 // Exclusividad independiente de la versión: la última ventana abierta gana,
 // sin cerrar Chrome ni la PWA o borrar los campos de la ventana anterior.
 const { iniciarExclusividadSesionInformesGP } = await import(`../servicios/navegacion/sesion-activa.js${SUFIJO_VERSION}`);
@@ -37,8 +29,6 @@ async function iniciarAppCuandoDOMDisponible() {
     }
 
     await iniciarApp();
-    // Cubre el fallback que monta el encabezado después de cargar la app.
-    void moduloLogo.then((modulo) => modulo?.iniciarSelectorColorLogo());
     programarVerificacionOperativosInicial();
   } catch (error) {
     console.error("[Informes_GP] Error al iniciar app:", error);
