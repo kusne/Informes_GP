@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" data-igp-logo="blanco">
 <head>
   <meta charset="utf-8">
   <title>Informes GP</title>
@@ -2550,10 +2550,38 @@ body.informe-detalle-activo {
   }
 }
 
+
+/* Identidad visual: sólo títulos sobre el fondo oscuro, sin alterar
+   textos, botones ni campos que se muestran sobre tarjetas claras. */
+html[data-igp-logo="blanco"] .brand h1,
+html[data-igp-logo="blanco"] .brand .brand-sub,
+html[data-igp-logo="blanco"] #selectorModoInformeHost .top-label,
+html[data-igp-logo="blanco"] .operativos-title-row .top-label {
+  color: #fff !important;
+}
+.igp-logo-config {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 9px;
+  color: #fff;
+  font: 600 12px/1.25 system-ui, sans-serif;
+}
+.igp-logo-config select {
+  max-width: 110px;
+  min-height: 30px;
+  padding: 3px 6px;
+  border: 1px solid #818b99;
+  border-radius: 7px;
+  background: #303843;
+  color: #fff;
+  font: inherit;
+}
+
 </style>
 
   <!-- Los módulos JS se cargan después de actualizar el Service Worker para evitar mezclar versiones. -->
-  <link rel="preload" href="./frontend/assets/logo-bmzcn-gold-black.png" as="image" fetchpriority="high">
+  <link rel="preload" href="./frontend/assets/logo-bmzcn-white.png" as="image" fetchpriority="high">
 </head>
 <body>
   <!--
@@ -2572,7 +2600,7 @@ body.informe-detalle-activo {
             </div>
 
             <img
-              src="./frontend/assets/logo-bmzcn-gold-black.png"
+              src="./frontend/assets/logo-bmzcn-white.png"
               alt="Sello BMZCN"
               class="brand-logo logo-principal"
               onerror="this.style.display='none'"
