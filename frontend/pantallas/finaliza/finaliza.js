@@ -90,8 +90,9 @@ export async function iniciarFormularioFinaliza({
     onChange: () => actualizarEstadoFinaliza({ form, operativoSeleccionado: ultimoOperativoFinaliza, getContexto })
   });
 
-  form.addEventListener("informesgp:preparar-envio", () => {
-    const seleccionado = resolverContexto(getContexto)?.operativoSeleccionado;
+  form.addEventListener("informesgp:preparar-envio", (event) => {
+    const seleccionado = event?.detail?.operativoSeleccionado ||
+      resolverContexto(getContexto)?.operativoSeleccionado;
     if (seleccionado?.operativo_key) ultimoOperativoFinaliza = seleccionado;
     actualizarEstadoFinaliza({ form, operativoSeleccionado: ultimoOperativoFinaliza, getContexto });
   });
