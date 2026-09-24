@@ -12,6 +12,10 @@ const [
 ]);
 
 aplicarCorreccionesVisualesGlobales();
+// Exclusividad independiente de la versión: la última ventana abierta gana,
+// sin cerrar Chrome ni la PWA o borrar los campos de la ventana anterior.
+const { iniciarExclusividadSesionInformesGP } = await import(`../servicios/navegacion/sesion-activa.js${SUFIJO_VERSION}`);
+iniciarExclusividadSesionInformesGP();
 const deteccionInstancia = iniciarInstanciaUnicaInformesGP({
   versionActual: VERSION_DESPLIEGUE
 });
