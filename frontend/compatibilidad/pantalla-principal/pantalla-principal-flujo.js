@@ -45,7 +45,6 @@
   const ID_STYLE = "igp-pantalla-principal-flujo-style";
   const ID_HOST_PRINCIPAL = "pantallaPrincipalHost";
   const ID_HOST_DETALLE = "informeDetallePaginaHost";
-  const LOGO_PATH = new URL("frontend/assets/logo-bmzcn-gold-black.png", document.baseURI).href;
 
   let modeloSeleccionado = null;
   let selectorPrincipal = null;
@@ -338,24 +337,6 @@
     });
   }
 
-  function aplicarLogo() {
-    const imgs = Array.from(document.images || []);
-    const candidato = imgs.find((img) => {
-      const src = normalizar(img.getAttribute("src") || "");
-      const alt = normalizar(img.getAttribute("alt") || "");
-      const cls = normalizar(img.className || "");
-      return src.includes("LOGO") || src.includes("BMZCN") || alt.includes("BMZCN") || alt.includes("LOGO") || cls.includes("LOGO");
-    }) || imgs.find((img) => {
-      const rect = img.getBoundingClientRect();
-      return rect.width >= 55 && rect.height >= 55 && rect.top < 260;
-    });
-
-    if (candidato && !candidato.dataset.igpLogoGoldBlack) {
-      candidato.src = LOGO_PATH;
-      candidato.dataset.igpLogoGoldBlack = "1";
-    }
-  }
-
   function ocultarPanelViejoIncorrecto() {
     const viejo = document.getElementById("igp-panel-modelos-informes");
     if (viejo && viejo !== document.getElementById(ID_PANEL_MODELOS)) {
@@ -412,7 +393,6 @@
       if (!selectorPrincipal) return;
 
       asegurarEstilos();
-      aplicarLogo();
       asegurarOpcionesModo(selectorPrincipal);
 
       selectorOperativo = buscarSelectorOperativo();
