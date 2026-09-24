@@ -78,7 +78,7 @@ export async function listarEstadosOperativosRestRapido({
 export async function listarUltimosEstadosOperativosRestRapido({
   limite = 2
 } = {}) {
-  const maximo = Math.max(1, Math.min(20, Math.trunc(Number(limite) || 2)));
+  const maximo = Math.max(1, Math.min(1000, Math.trunc(Number(limite) || 2)));
   const filtros = {
     select: "*",
     order: "created_at.desc,updated_at.desc",
