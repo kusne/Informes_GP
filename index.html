@@ -2723,12 +2723,12 @@ body.informe-detalle-activo {
       });
     }
 
-    let swPreparado = false;
-    try {
-      swPreparado = await prepararServiceWorker();
-    } catch (error) {
+    // No demorar la primera carga esperando la instalación o activación del
+    // Service Worker: puede tardar varios segundos en conexiones móviles.
+    // El shell ya fue obtenido de la red y todos los módulos llevan nonce.
+    void prepararServiceWorker().catch((error) => {
       console.warn("[Informes_GP] No se pudo actualizar el Service Worker:", error);
-    }
+    });
 
     // La versión y el nonce se aplican siempre, incluso si SW falló.
     const sufijo = `?v=${encodeURIComponent(VERSION_DESPLIEGUE)}&n=${encodeURIComponent(NONCE_SESION)}`;
