@@ -35,24 +35,15 @@ export function iniciarInstanciaUnicaInformesGP({
     const mensaje = event?.data || {};
     if (!mensaje || mensaje.instanciaId === instanciaId) return;
 
-    if (mensaje.tipo === "IGP_INSTANCIA_NUEVA") {
-      // La pestaña recién abierta toma prioridad también si la versión es igual.
-      // El mensaje se envía sólo al entrar, no se reenvía desde pestañas viejas.
-      bloquearInstancia("Hay otra sesión de Informes GP abierta. Utilice la pestaña más reciente.");
-      return;
-    }
-
     if (mensaje.tipo === "IGP_VERSION_NUEVA" &&
         mensaje.version !== versionInstancia) {
       bloquearInstancia("Se publicó una versión nueva de Informes GP.");
     }
   });
 
-  // Se informa al resto de pestañas, incluso si una no responde a la consulta.
-  canal.postMessage({
-    tipo: "IGP_INSTANCIA_NUEVA",
-    instanciaId, version: versionInstancia
-  });
+  // La app instalada y Chrome pueden coexistir: jamás cerrar o bloquear
+  // una ventana porque otra sesión de Informes GP se haya abierto.
+  // Solo una versión comprobada como obsoleta puede quedar bloqueada.
 
   window.addEventListener("pagehide", cerrarCanal, { once: true });
   registrarVerificacionAlVolver();
