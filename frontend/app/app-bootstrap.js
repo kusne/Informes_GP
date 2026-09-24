@@ -12,6 +12,10 @@ const [
 ]);
 
 aplicarCorreccionesVisualesGlobales();
+// El selector se prepara sobre el encabezado ya incluido en index.html.
+// No agrega esperas a la consulta de operativos ni reconstruye formularios.
+const { iniciarSelectorColorLogo } = await import(`../servicios/identidad/logo-selector.js${SUFIJO_VERSION}`);
+iniciarSelectorColorLogo();
 // Exclusividad independiente de la versión: la última ventana abierta gana,
 // sin cerrar Chrome ni la PWA o borrar los campos de la ventana anterior.
 const { iniciarExclusividadSesionInformesGP } = await import(`../servicios/navegacion/sesion-activa.js${SUFIJO_VERSION}`);
