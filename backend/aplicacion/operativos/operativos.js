@@ -54,13 +54,12 @@ export async function obtenerOperativosPorModo(modo, opciones = {}) {
 
     return normalizados;
   } catch (error) {
-    console.error("[Informes_GP] Falló la lectura rápida de operativos desde el Supabase nuevo.", error);
+    console.error("[Informes_GP] Falló la lectura de operativos desde Supabase.", error);
     registrarFuenteOperativos({ modo: modoNormalizado, fuente: "ERROR_SUPABASE_REST" });
+    // Una lista anterior NO se debe mostrar como vigente ni un fallo de red
+    // se debe presentar al usuario como «0 operativos disponibles».
+    throw new Error("No se pudo verificar la lista actual de operativos. Compruebe la conexión y vuelva a cargarla.", { cause: error });
   }
-
-  const cache = obtenerOperativosDesdeCache({ modo: modoNormalizado, guardiaFecha });
-  registrarFuenteOperativos({ modo: modoNormalizado, fuente: "CACHE_TRAS_ERROR_SUPABASE" });
-  return cache;
 }
 
 async function obtenerOperativosDesdeSupabase({ modo, guardiaFecha, ahora = new Date() }) {
@@ -76,12 +75,12 @@ async function obtenerOperativosDesdeSupabase({ modo, guardiaFecha, ahora = new 
 
     if (programadosResultado.status !== "fulfilled") throw programadosResultado.reason;
 
-    const programados = programadosResultado.value || [];
-    const estados = estadosResultado.status === "fulfilled" ? estadosResultado.value || [] : [];
+    // No ofrecer un operativo ya iniciado como pendiente si falla la lectura
+    // de estados: ambos conjuntos son indispensables para filtrar INICIA.
+    if (estadosResultado.status !== "fulfilled") throw estadosResultado.reason;
 
-    if (estadosResultado.status !== "fulfilled") {
-      console.warn("[Informes_GP] No se pudo leer bmzcn_operativos_estado_v2 para filtrar INICIA:", estadosResultado.reason);
-    }
+    const programados = programadosResultado.value || [];
+    const estados = estadosResultado.value || [];
 
     const enCurso = estados.filter((op) => normalizarEstado(op?.estado) === "EN_CURSO");
     const finalizados = estados.filter((op) => normalizarEstado(op?.estado) === "FINALIZADO");
@@ -293,12 +292,11 @@ function esMismoOperativoLogico(a = {}, b = {}) {
 
   const ordenesA = resolverOrdenesIdentidad(a);
   const ordenesB = resolverOrdenesIdentidad(b);
-  if (ordenesA.length && ordenesB.length) {
-    const conjuntoB = new Set(ordenesB);
-    if (!ordenesA.some((orden) => conjuntoB.has(orden))) return false;
-  }
-
-  return true;
+  // Misma franja, lugar y tipo no bastan para fusionar dos órdenes
+  // diferentes: si las claves son distintas, exigir una orden compartida.
+  if (!ordenesA.length || !ordenesB.length) return false;
+  const conjuntoB = new Set(ordenesB);
+  return ordenesA.some((orden) => conjuntoB.has(orden));
 }
 
 function resolverFechaIdentidad(op = {}) {
