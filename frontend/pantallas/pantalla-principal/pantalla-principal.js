@@ -36,6 +36,10 @@ export async function iniciarPantallaPrincipal({ hostSelector }) {
 
   await iniciarCoordinadorSeguro();
 
+  // La primera consulta a Supabase arranca antes de descargar/pintar el
+  // aviso y el selector: ambas tareas se ejecutan en paralelo.
+  const precargaInicia = obtenerOperativosSeguro("INICIA");
+
   // El markup principal puede venir ya pintado desde index.html para evitar
   // una pantalla vacía mientras GitHub Pages descarga módulos.
   if (!host.querySelector(".pantalla-principal")) {
@@ -60,7 +64,7 @@ export async function iniciarPantallaPrincipal({ hostSelector }) {
   // INICIA se pinta y consulta en paralelo. La interfaz local no debe esperar a
   // Supabase para aparecer. Realtime se difiere hasta que el arranque crítico
   // ya terminó para que el CDN/WebSocket no compita con la primera pantalla.
-  await cambiarModoPantalla("INICIA");
+  await cambiarModoPantalla("INICIA", { operativosPrefetched: precargaInicia });
 
   if (!modoEnsayoActivo()) {
     registrarListenerRealtime();
@@ -69,7 +73,7 @@ export async function iniciarPantallaPrincipal({ hostSelector }) {
   }
 }
 
-async function cambiarModoPantalla(modo) {
+async function cambiarModoPantalla(modo, { operativosPrefetched = null } = {}) {
   salirVistaDetalleInformes();
   estadoPantalla.modo = normalizarModo(modo);
   estadoPantalla.operativoSeleccionado = null;
@@ -85,16 +89,18 @@ async function cambiarModoPantalla(modo) {
   await registrarOperativoSeguro(null);
 
   await recargarItemsPantalla({
-    motivo: "cambio-modo"
+    motivo: "cambio-modo",
+    operativosPrefetched
   });
 }
 
 async function recargarItemsPantalla({
-  motivo = ""
+  motivo = "",
+  operativosPrefetched = null
 } = {}) {
   const modo = estadoPantalla.modo;
   const refrescoNoDestructivo = esRefrescoNoDestructivo(motivo);
-  await sincronizarGuardiaFechaActualSeguro();
+  const guardiaCambiada = await sincronizarGuardiaFechaActualSeguro();
   if (modo !== estadoPantalla.modo) return;
 
   if (!refrescoNoDestructivo) {
@@ -113,7 +119,9 @@ async function recargarItemsPantalla({
     estadoPantalla.modelosInformesDisponibles = items;
     estadoPantalla.operativosDisponibles = [];
   } else {
-    items = await obtenerOperativosSeguro(modo);
+    items = modo === "INICIA" && !guardiaCambiada && operativosPrefetched
+      ? await operativosPrefetched
+      : await obtenerOperativosSeguro(modo);
     if (modo !== estadoPantalla.modo) return;
 
     // Si Realtime actualiza la lista mientras el usuario está completando un

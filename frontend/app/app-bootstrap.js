@@ -28,13 +28,18 @@ async function iniciarAppCuandoDOMDisponible() {
       return;
     }
 
-    // Recursos dinámicos: iniciar sin bloquear la navegación.
+    const inicioCritico = performance.now();
+    await iniciarApp();
+    const duracionCriticaMs = Math.round(performance.now() - inicioCritico);
+    console.info("[Informes_GP] Selector de operativos inicial listo en", duracionCriticaMs, "ms desde bootstrap.");
+    window.dispatchEvent(new CustomEvent("informesgp:arranque-critico-listo", {
+      detail: { duracionCriticaMs }
+    }));
+
+    // Personal y móviles se incorporan después de mostrar el selector.
     void import(`../servicios/recursos/selectores-guardia-realtime.js${SUFIJO_VERSION}`)
       .then(({ iniciarSelectoresGuardiaRealtime }) => iniciarSelectoresGuardiaRealtime())
       .catch((error) => console.error("[Informes_GP] Realtime recursos:", error));
-
-    await iniciarApp();
-    programarVerificacionOperativosInicial();
   } catch (error) {
     console.error("[Informes_GP] Error al iniciar app:", error);
     document.body.innerHTML = `
@@ -128,9 +133,4 @@ function aplicarCorreccionesVisualesGlobales() {
   document.head.appendChild(style);
 }
 
-function programarVerificacionOperativosInicial() {
-  setTimeout(() => {
-    if (document.visibilityState && document.visibilityState !== "visible") return;
-    window.dispatchEvent(new Event("focus"));
-  }, 900);
-}
+

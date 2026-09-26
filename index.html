@@ -2657,7 +2657,15 @@ body.informe-detalle-activo {
       }
     }
 
-    const VERSION_DESPLIEGUE = await resolverVersionDespliegue();
+    // Arranque con el último commit confirmado, sin esperar la API de GitHub.
+    // El nonce por apertura mantiene los módulos frescos con el SW network-first.
+    const CLAVE_VERSION = "informes-gp-commit-main-verificado";
+    let versionRecordada = "";
+    try { versionRecordada = localStorage.getItem(CLAVE_VERSION) || ""; } catch {}
+    const VERSION_DESPLIEGUE = /^[a-f0-9]{40}$/i.test(versionRecordada)
+      ? versionRecordada
+      : VERSION_FALLBACK;
+    performance.mark?.("igp-arranque-inicio");
     window.__IGP_VERSION_DESPLIEGUE__ = VERSION_DESPLIEGUE;
     window.__IGP_VERSION_SESION__ = NONCE_SESION;
 
@@ -2666,65 +2674,19 @@ body.informe-detalle-activo {
     manifest.href = `./manifest.webmanifest?v=${encodeURIComponent(VERSION_DESPLIEGUE)}&n=${encodeURIComponent(NONCE_SESION)}`;
     document.head.appendChild(manifest);
 
-    function esperarEstado(worker, estadoEsperado, timeoutMs = 8000) {
-      if (!worker || worker.state === estadoEsperado) return Promise.resolve();
-
-      return new Promise((resolve) => {
-        let terminado = false;
-        const finalizar = () => {
-          if (terminado) return;
-          terminado = true;
-          clearTimeout(timer);
-          worker.removeEventListener("statechange", revisar);
-          resolve();
-        };
-        const revisar = () => {
-          if (worker.state === estadoEsperado || worker.state === "redundant") finalizar();
-        };
-        const timer = setTimeout(finalizar, timeoutMs);
-        worker.addEventListener("statechange", revisar);
-        revisar();
-      });
-    }
-
-    function esperarControllerChange(timeoutMs = 5000) {
-      if (navigator.serviceWorker.controller) return Promise.resolve();
-
-      return new Promise((resolve) => {
-        let terminado = false;
-        const finalizar = () => {
-          if (terminado) return;
-          terminado = true;
-          clearTimeout(timer);
-          navigator.serviceWorker.removeEventListener("controllerchange", finalizar);
-          resolve();
-        };
-        const timer = setTimeout(finalizar, timeoutMs);
-        navigator.serviceWorker.addEventListener("controllerchange", finalizar, { once: true });
-      });
-    }
-
-    async function prepararServiceWorker() {
+    // El SW se registra después de mostrar los operativos, sin esperar
+    // instalación, activación ni controllerchange en el camino crítico.
+    async function prepararServiceWorker(version) {
       if (!("serviceWorker" in navigator)) return false;
-
-      const swUrl = new URL(
-        `./sw.js?v=${encodeURIComponent(VERSION_DESPLIEGUE)}&n=${encodeURIComponent(NONCE_SESION)}`,
-        window.location.href
-      );
+      const swUrl = new URL(`./sw.js?v=${encodeURIComponent(version)}`, window.location.href);
       const scopeUrl = new URL("./", window.location.href);
-
       const registro = await navigator.serviceWorker.register(swUrl.href, {
         scope: scopeUrl.pathname,
         updateViaCache: "none"
       });
-
-      await registro.update().catch(() => {});
-
-      const candidato = registro.installing || registro.waiting;
-      if (candidato) await esperarEstado(candidato, "activated");
-
-      await navigator.serviceWorker.ready;
-      await esperarControllerChange();
+      void registro.update().catch((error) => {
+        console.warn("[Informes_GP] Actualización de SW diferida:", error);
+      });
       return true;
     }
 
@@ -2733,38 +2695,71 @@ body.informe-detalle-activo {
         const script = document.createElement("script");
         script.src = ruta;
         script.async = false;
-        script.onload = () => resolve();
+        script.onload = resolve;
         script.onerror = () => reject(new Error(`No se pudo cargar ${ruta}`));
         document.head.appendChild(script);
       });
     }
 
-    let swPreparado = false;
-    try {
-      swPreparado = await prepararServiceWorker();
-    } catch (error) {
-      console.warn("[Informes_GP] No se pudo actualizar el Service Worker:", error);
-    }
+    const sufijo = `?v=${encodeURIComponent(VERSION_DESPLIEGUE)}&n=${encodeURIComponent(NONCE_SESION)}`;
+    // Conservar exactamente la cadena de dependencias de Control de Móviles,
+    // pero cargarla únicamente cuando se ingrese a ese modo.
+    let cargaControlMoviles = null;
+    window.__IGP_CARGAR_CONTROL_MOVILES__ = () => {
+      if (window.WSP?.modules?.controlMoviles?.init) return Promise.resolve();
+      if (!cargaControlMoviles) {
+        cargaControlMoviles = (async () => {
+          const modulos = [
+            "./frontend/compatibilidad/control-moviles/wsp-control-moviles-flujo-ui.js",
+            "./frontend/compatibilidad/control-moviles/wsp-control-moviles-ui.js",
+            "./frontend/compatibilidad/control-moviles/control-moviles.js"
+          ];
+          for (const modulo of modulos) await cargarScript(`${modulo}${sufijo}`);
+          if (!window.WSP?.modules?.controlMoviles?.init) {
+            throw new Error("Control de Móviles no terminó de cargar.");
+          }
+        })().catch((error) => {
+          cargaControlMoviles = null;
+          throw error;
+        });
+      }
+      return cargaControlMoviles;
+    };
 
-    const usarToken = swPreparado || !("serviceWorker" in navigator);
-    const sufijo = usarToken
-      ? `?v=${encodeURIComponent(VERSION_DESPLIEGUE)}&n=${encodeURIComponent(NONCE_SESION)}`
-      : "";
-
-    const compatibilidad = [
-      "./frontend/compatibilidad/control-moviles/wsp-control-moviles-flujo-ui.js",
-      "./frontend/compatibilidad/control-moviles/wsp-control-moviles-ui.js",
-      "./frontend/compatibilidad/control-moviles/control-moviles.js",
-      "./frontend/compatibilidad/pantalla-principal/pantalla-principal-flujo.js"
-    ];
-
-    for (const ruta of compatibilidad) {
-      try {
-        await cargarScript(`${ruta}${sufijo}`);
-      } catch (error) {
-        console.warn("[Informes_GP] Módulo de compatibilidad no disponible:", error);
+    let tareasSecundariasIniciadas = false;
+    async function iniciarTareasSecundarias() {
+      if (tareasSecundariasIniciadas) return;
+      tareasSecundariasIniciadas = true;
+      const swInicial = prepararServiceWorker(VERSION_DESPLIEGUE).catch((error) => {
+        console.warn("[Informes_GP] SW no disponible:", error);
+      });
+      const versionActual = await resolverVersionDespliegue();
+      if (!/^[a-f0-9]{40}$/i.test(versionActual)) return;
+      try { localStorage.setItem(CLAVE_VERSION, versionActual); } catch {}
+      if (versionActual !== VERSION_DESPLIEGUE) {
+        await swInicial;
+        void prepararServiceWorker(versionActual).catch((error) => {
+          console.warn("[Informes_GP] No se pudo preparar la nueva versión del SW:", error);
+        });
       }
     }
+
+    window.addEventListener("informesgp:arranque-critico-listo", () => {
+      performance.mark?.("igp-operativos-listos");
+      performance.measure?.("igp-tiempo-hasta-operativos", "igp-arranque-inicio", "igp-operativos-listos");
+      if (typeof window.requestIdleCallback === "function") {
+        window.requestIdleCallback(() => { void iniciarTareasSecundarias(); }, { timeout: 2500 });
+      } else {
+        setTimeout(() => { void iniciarTareasSecundarias(); }, 0);
+      }
+    }, { once: true });
+    // Si el inicio falla, el mantenimiento del SW no queda suspendido.
+    window.addEventListener("load", () => {
+      setTimeout(() => { void iniciarTareasSecundarias(); }, 15000);
+    }, { once: true });
+
+    // Único script de compatibilidad necesario para la pantalla principal.
+    await cargarScript(`./frontend/compatibilidad/pantalla-principal/pantalla-principal-flujo.js${sufijo}`);
 
     await import(`./frontend/app/app-bootstrap.js${sufijo}`);
   </script>

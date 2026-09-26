@@ -346,9 +346,13 @@
   }
 
   async function asegurarControlMovilesInicializado(mount) {
-    if (!window.WSP?.modules?.controlMoviles?.init) return;
     if (mount.dataset.controlMovilesInit === "1") return;
-
+    if (!window.WSP?.modules?.controlMoviles?.init) {
+      await window.__IGP_CARGAR_CONTROL_MOVILES__?.();
+    }
+    if (!window.WSP?.modules?.controlMoviles?.init) {
+      throw new Error("No se pudo cargar el módulo de Control de Móviles.");
+    }
     await window.WSP.modules.controlMoviles.init({ mount });
     mount.dataset.controlMovilesInit = "1";
   }
