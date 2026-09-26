@@ -1,4 +1,5 @@
 import { iniciarModeloInformeEspecial } from "../../compartido/informe-especial-builder.js";
+import { iniciarSelectorJuzgado } from "../../compartido/selector-juzgado.js";
 
 export async function iniciarModeloInformeUI({ form } = {}) {
   if (!form) return;
@@ -9,6 +10,7 @@ export async function iniciarModeloInformeUI({ form } = {}) {
   const campoLicenciaDni = form.querySelector('[name="clase"]');
   const checkboxLicenciaDigital = form.querySelector('[name="licencia_digital"]');
   const checkboxRetencion = form.querySelector('[name="medida_retencion"]');
+  let actualizarJuzgado = () => {};
 
   // Normalización visual y de valor: todo texto escrito por el usuario
   // en los campos de Alcoholemia se transforma inmediatamente a MAYÚSCULAS.
@@ -78,6 +80,7 @@ export async function iniciarModeloInformeUI({ form } = {}) {
     }
 
     licenciaFisicaAnterior = licenciaFisica;
+    actualizarJuzgado();
   };
 
   checkboxRetencion?.addEventListener("change", () => {
@@ -88,6 +91,7 @@ export async function iniciarModeloInformeUI({ form } = {}) {
   campoLicenciaDni?.addEventListener("change", actualizarRetencionLicenciaFisica);
   checkboxLicenciaDigital?.addEventListener("change", actualizarRetencionLicenciaFisica);
   actualizarRetencionLicenciaFisica();
+  actualizarJuzgado = iniciarSelectorJuzgado(form, { selectorRetencion: '[name="medida_retencion"]' });
 }
 
 export async function iniciarAlcoholemiaPositiva({

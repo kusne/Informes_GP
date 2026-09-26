@@ -79,6 +79,8 @@ function validarAlcoholemia(informe, errores) {
     errores.push("Debe completar N° de acta para una alcoholemia sancionable.");
   }
 
+  validarJuzgadoRetencion(f, errores, Boolean(f.medida_retencion));
+
   const otrosCodigosTexto = texto(f.otros_codigos);
   if (otrosCodigosTexto) {
     const codigos = extraerCodigosFalta(otrosCodigosTexto);
@@ -103,6 +105,7 @@ function validarDecreto46022(informe, errores) {
   if (!texto(f.modelo_vehiculo)) errores.push("Debe completar el modelo de la motocicleta.");
   if (!texto(f.dominio)) errores.push("Debe completar dominio.");
   if (!texto(f.numero_acta)) errores.push("Debe completar el N.º de acta de infracción.");
+  validarJuzgadoRetencion(f, errores, true);
 
   const codigos = extraerCodigosFalta(f.codigos_infraccion);
   if (!codigos.length) {
@@ -143,11 +146,23 @@ function validarRetencionLicencia(informe, errores) {
   if (!texto(f.clase_licencia)) errores.push("Debe completar clase de licencia.");
   if (!texto(f.numero_acta)) errores.push("Debe completar N° de Acta / Cédula de notificación.");
   if (texto(f.codigo) && !getNomencladorFalta(f.codigo)) errores.push("El código de licencia no existe en nomenclador.js.");
+  validarJuzgadoRetencion(f, errores, Boolean(f.retencion_licencia));
 
   if (["VENCIDA_MAS_6_MESES", "VENCIDA_MENOS_6_MESES", "CADUCA_CAMBIO_DATOS"].includes(motivo) && !texto(f.fecha_vencimiento)) {
     errores.push("Debe completar fecha de vencimiento / VTO de la licencia.");
   }
 
+}
+
+function validarJuzgadoRetencion(f, errores, habilitado) {
+  if (!habilitado) return;
+  const elegido = texto(f.juzgado || "SANTA FE").toLocaleUpperCase("es-AR");
+  const opciones = ["SANTA FE", "RINCON", "RECREO", "SAUCE VIEJO", "SANTO TOME", "OTRO"];
+  if (!opciones.includes(elegido)) {
+    errores.push("Seleccione un juzgado válido.");
+  } else if (elegido === "OTRO" && !texto(f.juzgado_otro)) {
+    errores.push("Complete el nombre del juzgado al seleccionar OTRO.");
+  }
 }
 
 function validarRequisaVehicular(informe, errores) {

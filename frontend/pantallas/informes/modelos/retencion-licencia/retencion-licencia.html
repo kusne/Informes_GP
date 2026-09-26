@@ -105,4 +105,21 @@
     <textarea id="licObservaciones" name="observaciones" placeholder="Información adicional"></textarea>
   </div>
 
+
+  <div class="bloque-formulario" id="licJuzgadoWrap" data-juzgado-wrap hidden>
+    <label for="licJuzgado">Juzgado</label>
+    <select id="licJuzgado" name="juzgado" disabled>
+      <option value="SANTA FE" selected>SANTA FE</option>
+      <option value="RINCON">RINCÓN</option>
+      <option value="RECREO">RECREO</option>
+      <option value="SAUCE VIEJO">SAUCE VIEJO</option>
+      <option value="SANTO TOME">SANTO TOMÉ</option>
+      <option value="OTRO">OTRO</option>
+    </select>
+    <div class="bloque-formulario" data-juzgado-otro-wrap hidden>
+      <label for="licJuzgadoOtro">Otro juzgado</label>
+      <input id="licJuzgadoOtro" name="juzgado_otro" type="text" placeholder="Ingrese el juzgado" autocomplete="off" disabled>
+    </div>
+  </div>
+
 </section>

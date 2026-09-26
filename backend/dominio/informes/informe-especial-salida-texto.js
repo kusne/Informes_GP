@@ -33,6 +33,11 @@ export function construirTextoInformeEspecial(informe) {
   return "";
 }
 
+function juzgadoSeleccionado(f = {}) {
+  const elegido = texto(f.juzgado || "SANTA FE");
+  return elegido === "OTRO" ? texto(f.juzgado_otro).toLocaleUpperCase("es-AR") : elegido;
+}
+
 function construirControlSuperior(informe) {
   const f = informe.formulario || {};
   const recursos = resolverRecursosOperativoInforme(informe);
@@ -288,7 +293,8 @@ function construirAlcoholemia(informe) {
     "*PERSONAL*",
     normalizarPersonalInstitucional(recursos.personal) || "/",
     "",
-    `*OBSERVACIÓN:* ${observacion || "/"}`
+    `*OBSERVACIÓN:* ${observacion || "/"}`,
+    ...(Boolean(f.medida_retencion) ? ["", `*JUZGADO:* ${juzgadoSeleccionado(f) || "/"}`] : [])
   ];
 
   return compactarSaltos(lineas.join("\n"));
@@ -435,7 +441,9 @@ function construirDecreto46022(informe) {
     "*PERSONAL*",
     normalizarPersonalInstitucional(recursos.personal) || "/",
     "",
-    `*OBSERVACIÓN:* ${observacion}`
+    `*OBSERVACIÓN:* ${observacion}`,
+    "",
+    `*JUZGADO:* ${juzgadoSeleccionado(f) || "/"}`
   ];
 
   return compactarSaltos(lineas.join("\n"));
@@ -621,6 +629,11 @@ function construirRetencionLicencia(informe) {
   agregarBloque(lineas, "*PERSONAL POLICIAL:*", f.personal);
   lineas.push("");
   lineas.push(`*RELATO:* ${construirRelatoRetencionLicencia(f, motivo, codigo)}`);
+
+  if (Boolean(f.retencion_licencia)) {
+    lineas.push("");
+    lineas.push(`*JUZGADO:* ${juzgadoSeleccionado(f) || "/"}`);
+  }
 
   if (texto(f.observaciones)) {
     lineas.push("");

@@ -84,6 +84,11 @@ export function leerDatosFormulario(form) {
   for (const campo of form.querySelectorAll("[name]")) {
     const nombre = campo.getAttribute("name");
     if (!nombre) continue;
+    // Un Juzgado oculto (sin retención) no forma parte del informe.
+    if ((nombre === "juzgado" || nombre === "juzgado_otro") && campo.disabled) {
+      datos[nombre] = "";
+      continue;
+    }
     if (campo.type === "checkbox") {
       datos[nombre] = Boolean(campo.checked);
       continue;

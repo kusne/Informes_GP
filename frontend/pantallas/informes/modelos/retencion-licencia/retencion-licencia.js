@@ -1,4 +1,5 @@
 import { getNomencladorFalta } from "../../../../../api/app-api.js";
+import { iniciarSelectorJuzgado } from "../../compartido/selector-juzgado.js";
 
 const CODIGOS_POR_MOTIVO = {
   VENCIDA_MAS_6_MESES: "9136",
@@ -9,6 +10,7 @@ const CODIGOS_POR_MOTIVO = {
 
 export async function iniciarModeloInformeUI({ form, operativoSeleccionado } = {}) {
   if (!form) return;
+  iniciarSelectorJuzgado(form, { selectorRetencion: '[name="retencion_licencia"]' });
   const op = operativoSeleccionado || {};
   completarSiVacio(form, "fecha_hecho", fechaOperativo(op));
   completarSiVacio(form, "hora_hecho", horaActual());

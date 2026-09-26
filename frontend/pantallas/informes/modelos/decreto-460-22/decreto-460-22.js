@@ -1,9 +1,11 @@
 import { iniciarModeloInformeEspecial } from "../../compartido/informe-especial-builder.js";
 import { extraerCodigosFalta } from "../../../../../api/app-api.js";
+import { iniciarSelectorJuzgado } from "../../compartido/selector-juzgado.js";
 
 export async function iniciarModeloInformeUI({ form } = {}) {
   if (!form) return;
 
+  iniciarSelectorJuzgado(form);
   const codigos = form.querySelector('[name="codigos_infraccion"]');
   codigos?.addEventListener("blur", () => {
     const lista = extraerCodigosFalta(codigos.value);
