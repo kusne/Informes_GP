@@ -32,34 +32,68 @@ function formatoNombre(valor) {
     .replace(/\b(De|Del|Y)\b/g, (conector, indice) => indice === 0 ? conector : conector.toLocaleLowerCase("es-AR"));
 }
 
+// Orden de la Policía de Santa Fe, de mayor a menor jerarquía.
+// Las variantes "DE POLICÍA" se normalizan sin modificar lo impreso.
+const JERARQUIAS = Object.freeze([
+  "COMISARIO GENERAL", "COMISARIO MAYOR", "COMISARIO SUPERVISOR",
+  "COMISARIO", "SUBCOMISARIO", "INSPECTOR", "SUBINSPECTOR",
+  "OFICIAL PRINCIPAL", "OFICIAL", "SUBOFICIAL MAYOR",
+  "SUBOFICIAL PRINCIPAL", "SUBOFICIAL", "SARGENTO PRIMERO",
+  "SARGENTO", "CABO PRIMERO", "CABO", "AGENTE"
+]);
+
+function prioridadJerarquia(valor) {
+  const jerarquia = normalizarClave(valor).replace(/\bDE POLICIA\b/g, "").trim();
+  const indice = JERARQUIAS.indexOf(jerarquia);
+  return indice >= 0 ? indice : JERARQUIAS.length;
+}
+
+function compararPersonal(a, b) {
+  const porJerarquia = prioridadJerarquia(a.jerarquia) - prioridadJerarquia(b.jerarquia);
+  if (porJerarquia) return porJerarquia;
+  // A igual jerarquía, el N.I. numéricamente menor figura primero.
+  const niA = String(a.ni || "").trim();
+  const niB = String(b.ni || "").trim();
+  if (!niA && niB) return 1;
+  if (niA && !niB) return -1;
+  const porNi = niA.localeCompare(niB, "es", { numeric: true });
+  return porNi || normalizarClave(a.nombre_apellido).localeCompare(
+    normalizarClave(b.nombre_apellido), "es"
+  );
+}
+
+function etiquetaPersonal(p) {
+  return [formatoNombre(p.jerarquia), formatoNombre(p.nombre_apellido)]
+    .filter(Boolean).join(" ");
+}
+
 export function crearCatalogoGuardia(personalFilas = [], movilesFilas = [], ahora = new Date()) {
   const guardia = resolverGuardia0600(ahora);
-  const roles = { jefe: [], subjefe: [] };
-  const grupoActual = [];
+  const jefes = [], subjefes = [], superiores = [], grupoActual = [];
   for (const p of personalFilas) {
-    if (p?.activo !== true) continue;
+    if (p?.activo !== true || !p?.nombre_apellido) continue;
     const rol = normalizarClave(p.rol);
-    const nombre = [formatoNombre(p.jerarquia), formatoNombre(p.nombre_apellido)].filter(Boolean).join(" ");
-    if (!nombre) continue;
     if (/\b(SUBJEFE|SUB JEFE|SEGUNDO JEFE|2DO JEFE)\b/.test(rol)) {
-      roles.subjefe.push(nombre);
+      subjefes.push(p);
     } else if (/\bJEFE\b/.test(rol)) {
-      roles.jefe.push(nombre);
+      jefes.push(p);
     } else if (
       normalizarClave(p.grupo) === guardia.grupo &&
       p.presente === true &&
       normalizarClave(p.situacion_revista) === "SERVICIO EFECTIVO"
     ) {
-      grupoActual.push(nombre);
+      if (/\bSUPERIOR DE SERVICIO\b/.test(rol)) superiores.push(p);
+      else grupoActual.push(p);
     }
   }
 
-  // Los dos cargos se conservan como opciones identificables si aún no tienen
-  // registros con rol Jefe/Subjefe en PERSONAL. No se inventan nombres.
+  // Jerarquía y N.I. se ordenan ANTES de convertir a etiquetas de pantalla.
+  // Jefe y Subjefe mantienen la disponibilidad original entre guardias.
   const personal = unicos([
-    ...(roles.jefe.length ? roles.jefe : ["JEFE"]),
-    ...(roles.subjefe.length ? roles.subjefe : ["SUBJEFE"]),
-    ...grupoActual.sort((a, b) => a.localeCompare(b, "es"))
+    ...(jefes.length ? jefes.sort(compararPersonal).map(etiquetaPersonal) : ["JEFE"]),
+    ...(subjefes.length ? subjefes.sort(compararPersonal).map(etiquetaPersonal) : ["SUBJEFE"]),
+    ...superiores.sort(compararPersonal).map(etiquetaPersonal),
+    ...grupoActual.sort(compararPersonal).map(etiquetaPersonal)
   ]);
 
   const vehiculos = (Array.isArray(movilesFilas) ? movilesFilas : [])
