@@ -9,7 +9,7 @@ export async function consultarRecursosGuardiaV2(ahora = new Date()) {
   if (!cliente) throw new Error("No hay conexión configurada con bmzcn-v2-desarrollo.");
   const [personal, movilidad] = await Promise.all([
     cliente.from(TABLA_PERSONAL)
-      .select("id,jerarquia,nombre_apellido,grupo,rol,situacion_revista,presente,activo")
+      .select("id,jerarquia,ni,nombre_apellido,grupo,rol,situacion_revista,presente,activo")
       .eq("activo", true),
     cliente.from(TABLA_MOVILES)
       .select("numero,tipo,condicion,activo")
