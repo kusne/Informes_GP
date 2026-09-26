@@ -7,9 +7,9 @@
   window.WSP = window.WSP || {};
   window.WSP.modules = window.WSP.modules || {};
 
-  const VERSION = "control-moviles-wsp-paridad-20260817-2109";
-  const SUPABASE_URL = "https://ugeydxozfewzhldjbkat.supabase.co";
-  const SUPABASE_ANON_KEY = "sb_publishable_ZeLC2rOxhhUXlQdvJ28JkA_qf802-pX";
+  const VERSION = "control-moviles-v2-servicio-realtime-20260926";
+  const SUPABASE_URL = "https://hbnxvwrqxhurdteirsyl.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_GgrICSZSYl6Fc5D8SzT-aA_GLCB9J01";
 
   const TABLA_MOVILES = "moviles_bmzcn";
   const TABLA_CONTROLES = "moviles_controles";
@@ -19,7 +19,6 @@
   const TABLA_PRESENCE = "wsp_control_moviles_presence";
   const BUCKET_FOTOS = "moviles-control-fotos";
 
-  const BASE_NUMEROS = ["12428", "10139", "12502"];
   const COMBUSTIBLES = ["", "reserva", "1/4", "+1/4", "-1/2", "1/2", "+1/2", "3/4", "+3/4", "lleno"];
   const HEARTBEAT_MS = 15000;
   const PRESENCE_TTL_MS = 45000;
@@ -39,6 +38,7 @@
     realtimeClient: null,
     realtimeChannel: null,
     realtimeRefresh: null,
+    guardando: false,
   };
 
   function $(id) { return document.getElementById(id); }
@@ -213,7 +213,7 @@
   }
   function lockPropio(lock) { return !!lock && lock.owner_id === OWNER_ID && lock.session_id === SESSION_ID; }
   function obtenerLock(numero) { return estado.locks.get(normalizarNumero(numero)); }
-  function visibles() { return estado.moviles.filter((m) => m?.numero && (m.condicion || !!obtenerLock(m.numero))); }
+  function visibles() { return estado.moviles.filter((m) => m?.numero && m.activo === true && m.condicion === true); }
 
   function renderChips() {
     const r = capturarRefs();
@@ -223,7 +223,6 @@
         refs: r,
         visibles: visibles(),
         firmaAnterior: estado.firmaRender,
-        baseNumeros: BASE_NUMEROS,
         limpiarTextoSimple: limpiar,
         normalizarTipoMovilControl: normalizarTipo,
         ordenarMovilesControl: ordenarMoviles,
@@ -244,12 +243,23 @@
       params: {
         select: "id,numero,tipo,modelo,dominio,kilometraje,combustible,observaciones_novedades,condicion,activo",
         activo: "eq.true",
+        condicion: "eq.true",
         order: "numero.asc",
       },
       extraHeaders: { Accept: "application/json" },
     });
-    estado.moviles = (Array.isArray(data) ? data : []).map(normalizarMovil).filter((m) => m.numero).sort(ordenarMoviles);
-    renderChips();
+    estado.moviles = (Array.isArray(data) ? data : [])
+      .map(normalizarMovil).filter((m) => m.numero && m.activo && m.condicion).sort(ordenarMoviles);
+    // Una baja recibida mientras se edita invalida la selección, salvo durante
+    // el propio guardado (que puede marcar el móvil fuera de servicio).
+    if (estado.seleccionado && !estado.guardando &&
+        !estado.moviles.some((m) => m.numero === estado.seleccionado.numero)) {
+      const numero = estado.seleccionado.numero;
+      volverASeleccion();
+      setEstado(`El móvil ${numero} dejó de estar en servicio y ya no puede seleccionarse.`);
+    } else {
+      renderChips();
+    }
     return estado.moviles;
   }
 
@@ -405,7 +415,14 @@
         event: "*", schema: "public", table: TABLA_LOCKS,
         filter: `guardia_fecha=eq.${guardia.guardia_fecha}`,
       }, refrescar)
-      .subscribe();
+      .on("postgres_changes", {
+        event: "*", schema: "public", table: TABLA_MOVILES,
+      }, refrescar)
+      .subscribe((status) => {
+        // Evita perder un cambio ocurrido entre la lectura inicial y la
+        // confirmación de la suscripción Realtime.
+        if (status === "SUBSCRIBED") refrescar();
+      });
     estado.realtimeClient = client;
     estado.realtimeChannel = channel;
     return true;
@@ -494,8 +511,17 @@
         params: { select: "id,numero,tipo,modelo,dominio,kilometraje,combustible,observaciones_novedades,condicion,activo", numero: `eq.${n}`, limit: "1" },
         extraHeaders: { Accept: "application/json" },
       });
-      if (Array.isArray(data) && data[0]) movil = normalizarMovil(data[0]);
-    } catch (_) {}
+      if (!Array.isArray(data) || !data[0] || data[0].activo !== true || data[0].condicion !== true) {
+        await cargarMoviles();
+        setEstado(`El móvil ${n} ya no está en servicio.`);
+        return;
+      }
+      movil = normalizarMovil(data[0]);
+    } catch (error) {
+      console.warn("[Informes GP][Control móviles] No se pudo validar el móvil.", error);
+      setEstado("No se pudo verificar el estado actual del móvil. Reintentá.");
+      return;
+    }
     aplicarFormulario(movil);
   }
 
@@ -640,6 +666,16 @@
 
     try {
       await cargarLocks();
+      // No permitir completar un control si otro operador dio de baja la unidad.
+      const actual = await fetchTabla(TABLA_MOVILES, {
+        params: { select: "numero,activo,condicion", numero: `eq.${Number(movil.numero)}`, limit: "1" },
+      });
+      if (!Array.isArray(actual) || !actual[0] || actual[0].activo !== true || actual[0].condicion !== true) {
+        await cargarMoviles();
+        volverASeleccion();
+        setEstado(`El móvil ${movil.numero} ya no está en servicio.`);
+        return;
+      }
       const lockActual = obtenerLock(movil.numero);
       if (lockActual && !lockPropio(lockActual)) {
         alert(`El móvil ${movil.numero} fue bloqueado por otro usuario.`);
@@ -647,6 +683,7 @@
         return;
       }
 
+      estado.guardando = true;
       if (r.btnCambiarMovilControl) { r.btnCambiarMovilControl.disabled = true; r.btnCambiarMovilControl.textContent = "Guardando..."; }
       setEstado("Guardando control de móvil...");
 
@@ -688,6 +725,7 @@
       alert(`No se pudo guardar el control de móvil. ${e?.message || ""}`.trim());
       setEstado("No se pudo guardar el control de móvil.");
     } finally {
+      estado.guardando = false;
       if (r.btnCambiarMovilControl) { r.btnCambiarMovilControl.disabled = false; r.btnCambiarMovilControl.textContent = "Guardar"; }
     }
   }

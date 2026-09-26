@@ -300,7 +300,7 @@
     const normalizarBasico = typeof ctx.normalizarBasicoSinAcentos === "function" ? ctx.normalizarBasicoSinAcentos : normalizarBasicoSinAcentos;
     const onSeleccionar = typeof ctx.onSeleccionar === "function" ? ctx.onSeleccionar : noop;
     const setEstado = typeof ctx.setEstado === "function" ? ctx.setEstado : ((texto) => setTextoEstado(texto, refs));
-    const baseNumeros = Array.isArray(ctx.baseNumeros) ? ctx.baseNumeros.map((n) => limpiar(n)) : [];
+
 
     const firmaRender = construirFirmaRender({
       visibles,
@@ -324,9 +324,10 @@
 
     setEstado("Seleccione un móvil en servicio.");
 
+    // Todas las unidades no-moto EN SERVICIO, sin un padrón de numerales fijo.
     const movilesBase = visibles
-      .filter((movil) => baseNumeros.includes(limpiar(movil?.numero)))
-      .sort((a, b) => prioridadNumeroBase(a?.numero, baseNumeros) - prioridadNumeroBase(b?.numero, baseNumeros));
+      .filter((movil) => normalizarTipo(movil?.tipo) !== "MOTO")
+      .sort(ordenar);
 
     const motos = visibles
       .filter((movil) => normalizarTipo(movil?.tipo) === "MOTO")
