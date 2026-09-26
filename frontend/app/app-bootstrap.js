@@ -28,6 +28,11 @@ async function iniciarAppCuandoDOMDisponible() {
       return;
     }
 
+    // Recursos dinámicos: iniciar sin bloquear la navegación.
+    void import(`../servicios/recursos/selectores-guardia-realtime.js${SUFIJO_VERSION}`)
+      .then(({ iniciarSelectoresGuardiaRealtime }) => iniciarSelectoresGuardiaRealtime())
+      .catch((error) => console.error("[Informes_GP] Realtime recursos:", error));
+
     await iniciarApp();
     programarVerificacionOperativosInicial();
   } catch (error) {

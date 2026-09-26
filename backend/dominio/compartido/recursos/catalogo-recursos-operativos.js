@@ -1,16 +1,7 @@
 const CATALOGO_RECURSOS_OPERATIVOS = Object.freeze({
-  personal: Object.freeze([
-    "JEFE",
-    "SUBJEFE",
-    "Subinspector Mariaux A.",
-    "Oficial Merlo D.",
-    "Oficial Lascurain I.",
-    "Suboficial Aquino F.",
-    "Suboficial Delgado Y.",
-    "Suboficial Benavidez."
-  ]),
-  moviles: Object.freeze(["12428", "10139", "12502"]),
-  motos: Object.freeze(["9092", "8989", "12089", "12090", "9029", "9030", "12091", "12087", "12088"]),
+  personal: Object.freeze(["JEFE", "SUBJEFE"]),
+  moviles: Object.freeze([]),
+  motos: Object.freeze([]),
   elementos: Object.freeze([
     Object.freeze({ clave: "escopetas", etiqueta: "ESCOPETA", etiquetaSalida: "Escopetas", items: Object.freeze(["N°650367", "N°650368"]) }),
     Object.freeze({ clave: "ht", etiqueta: "HT", etiquetaSalida: "Ht", items: Object.freeze(["N°02", "N°V03", "N°06", "N°08"]) }),
