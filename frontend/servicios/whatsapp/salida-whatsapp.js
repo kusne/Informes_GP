@@ -127,7 +127,8 @@ export async function manejarEnvioWhatsapp({ boton = null, getContexto } = {}) {
 
   const salida = resolverSalidaPorModo({
     modo,
-    estado
+    estado,
+    alEnviar: true
   });
 
   if (!salida) {
@@ -514,13 +515,13 @@ function resolverModoActual(estado, contexto) {
     .replace(/\s+/g, "_");
 }
 
-function resolverSalidaPorModo({ modo, estado }) {
+function resolverSalidaPorModo({ modo, estado, alEnviar = false }) {
   if (modo === "INICIA") {
     return obtenerSalidaInicioDesdeEstado(estado);
   }
 
   if (modo === "FINALIZA") {
-    return obtenerSalidaFinalizadoDesdeEstado(estado);
+    return obtenerSalidaFinalizadoDesdeEstado(estado, { alEnviar });
   }
 
   if (modo === "INFORMES") {
