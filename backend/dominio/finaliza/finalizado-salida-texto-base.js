@@ -12,7 +12,8 @@ export function construirTextoFinalizadoBase(finalizado) {
   const numerales = finalizado.numeralesFinaliza || {};
   const lineas = [];
   const resultadosOpcionales = usaControladosOpcionalesFinaliza(operativo, finalizado?.tipo_operativo);
-  const imprimirResultados = !resultadosOpcionales || Boolean(f.agregar_controlados);
+  const esPresenciaActiva = Boolean(f.presencia_activa);
+  const imprimirResultados = !esPresenciaActiva && (!resultadosOpcionales || Boolean(f.agregar_controlados));
 
   lineas.push(negrita("Policia de la Provincia de Santa Fe - Direccion General Guardia Provincial"));
   lineas.push(negrita("Brigada Motorizada Centro Norte"));
