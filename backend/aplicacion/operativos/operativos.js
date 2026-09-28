@@ -281,7 +281,12 @@ function esMismoOperativoLogico(a = {}, b = {}) {
   if (fechaA && fechaB && fechaA !== fechaB) return false;
 
   if (normalizarHoraIdentidad(a.hora_inicio) !== normalizarHoraIdentidad(b.hora_inicio)) return false;
-  if (normalizarHoraIdentidad(a.hora_fin) !== normalizarHoraIdentidad(b.hora_fin)) return false;
+  // La programación "A FINALIZAR" es un cierre abierto: al concluir,
+  // el estado registra la hora real. No tratar ese cambio como otro operativo.
+  // Para horarios fijos se conserva la comparación exacta existente.
+  const finProgramado = normalizarHoraIdentidad(a.hora_fin);
+  const finRegistrado = normalizarHoraIdentidad(b.hora_fin);
+  if (finProgramado !== "FINALIZAR" && finProgramado !== finRegistrado) return false;
 
   const lugarA = normalizarTextoIdentidad(a.lugar);
   const lugarB = normalizarTextoIdentidad(b.lugar);
