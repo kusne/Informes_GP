@@ -98,14 +98,28 @@ export function crearCatalogoGuardia(personalFilas = [], movilesFilas = [], ahor
 
   const vehiculos = (Array.isArray(movilesFilas) ? movilesFilas : [])
     .filter((m) => m?.activo === true && m.condicion === true)
-    .map((m) => ({ numero: String(m.numero ?? "").trim(), tipo: normalizarClave(m.tipo) }))
+    .map((m) => ({
+      numero: String(m.numero ?? "").trim(),
+      tipo: normalizarClave(m.tipo),
+      modelo: String(m.modelo ?? "").trim()
+    }))
     .filter((m) => /^\d+$/.test(m.numero))
     .sort((a, b) => Number(a.numero) - Number(b.numero));
+  // La cilindrada proviene del modelo registrado en Supabase V2.
+  // La lista de números sigue siendo la misma: solo se añade metadata visual.
+  const motosEnServicio = vehiculos.filter((m) => /MOTO/.test(m.tipo));
+  const motos = unicos(motosEnServicio.map((m) => m.numero));
+  const motosDetalle = motos.map((numero) => {
+    const modelo = motosEnServicio.find((m) => m.numero === numero)?.modelo || "";
+    const coincidencia = modelo.match(/\b(\d{2,4})\s*C\.?C\.?\b/i);
+    return { numero, cilindrada: coincidencia ? Number(coincidencia[1]) : null };
+  });
   return {
     ...guardia,
     personal,
     moviles: unicos(vehiculos.filter((m) => !/MOTO/.test(m.tipo)).map((m) => m.numero)),
-    motos: unicos(vehiculos.filter((m) => /MOTO/.test(m.tipo)).map((m) => m.numero))
+    motos,
+    motosDetalle
   };
 }
 
