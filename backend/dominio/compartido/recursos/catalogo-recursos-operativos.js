@@ -12,6 +12,28 @@ const CATALOGO_RECURSOS_OPERATIVOS = Object.freeze({
   ])
 });
 
+// Solo cambia la presentación de estos dos cargos; el valor emitido conserva
+// jerarquía, apellido y nombres completos en el informe.
+const PERSONAL_ESPECIAL = Object.freeze({
+  JEFE: Object.freeze({ etiqueta: "JEFE", valor: "Subcomisario Choque José María" }),
+  SUBJEFE: Object.freeze({ etiqueta: "SUBJEFE", valor: "Inspector Fertonani Sebastián" })
+});
+
+export function presentarPersonalOperativo(valor) {
+  const original = String(valor ?? "").trim();
+  const clave = original.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/\./g, "").toUpperCase().replace(/\s+/g, " ");
+  if (clave === "JEFE" || clave.startsWith("JEFE ") ||
+      clave.startsWith("SUBCOMISARIO CHOQUE ") || clave.startsWith("SUBCRIO CHOQUE ")) {
+    return PERSONAL_ESPECIAL.JEFE;
+  }
+  if (clave === "SUBJEFE" || clave.startsWith("SUBJEFE ") ||
+      clave.startsWith("INSPECTOR FERTONANI ")) {
+    return PERSONAL_ESPECIAL.SUBJEFE;
+  }
+  return { etiqueta: original, valor: original };
+}
+
 export function obtenerCatalogoRecursosOperativos() {
   return {
     personal: [...CATALOGO_RECURSOS_OPERATIVOS.personal],
