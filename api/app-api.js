@@ -142,7 +142,8 @@ export { esOperativoPatrullaje } from "../backend/dominio/compartido/tipos/patru
 export { usaResultadosAssalControlArmas } from "../backend/dominio/compartido/tipos/resultados-especiales-finaliza.js";
 export {
   obtenerCatalogoRecursosOperativos,
-  construirResumenRecursosOperativos
+  construirResumenRecursosOperativos,
+  presentarPersonalOperativo
 } from "../backend/dominio/compartido/recursos/catalogo-recursos-operativos.js";
 
 // INFORMES se procesan únicamente mediante procesarInformeEspecialFormulario.
