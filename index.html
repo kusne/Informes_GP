@@ -2569,6 +2569,39 @@ body.informe-detalle-activo {
   object-fit: contain;
 }
 
+
+/* Agrupación visual de motos por cilindrada (INICIA y FINALIZA).
+   El índice incluye el CSS crítico inline: no basta con modificar los CSS modulares. */
+.inicio-motos-grid.igp-motos-agrupadas,
+.finaliza-motos-grid.igp-motos-agrupadas {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 13px;
+}
+.igp-motos-grupo {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid #a2adbb;
+  border-radius: 12px;
+  background: rgba(255,255,255,.33);
+}
+.igp-motos-grupo-titulo {
+  margin: 0 0 10px;
+  color: var(--blue-strong-2);
+  font-size: 16px;
+  font-weight: 900;
+}
+.igp-motos-grupo-opciones {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0,1fr));
+  gap: 10px;
+}
+@media (max-width: 520px) {
+  .igp-motos-grupo-opciones {
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    gap: 9px;
+  }
+}
+
 </style>
 
   <!-- Los módulos JS se cargan después de actualizar el Service Worker para evitar mezclar versiones. -->
