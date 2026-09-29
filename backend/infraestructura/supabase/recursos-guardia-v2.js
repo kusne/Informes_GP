@@ -12,7 +12,7 @@ export async function consultarRecursosGuardiaV2(ahora = new Date()) {
       .select("id,jerarquia,ni,nombre_apellido,grupo,rol,situacion_revista,presente,activo")
       .eq("activo", true),
     cliente.from(TABLA_MOVILES)
-      .select("numero,tipo,condicion,activo")
+      .select("numero,tipo,modelo,condicion,activo")
       .eq("activo", true).eq("condicion", true)
   ]);
   if (personal.error) throw new Error("Error leyendo PERSONAL: " + personal.error.message);
