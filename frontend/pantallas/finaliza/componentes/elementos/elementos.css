@@ -30,10 +30,10 @@
   .inicio-elementos-grid--3 > label,
   .finaliza-elementos-grid--3 > label {
     min-width: 0;
-    min-height: 48px;
-    padding: 7px 5px;
-    gap: 3px;
-    font-size: clamp(10px, 2.85vw, 13px);
+    min-height: 50px;
+    padding: 6px 3px;
+    gap: 0;
+    font-size: 16px;
   }
 
   .inicio-moviles-grid:has(> label:nth-child(3):last-child) > label span,
@@ -50,9 +50,9 @@
   .finaliza-moviles-grid:has(> label:nth-child(3):last-child) > label input[type="checkbox"],
   .inicio-elementos-grid--3 > label input[type="checkbox"],
   .finaliza-elementos-grid--3 > label input[type="checkbox"] {
-    flex: 0 0 18px;
-    width: 18px;
-    height: 18px;
+    flex: 0 0 23px;
+    width: 23px;
+    height: 23px;
     margin: 0;
   }
 }
