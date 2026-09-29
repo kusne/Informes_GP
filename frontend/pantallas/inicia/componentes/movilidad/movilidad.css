@@ -50,3 +50,33 @@
     font-size: 16px;
   }
 }
+
+/* Grupos de motos: mismos botones, distribuidos por cilindrada. */
+.inicio-motos-grid.igp-motos-agrupadas {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 13px;
+}
+.inicio-motos-grid .igp-motos-grupo {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid #a2adbb;
+  border-radius: 12px;
+  background: rgba(255,255,255,.33);
+}
+.inicio-motos-grid .igp-motos-grupo-titulo {
+  margin: 0 0 10px;
+  color: var(--blue-strong-2);
+  font-size: 16px;
+  font-weight: 900;
+}
+.inicio-motos-grid .igp-motos-grupo-opciones {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0,1fr));
+  gap: 10px;
+}
+@media (max-width: 520px) {
+  .inicio-motos-grid .igp-motos-grupo-opciones {
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    gap: 9px;
+  }
+}
