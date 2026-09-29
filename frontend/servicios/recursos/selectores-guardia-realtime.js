@@ -8,7 +8,7 @@ import {
   consultarRecursosGuardiaV2,
   observarRecursosGuardiaV2
 } from "../../../api/recursos-guardia-api.js";
-import { obtenerEstadoInformes } from "../../../api/app-api.js";
+import { obtenerEstadoInformes, presentarPersonalOperativo } from "../../../api/app-api.js";
 
 const FORMULARIOS = Object.freeze([
   {
@@ -119,13 +119,14 @@ function sincronizarLista({ form, lista, clase, atributo, prefijoId, clases }) {
   }
 
   const disponibles = catalogo?.[clase] || [];
-  const mapa = new Map(disponibles.map((valor) => [clave(valor), valor]));
-  const seleccion = new Set(anteriores.map((valor) => {
-    const texto = String(valor).trim();
-    if (clase === "personal" && /^SUBJEFE(?:\s|$)/i.test(texto)) return clave("SUBJEFE");
-    if (clase === "personal" && /^JEFE(?:\s|$)/i.test(texto)) return clave("JEFE");
-    return clave(texto);
-  }));
+  const valorReal = (valor) => clase === "personal"
+    ? presentarPersonalOperativo(valor).valor
+    : String(valor ?? "").trim();
+  const mapa = new Map(disponibles.map((valor) => [clave(valorReal(valor)), valor]));
+  const seleccion = new Set(anteriores.map((valor) => clave(valorReal(valor))));
+  const cilindradas = new Map((catalogo?.motosDetalle || [])
+    .map((moto) => [clave(moto.numero), moto.cilindrada]));
+  const gruposMotos = new Map();
 
   const fragmento = document.createDocumentFragment();
   for (let indice = 0; indice < disponibles.length; indice++) {
@@ -135,15 +136,40 @@ function sincronizarLista({ form, lista, clase, atributo, prefijoId, clases }) {
     label.className = clases;
     label.htmlFor = id;
     const span = document.createElement("span");
-    span.textContent = valor;
+    const presentacion = clase === "personal" ? presentarPersonalOperativo(valor) : null;
+    span.textContent = presentacion?.etiqueta ?? valor;
     const input = document.createElement("input");
     input.id = id;
     input.type = "checkbox";
-    input.value = valor;
+    input.value = valorReal(valor);
     input.setAttribute(atributo, "");
-    input.checked = seleccion.has(clave(valor));
+    input.checked = seleccion.has(clave(input.value));
     label.append(span, input);
-    fragmento.appendChild(label);
+
+    if (clase === "motos") {
+      const dato = Number(cilindradas.get(clave(valor)));
+      const cc = Number.isInteger(dato) && dato > 0 ? dato : 0;
+      if (!gruposMotos.has(cc)) gruposMotos.set(cc, []);
+      gruposMotos.get(cc).push(label);
+    } else {
+      fragmento.appendChild(label);
+    }
+  }
+
+  if (clase === "motos") {
+    lista.classList.add("igp-motos-agrupadas");
+    for (const cc of [...gruposMotos.keys()].sort((a, b) => a === 0 ? 1 : b === 0 ? -1 : a - b)) {
+      const grupo = document.createElement("div");
+      grupo.className = "igp-motos-grupo";
+      const titulo = document.createElement("h4");
+      titulo.className = "igp-motos-grupo-titulo";
+      titulo.textContent = cc ? `MOTOS ${cc} CC` : "MOTOS SIN CILINDRADA";
+      const opciones = document.createElement("div");
+      opciones.className = "igp-motos-grupo-opciones";
+      opciones.append(...gruposMotos.get(cc));
+      grupo.append(titulo, opciones);
+      fragmento.appendChild(grupo);
+    }
   }
   if (!disponibles.length) {
     const aviso = document.createElement("span");
@@ -153,11 +179,7 @@ function sincronizarLista({ form, lista, clase, atributo, prefijoId, clases }) {
 
   lista.replaceChildren(fragmento);
   lista.dataset.igpRecursosRevision = String(revision);
-  const removidos = anteriores.some((valor) => !mapa.has(clave(valor)) && !(
-    clase === "personal" && /^JEFE(?:\s|$)/i.test(valor) && mapa.has(clave("JEFE"))
-  ) && !(
-    clase === "personal" && /^SUBJEFE(?:\s|$)/i.test(valor) && mapa.has(clave("SUBJEFE"))
-  ));
+  const removidos = anteriores.some((valor) => !mapa.has(clave(valorReal(valor))));
   if (removidos) lista.dispatchEvent(new Event("change", { bubbles: true }));
 }
 
