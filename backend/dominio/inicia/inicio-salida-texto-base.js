@@ -1,4 +1,5 @@
 import { anexarOrdenesAlTitulo, resolverOrdenesOrigenOperativo } from "../compartido/operativo-identidad.js";
+import { presentarPersonalOperativo } from "../compartido/recursos/catalogo-recursos-operativos.js";
 export function construirTextoInicioBase(inicio) {
   if (!inicio) return "";
 
@@ -57,16 +58,11 @@ function resolverMotivoPresenciaActiva(formulario = {}) {
 }
 
 function formatearPersonalSalida(valor) {
-  const equivalencias = {
-    JEFE: "JEFE SubCrio. Choque J.M.",
-    SUBJEFE: "SUBJEFE Inspector Fertonani S.."
-  };
-
   return texto(valor)
     .split(/\r?\n/)
     .map((linea) => linea.trim())
     .filter(Boolean)
-    .map((linea) => equivalencias[linea.toUpperCase()] || linea)
+    .map((linea) => presentarPersonalOperativo(linea).valor)
     .join("\n");
 }
 
