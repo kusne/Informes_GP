@@ -301,9 +301,9 @@ function construirAlcoholemia(informe) {
 }
 
 function construirObservacionAlcoholemia(informe, f = {}, c = {}) {
-  const tipoVehiculo = formatearTipoVehiculoAlcoholemia(
+  const tipoVehiculo = mayusculasDocumento(formatearTipoVehiculoAlcoholemia(
     c.tipo_vehiculo_normalizado || f.tipo_vehiculo
-  );
+  ));
   const marca = texto(f.marca).toLocaleUpperCase("es-AR");
   const modelo = texto(f.modelo_vehiculo).toLocaleUpperCase("es-AR");
   const dominio = texto(f.dominio).toLocaleUpperCase("es-AR");
@@ -414,13 +414,13 @@ function construirDecreto46022(informe) {
   const recursos = resolverRecursosOperativoInforme(informe);
   const codigos = extraerCodigosFalta(f.codigos_infraccion);
   const marca = texto(f.marca);
-  const modelo = texto(f.modelo_vehiculo);
-  const dominio = texto(f.dominio);
+  const modelo = mayusculasDocumento(f.modelo_vehiculo);
+  const dominio = mayusculasDocumento(f.dominio);
   const numeroActa = normalizarNumeroActa(f.numero_acta);
   const operativoCumplimentado = construirDescripcionOperativo(informe, { mayusculas: true });
 
   const observacion = [
-    `Realizando ${operativoCumplimentado} procedemos a la detención en zona segura de un motovehículo marca ${marca} modelo ${modelo}, dominio ${dominio}, labrándose acta de infracción N° ${numeroActa} por el código/s ${codigos.join(", ")}, remitiendo el birrodado al corralón de San Jose del Rincon.`,
+    `Realizando ${operativoCumplimentado} procedemos a la detención en zona segura de un MOTOVEHÍCULO marca ${marca} modelo ${modelo}, dominio ${dominio}, labrándose acta de infracción N° ${numeroActa} por el código/s ${codigos.join(", ")}, remitiendo el birrodado al corralón de San Jose del Rincon.`,
     "Labrando acta de inventario.",
     "Cabe destacar que se realizo consulta sobre el vehiculo y persona por posibles requirimientos legales vigentes, con resultados negativos."
   ].join(" ");
@@ -477,7 +477,7 @@ function construirControlArmas(informe) {
 }
 
 function construirRelatoControlArmas(f = {}) {
-  const tipo = tituloControlArmas(f.tipo_vehiculo) || "Vehículo";
+  const tipo = mayusculasDocumento(texto(f.tipo_vehiculo).replaceAll("_", " ").replace(/\s+/g, " ")) || "VEHÍCULO";
   const conductor = texto(f.conductor).toLocaleUpperCase("es-AR");
   const cantidad = Number(f.cantidad_armas || 0);
   const tipoArma = tituloControlArmas(f.tipo_arma) || "arma de fuego";
@@ -551,7 +551,7 @@ function construirRequisaVehicular(informe) {
   const personal = normalizarPersonalRequisa(primerTexto(f.personal, recursos.personal)) || "/";
   const moviles = normalizarMovilesRequisa(primerTexto(f.moviles, recursos.moviles)) || "/";
   const tipoVehiculo = formatearTipoVehiculoRequisa(f.tipo_vehiculo);
-  const dominio = texto(f.dominio) || "/";
+  const dominio = mayusculasDocumento(f.dominio) || "/";
   const genero = texto(f.genero).toUpperCase();
   const sujeto = genero === "FEMENINO" ? "una femenina mayor de edad" : "un masculino mayor de edad";
   const pronombre = genero === "FEMENINO" ? "la" : "lo";
@@ -607,7 +607,7 @@ function normalizarMovilesRequisa(valor) {
 
 function formatearTipoVehiculoRequisa(valor) {
   const limpio = texto(valor).replaceAll("_", " ").replace(/\s+/g, " ").trim();
-  return limpio ? limpio.toLocaleLowerCase("es-AR") : "vehículo";
+  return limpio ? limpio.toLocaleUpperCase("es-AR") : "VEHÍCULO";
 }
 
 function construirRetencionLicencia(informe) {
@@ -649,13 +649,13 @@ function construirRetencionLicencia(informe) {
 }
 
 function construirRelatoRetencionLicencia(f, motivo, codigo) {
-  const tipo = texto(f.tipo_vehiculo);
-  const dominio = texto(f.dominio);
+  const tipo = mayusculasDocumento(f.tipo_vehiculo);
+  const dominio = mayusculasDocumento(f.dominio);
   const marca = texto(f.marca);
-  const modelo = texto(f.modelo_vehiculo);
+  const modelo = mayusculasDocumento(f.modelo_vehiculo);
   const conductor = texto(f.conductor);
   const dni = texto(f.dni);
-  const clase = texto(f.clase_licencia);
+  const clase = mayusculasDocumento(f.clase_licencia);
   const fechaVto = formatearFechaDocumento(f.fecha_vencimiento);
   const numeroActa = texto(f.numero_acta);
 
@@ -771,6 +771,10 @@ function texto(valor) {
   return String(valor || "").trim();
 }
 
+function mayusculasDocumento(valor) {
+  return texto(valor).toLocaleUpperCase("es-AR");
+}
+
 function agregarNumeralesSugeridos(lineas, informe) {
   const items = Array.isArray(informe.numerales_sugeridos) ? informe.numerales_sugeridos : [];
 
@@ -783,7 +787,7 @@ function agregarNumeralesSugeridos(lineas, informe) {
 }
 
 function construirTextoLicencia(f) {
-  const clase = String(f.clase || "").trim();
+  const clase = mayusculasDocumento(f.clase);
 
   if (Boolean(f.licencia_digital) && clase) {
     return `LICENCIA: POSEE LICENCIA DIGITAL CLASE ${clase}`;
