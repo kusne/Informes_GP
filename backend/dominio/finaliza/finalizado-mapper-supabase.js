@@ -10,7 +10,7 @@ export function mapearFinalizadoParaSupabase(finalizado) {
   const numerales = finalizado.numeralesFinaliza || { items: [], resumen: "", texto: "" };
   const tipoNombre = resolverTipoNombreOperativo(finalizado, finalizado.operativo);
   const ordenesOrigen = resolverOrdenesOrigenOperativo(finalizado, finalizado.operativo);
-  const presenciaActiva = Boolean(f.presencia_activa);
+  const presenciaActiva = esPresenciaActivaDeclarada(f);
   const motivoPresenciaActiva = resolverMotivoPresenciaActiva(f);
 
   return limpiarObjeto({
@@ -85,6 +85,10 @@ export function mapearFinalizadoParaSupabase(finalizado) {
     origen: "Informes_GP",
     fecha_evento: finalizado.fecha
   });
+}
+
+function esPresenciaActivaDeclarada(formulario = {}) {
+  return Boolean(formulario.presencia_activa) || /\\bse\\s+realiz[oó]\\s+presencia\\s+activa\\b/i.test(String(formulario.observaciones || ""));
 }
 
 function resolverMotivoPresenciaActiva(formulario = {}) {
