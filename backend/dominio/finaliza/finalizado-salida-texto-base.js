@@ -12,7 +12,7 @@ export function construirTextoFinalizadoBase(finalizado) {
   const numerales = finalizado.numeralesFinaliza || {};
   const lineas = [];
   const resultadosOpcionales = usaControladosOpcionalesFinaliza(operativo, finalizado?.tipo_operativo);
-  const esPresenciaActiva = Boolean(f.presencia_activa) || /\\b(?:colaboracion|colaboración)\\b[\\s\\S]{0,100}\\b(?:epe|aprad)\\b|\\b(?:epe|aprad)\\b[\\s\\S]{0,100}\\b(?:colaboracion|colaboración)\\b/i.test([operativo.tipo_nombre, operativo.titulo, operativo.tipo_descripcion, operativo.mision].filter(Boolean).join(" "));
+  const esPresenciaActiva = Boolean(f.presencia_activa) || /\b(?:colaboracion|colaboración)\b[\s\S]{0,100}\b(?:epe|aprad)\b|\b(?:epe|aprad)\b[\s\S]{0,100}\b(?:colaboracion|colaboración)\b/i.test([operativo.tipo_nombre, operativo.titulo, operativo.tipo_descripcion, operativo.mision].filter(Boolean).join(" "));
   const tieneResultados = ["vehiculos", "personas", "test_alometro", "test_alcoholimetro", "positiva_sancionable", "positiva_no_sancionable", "actas", "decreto_460_22", "assal", "control_armas", "requisas", "qrz", "dominio"].some((clave) => numero(f[clave]) > 0);
   const imprimirResultados = (!resultadosOpcionales || Boolean(f.agregar_controlados)) && (!esPresenciaActiva || tieneResultados);
 
