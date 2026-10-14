@@ -88,7 +88,7 @@ export function mapearFinalizadoParaSupabase(finalizado) {
 }
 
 function esPresenciaActivaDeclarada(formulario = {}) {
-  return Boolean(formulario.presencia_activa) || /\\bse\\s+realiz[oó]\\s+presencia\\s+activa\\b/i.test(String(formulario.observaciones || ""));
+  return Boolean(formulario.presencia_activa) || /\bse\s+realiz[oó]\s+presencia\s+activa\b/i.test(String(formulario.observaciones || ""));
 }
 
 function resolverMotivoPresenciaActiva(formulario = {}) {
