@@ -165,8 +165,10 @@ function construirObservacionesFinalizado({
   const motivo = texto(motivoPresenciaActiva);
   const cantidadDecreto = Math.max(0, Math.trunc(numero(decreto460)));
 
-  if (manual) partes.push(manual);
-  if (presenciaActiva && motivo && !manual.toLowerCase().includes(motivo.toLowerCase())) partes.push(motivo);
+  // Si la observación manual sólo dice "lluvia", reemplazarla por la leyenda institucional.
+  const lluviaSola = presenciaActiva && /^lluvia[.!]?$/i.test(manual) && /presencia activa por lluvia/i.test(motivo);
+  if (manual && !lluviaSola) partes.push(manual);
+  if (presenciaActiva && motivo && (lluviaSola || !manual.toLowerCase().includes(motivo.toLowerCase()))) partes.push(motivo);
 
   if (esPatrullaje && cantidadDecreto > 0) {
     partes.push(`Se remitieron ${cantidad(cantidadDecreto)} Motovehiculos al Corralon de San Jose del Rincon por Decto 460/22.`);
