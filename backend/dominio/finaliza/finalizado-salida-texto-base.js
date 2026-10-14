@@ -12,7 +12,9 @@ export function construirTextoFinalizadoBase(finalizado) {
   const numerales = finalizado.numeralesFinaliza || {};
   const lineas = [];
   const resultadosOpcionales = usaControladosOpcionalesFinaliza(operativo, finalizado?.tipo_operativo);
-  const imprimirResultados = !resultadosOpcionales || Boolean(f.agregar_controlados);
+  const esPresenciaActiva = Boolean(f.presencia_activa) || /\\b(?:colaboracion|colaboración)\\b[\\s\\S]{0,100}\\b(?:epe|aprad)\\b|\\b(?:epe|aprad)\\b[\\s\\S]{0,100}\\b(?:colaboracion|colaboración)\\b/i.test([operativo.tipo_nombre, operativo.titulo, operativo.tipo_descripcion, operativo.mision].filter(Boolean).join(" "));
+  const tieneResultados = ["vehiculos", "personas", "test_alometro", "test_alcoholimetro", "positiva_sancionable", "positiva_no_sancionable", "actas", "decreto_460_22", "assal", "control_armas", "requisas", "qrz", "dominio"].some((clave) => numero(f[clave]) > 0);
+  const imprimirResultados = (!resultadosOpcionales || Boolean(f.agregar_controlados)) && (!esPresenciaActiva || tieneResultados);
 
   lineas.push(negrita("Policia de la Provincia de Santa Fe - Direccion General Guardia Provincial"));
   lineas.push(negrita("Brigada Motorizada Centro Norte"));
@@ -57,18 +59,6 @@ export function construirTextoFinalizadoBase(finalizado) {
     lineas.push(...construirBloqueListaVertical("Qrz", f.qrz, f.qrz_documentos));
     lineas.push(...construirBloqueListaVertical("Dominio", f.dominio, f.dominio_items));
 
-    const medidas = [
-      ["Remisión", f.remision],
-      ["Retención", f.retencion],
-      ["Prohibición de Circulación", f.prohibicion_circulacion],
-      ["Cesión de Conducción", f.cesion_conduccion]
-    ].filter(([, valor]) => numero(valor) > 0);
-
-    if (medidas.length) {
-      lineas.push("Medidas Cautelares:");
-      medidas.forEach(([etiqueta, valor]) => lineas.push(`${etiqueta}: (${cantidad(valor)})`));
-    }
-
     const textoNumerales = texto(numerales.texto || f.numerales);
     if (f.ver_items && textoNumerales) {
       lineas.push("");
@@ -84,11 +74,28 @@ export function construirTextoFinalizadoBase(finalizado) {
     }
   }
 
+  // Las medidas cautelares se imprimen de manera independiente de Resultados.
+  // En presencias activas se omite el encabezado si todos sus numerales están en cero.
+  if (!resultadosOpcionales || Boolean(f.agregar_controlados)) {
+    const medidas = [
+      ["Remisión", f.remision],
+      ["Retención", f.retencion],
+      ["Prohibición de Circulación", f.prohibicion_circulacion],
+      ["Cesión de Conducción", f.cesion_conduccion]
+    ].filter(([, valor]) => numero(valor) > 0);
+
+    if (medidas.length) {
+      lineas.push("Medidas Cautelares:");
+      medidas.forEach(([etiqueta, valor]) => lineas.push(`${etiqueta}: (${cantidad(valor)})`));
+    }
+
+  }
+
   lineas.push("");
   lineas.push(negrita("Observaciones:"));
   lineas.push(construirObservacionesFinalizado({
     observaciones: f.observaciones,
-    presenciaActiva: Boolean(f.presencia_activa),
+    presenciaActiva: esPresenciaActiva,
     motivoPresenciaActiva: resolverMotivoPresenciaActiva(f),
     decreto460: f.decreto_460_22,
     esPatrullaje: esOperativoPatrullaje(operativo, finalizado?.tipo_operativo)
@@ -141,7 +148,7 @@ export function consolidarDetallesPorCodigo(valor) {
 
 function resolverMotivoPresenciaActiva(formulario = {}) {
   const motivo = texto(formulario.presencia_activa_motivo).toUpperCase();
-  if (motivo === "LLUVIA") return "Lluvia";
+  if (motivo === "LLUVIA") return "Se Realizó Presencia Activa por lluvia";
   if (motivo === "OTROS") return texto(formulario.presencia_activa_otro);
   return "";
 }
@@ -159,7 +166,7 @@ function construirObservacionesFinalizado({
   const cantidadDecreto = Math.max(0, Math.trunc(numero(decreto460)));
 
   if (manual) partes.push(manual);
-  if (presenciaActiva && motivo) partes.push(motivo);
+  if (presenciaActiva && motivo && !manual.toLowerCase().includes(motivo.toLowerCase())) partes.push(motivo);
 
   if (esPatrullaje && cantidadDecreto > 0) {
     partes.push(`Se remitieron ${cantidad(cantidadDecreto)} Motovehiculos al Corralon de San Jose del Rincon por Decto 460/22.`);
