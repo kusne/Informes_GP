@@ -842,6 +842,17 @@ function registrarListenerPostEnvio() {
         return;
       }
 
+      // INICIA y FINALIZA deben volver al selector principal al regresar de WhatsApp,
+      // con INICIA seleccionado y sin conservar el formulario enviado.
+      if (estadoPantalla.modo === "INICIA" || estadoPantalla.modo === "FINALIZA") {
+        const selector = document.querySelector("#selectorModoInformeSelect, #selectorModoInforme");
+        if (selector) selector.value = "INICIA";
+        await cambiarModoPantalla("INICIA");
+        await window.IGP?.pantallaPrincipal?.aplicarFlujo?.();
+        window.scrollTo({ top: 0, behavior: "auto" });
+        return;
+      }
+
       await recargarItemsPantalla({
         motivo: "post-envio-regreso"
       });
