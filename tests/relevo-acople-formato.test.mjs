@@ -48,8 +48,30 @@ test("RELEVO recobra el móvil y el personal original aunque el catálogo estát
  assert.match(t,/\*Elementos:\*\nEscopetas: \//);
  assert.match(t,/\*Observaciones:\*/);
  assert.match(t,/Siendo las 13:43 hs/);
- assert.match(t,/Se retira el Móvil N° 10139/);
+ assert.match(t,/Se releva al Móvil N° 10139/);
+ assert.match(t,/a cargo del personal saliente:/);
+ assert.match(t,/Gonzalez Carlos Nestor/);
+ assert.match(t,/Rodriguez Nahuel Nicolas/);
  assert.doesNotMatch(t,/Fecha de guardia|sin recursos|api\.whatsapp\.com/);
+});
+
+test("RELEVO posterior con mismo personal y móvil no inventa un segundo retiro",()=>{
+ const anterior={
+  personal:["Subcomisario Choque Jose Maria","Inspector Fertonani Sebastian"],
+  moviles:["12428"],motos:[],
+  elementos:{alometros:["ARSA-0360"],impresoras:["N°64"],alcoholimetros:["ARLM-0652"]}
+ };
+ const nuevo={
+  personal:[...anterior.personal],moviles:[...anterior.moviles],motos:[],
+  elementos:{alometros:[],impresoras:[],alcoholimetros:[]}
+ };
+ const m=calcularMovimientoRecursos({modo:"RELEVO",actual:anterior,seleccion:nuevo});
+ assert.deepEqual(m.retirados.personal,[]);
+ assert.deepEqual(m.retirados.moviles,[]);
+ const t=textoMovimiento(m,op,"14:08");
+ assert.match(t,/En este relevo no se registra retiro de personal ni de móviles/);
+ assert.match(t,/Elementos retirados: ARSA-0360 \/ N°64 \/ ARLM-0652/);
+ assert.doesNotMatch(t,/10139|Subinspector Gonzalez|Suboficial de Policia Rodriguez/);
 });
 
 test("ACOPLE conserva franja y títulos institucionales, e informa sólo lo incorporado",()=>{
