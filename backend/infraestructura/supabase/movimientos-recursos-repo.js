@@ -25,7 +25,8 @@ export function textoMovimiento(m,operativo,hora){
    '. Permanecen afectados al operativo los recursos ya asignados.';
  return 'Policia de la Provincia de Santa Fe - Direccion General Guardia Provincial\n'+
  'Brigada Motorizada Centro Norte\nTercio Charlie\n'+
- m.modo+' '+(operativo.tipo_nombre||operativo.tipo_operativo||'Operativo')+\n (ordenes.length?' - '+ordenes.join(' - '):'')+'\n'+
+ m.modo+' '+(operativo.tipo_nombre||operativo.tipo_operativo||'Operativo')+
+ (ordenes.length?' - '+ordenes.join(' - '):'')+'\n'+
  'Fecha de guardia: '+operativo.guardia_fecha+'\nHorario: '+hora+' HS\n'+
  'Lugar: '+operativo.lugar+'\n\n'+descripcion(despues)+'\n\nObservaciones:\n'+observacion;
 }
