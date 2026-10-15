@@ -45,3 +45,20 @@ test("RELEVO sin recursos para dejar a cargo se rechaza",()=>{
   modo:"RELEVO",actual:anterior,seleccion:{}
  }),/Seleccioná los recursos/);
 });
+
+test("RELEVO repetido sin cambios se rechaza para no registrar falsas salidas",()=>{
+ assert.throws(()=>calcularMovimientoRecursos({
+  modo:"RELEVO",actual:anterior,seleccion:anterior
+ }),/no modifica la dotación vigente/);
+});
+
+test("RELEVO sólo de elementos conserva personal y móviles, sin declarar sus retiros",()=>{
+ const m=calcularMovimientoRecursos({
+  modo:"RELEVO",actual:anterior,
+  seleccion:{personal:[...anterior.personal],moviles:[...anterior.moviles],
+   motos:[...anterior.motos],elementos:{ht:["N°02"]}}
+ });
+ assert.deepEqual(m.retirados.personal,[]);
+ assert.deepEqual(m.retirados.moviles,[]);
+ assert.deepEqual(m.retirados.elementos.pda,["05"]);
+});
