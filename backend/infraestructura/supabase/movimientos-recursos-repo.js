@@ -29,7 +29,7 @@ export function textoMovimiento(m,operativo,hora){
  '*Brigada Motorizada Centro Norte*\n*Tercio Charlie*\n\n'+
  '*'+m.modo+' '+(operativo.tipo_nombre||operativo.tipo_operativo||'Operativo')+
  (ordenes.length?' - '+ordenes.join(' - '):'')+'*\n\n'+
- '*Fecha:* '+String(operativo.datos?.fecha_operativo||operativo.guardia_fecha).replace(/^(\\d{4})-(\\d{2})-(\\d{2})$/,'$3/$2/$1')+'\n*Horario:* '+hora+' HS\n'+
+ '*Fecha:* '+String(operativo.datos?.fecha_operativo||operativo.guardia_fecha).replace(/^(\d{4})-(\d{2})-(\d{2})$/,'$3/$2/$1')+'\n*Horario:* '+hora+' HS\n'+
  '*Lugar:* '+operativo.lugar+'\n\n'+descripcion(despues)+'\n\n*Observaciones:*\n'+observacion;
 }
 export async function guardarMovimientoOperativo({modo,operativo_key,guardia_fecha,seleccion}={}){
