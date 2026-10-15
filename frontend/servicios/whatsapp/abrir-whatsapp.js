@@ -99,6 +99,18 @@ function normalizarArchivosCompartibles(archivos = []) {
     .filter(Boolean);
 }
 
+/** Abre la aplicación instalada directamente, evitando wa.me y api.whatsapp.com.
+ * RELEVO/ACOPLE usan esta ruta para no mostrar páginas intermedias en Android.
+ * Si el navegador bloquea la apertura, la interfaz conserva un botón de reintento.
+ */
+export function abrirWhatsappAppDirectamente(texto) {
+  const mensaje = String(texto || "").trim();
+  if (!mensaje) throw new Error("No hay texto del informe para compartir.");
+  const enlace = "whatsapp://send?text=" + encodeURIComponent(mensaje);
+  window.location.href = enlace;
+  return enlace;
+}
+
 export function abrirWhatsappConTexto(texto, opciones = {}) {
   const mensaje = String(texto || "").trim();
   if (!mensaje) throw new Error("No hay texto para enviar por WhatsApp.");
