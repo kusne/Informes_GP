@@ -56,7 +56,8 @@ export function textoMovimiento(m,operativo,hora){
  const inicio=datos.inicio_snapshot||{};
  return construirTextoInicioBase({
   prefijoTitulo:m.modo,
-  horarioReporte:hora+" HS",
+  // Horario institucional: conservar la franja del INICIO; la hora exacta del movimiento va en Observaciones.
+  horarioReporte:(!operativo.hora_inicio && !operativo.hora_fin) ? hora+" HS" : "",
   fecha_operativo:datos.fecha_operativo||inicio.fecha_operativo||operativo.guardia_fecha,
   hora_inicio:operativo.hora_inicio,
   hora_fin:operativo.hora_fin,
