@@ -176,3 +176,7 @@ function limpiar(valor) {
 function normalizarModo(valor) {
   return String(valor || "").trim().toUpperCase().replaceAll("-", "_").replace(/\s+/g, "_");
 }
+
+// Movimientos de dotación en operativos EN CURSO.
+export { guardarMovimientoOperativo, dotacionVigenteOperativo } from "../backend/infraestructura/supabase/movimientos-recursos-repo.js";
+export { obtenerEstadoOperativoV2 } from "../backend/infraestructura/supabase/operativos-estado-v2-repo.js";
