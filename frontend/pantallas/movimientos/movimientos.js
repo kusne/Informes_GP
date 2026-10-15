@@ -1,4 +1,4 @@
-import { obtenerCatalogoRecursosOperativos } from "../../../api/app-api.js";
+import { obtenerCatalogoRecursosOperativos, modoEnsayoActivo } from "../../../api/app-api.js";
 import { renderPersonalPolicial, obtenerPersonalSeleccionado } from "../inicia/componentes/personal-policial/personal-policial.js";
 import { renderMovilidad, obtenerMovilidadSeleccionada } from "../inicia/componentes/movilidad/movilidad.js";
 import { renderElementos, obtenerElementosSeleccionados } from "../inicia/componentes/elementos/elementos.js";
@@ -56,6 +56,7 @@ export async function iniciarFormularioMovimiento({host,modo,operativoSelecciona
    ?'Lo que NO seleccionaste se considerará retirado del operativo. ¿Confirmás el RELEVO?'
    :'Los recursos seleccionados se sumarán a la dotación vigente. ¿Confirmás el ACOPLE?';
   if(!confirm(explicacion))return;
+  if(modoEnsayoActivo()){error.textContent='RELEVO y ACOPLE todavía no guardan cambios en modo ensayo.';return;}
   const ventana=prepararVentanaWhatsapp();
   boton.disabled=true;error.textContent='Guardando '+tipo+'...';
   guardarMovimientoOperativo({
