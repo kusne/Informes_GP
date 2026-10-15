@@ -79,7 +79,7 @@
   function esSelectorPrincipal(select) {
     const opciones = opcionesNormalizadas(select);
     return (
-      (opciones.includes("INICIA") || opciones.includes("INICIO") || opciones.includes("INICIO")) &&
+      (opciones.includes("INICIA") || opciones.includes("INICIO")) &&
       (opciones.includes("FINALIZA") || opciones.includes("FINALIZADO")) &&
       (opciones.includes("INFORMES") || opciones.includes("CONTROL DE MOVILES") || opciones.includes("CONTROL DE MÓVILES"))
     );
@@ -91,7 +91,7 @@
 
     return Array.from(document.querySelectorAll("select")).find((select) => {
       const opciones = opcionesNormalizadas(select).join("|");
-      return opciones.includes("INICIA") || opciones.includes("FINALIZA") || opciones.includes("INFORMES");
+      return opciones.includes("INICIA") || opciones.includes("INICIO") || opciones.includes("FINALIZA") || opciones.includes("FINALIZADO") || opciones.includes("INFORMES");
     }) || null;
   }
 
@@ -102,7 +102,9 @@
 
     const deseadas = [
       { value: "INICIA", label: "INICIO" },
-      { value: "RELEVO", label: "RELEVO" },\n      { value: "ACOPLE", label: "ACOPLE" },\n      { value: "FINALIZA", label: "FINALIZADO" },
+      { value: "RELEVO", label: "RELEVO" },
+      { value: "ACOPLE", label: "ACOPLE" },
+      { value: "FINALIZA", label: "FINALIZADO" },
       { value: "INFORMES", label: "INFORMES" },
       { value: "CONTROL_MOVILES", label: "CONTROL DE MÓVILES" },
     ];
