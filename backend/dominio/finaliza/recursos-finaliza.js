@@ -80,14 +80,17 @@ function construirSeleccionInicial({ personal, movilesMotos, elementosFuente, el
   const movilesCatalogo = new Set((catalogo.moviles || []).map(claveComparacion));
   const motosCatalogo = new Set((catalogo.motos || []).map(claveComparacion));
 
+  // El catálogo estático contiene únicamente JEFE/SUBJEFE y no contiene móviles.
+  // Nunca descartar el personal ni los móviles que constan en el INICIO real.
   const personalSeleccionado = lista(personal)
     .map(normalizarNombrePersonalInicio)
-    .map((valor) => encontrarCatalogo(valor, personalCatalogo))
+    .map((valor) => encontrarCatalogo(valor, personalCatalogo) || valor)
     .filter(Boolean);
 
   const movilidad = lista(movilesMotos);
-  const moviles = movilidad.filter((valor) => movilesCatalogo.has(claveComparacion(valor)));
   const motos = movilidad.filter((valor) => motosCatalogo.has(claveComparacion(valor)));
+  const moviles = movilidad.filter((valor) => !motosCatalogo.has(claveComparacion(valor)) &&
+    (movilesCatalogo.has(claveComparacion(valor)) || /^\d{3,6}$/.test(valor)));
 
   return {
     personal: unicos(personalSeleccionado),
