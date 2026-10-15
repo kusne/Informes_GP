@@ -14,7 +14,7 @@ export function textoMovimiento(m,operativo,hora){
  const lista=(r)=>[...(r.moviles||[]),...(r.motos||[])];
  const elementos=r=>Object.entries(r.elementos||{}).flatMap(([k,v])=>v.map(n=>k+': '+n));
  const descripcion=(r)=>'Personal: '+union(r.personal)+'\nMóviles: '+union(lista(r))+'\nElementos: '+union(elementos(r));
- const anteriorPersonal=union(previo.personal);
+ const ordenes=Array.isArray(operativo.ordenes_origen)?operativo.ordenes_origen:(operativo.datos?.ordenes_origen||[]);
  const observacion=m.modo==='RELEVO'
  ? 'Siendo las '+hora+' hs se procede a relevar al/los móvil/es N° '+union(lista(m.retirados))+
    ', a cargo del personal saliente: '+union(m.retirados.personal)+
@@ -25,7 +25,7 @@ export function textoMovimiento(m,operativo,hora){
    '. Permanecen afectados al operativo los recursos ya asignados.';
  return 'Policia de la Provincia de Santa Fe - Direccion General Guardia Provincial\n'+
  'Brigada Motorizada Centro Norte\nTercio Charlie\n'+
- m.modo+' '+(operativo.tipo_nombre||operativo.tipo_operativo||'Operativo')+'\n'+
+ m.modo+' '+(operativo.tipo_nombre||operativo.tipo_operativo||'Operativo')+\n (ordenes.length?' - '+ordenes.join(' - '):'')+'\n'+
  'Fecha de guardia: '+operativo.guardia_fecha+'\nHorario: '+hora+' HS\n'+
  'Lugar: '+operativo.lugar+'\n\n'+descripcion(despues)+'\n\nObservaciones:\n'+observacion;
 }
