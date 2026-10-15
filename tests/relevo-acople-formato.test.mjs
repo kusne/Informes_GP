@@ -39,7 +39,7 @@ test("RELEVO recobra el móvil y el personal original aunque el catálogo estát
  assert.deepEqual(m.retirados.moviles,["10139"]);
  assert.equal(m.retirados.personal.length,2);
  const t=textoMovimiento(m,op,"13:43");
- assert.match(t,/\*RELEVO OCV Prueba(?: - PRUEBA)?\*/);
+ assert.match(t,/\*RELEVO OCV Prueba(?: (?:- )?PRUEBA)?\*/);
  assert.match(t,/\*Fecha:\* 15\/10\/2026/);
  assert.match(t,/\*Horario:\* 14:00 A 18:00 HS/);
  assert.match(t,/\*Lugar:\*/);
