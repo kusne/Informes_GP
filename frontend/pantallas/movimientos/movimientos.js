@@ -16,13 +16,13 @@ export async function iniciarFormularioMovimiento({host,modo,operativoSelecciona
  const preguntas=tipo==='RELEVO'
   ?['¿Quién se queda / releva?','¿Qué móvil/es se queda/n?','¿Qué elementos quedan?']
   :['¿Qué personal se incorpora?','¿Qué móvil/es se acopla/n?','¿Qué elementos se incorporan?'];
- host.innerHTML='<section class="contenedor-dinamico-card">'+
-  '<h2>'+tipo+'</h2><p>Todas las casillas comienzan destildadas. '+
+ host.innerHTML='<section class="contenedor-dinamico-card" style="color:#f8fafc">'+
+  '<h2 style="color:#fff;font-weight:800">'+tipo+'</h2><p style="color:#f1f5f9">Todas las casillas comienzan destildadas. '+
   (tipo==='RELEVO'?'Seleccione sólo lo que queda a cargo.':'Seleccione sólo lo que se incorpora.')+'</p>'+
-  '<h3>A) '+preguntas[0]+'</h3><div data-personal></div>'+
-  '<h3>B) '+preguntas[1]+'</h3><div data-movilidad></div>'+
-  '<h3>C) '+preguntas[2]+'</h3><div data-elementos></div>'+
-  '<p data-error role="alert"></p>'+
+  '<h3 style="color:#fff;font-weight:700">A) '+preguntas[0]+'</h3><div data-personal></div>'+
+  '<h3 style="color:#fff;font-weight:700">B) '+preguntas[1]+'</h3><div data-movilidad></div>'+
+  '<h3 style="color:#fff;font-weight:700">C) '+preguntas[2]+'</h3><div data-elementos></div>'+
+  '<p data-error role="alert" style="color:#fff"></p>'+
   '<button type="button" data-enviar-movimiento>Enviar '+tipo+' por WhatsApp</button></section>';
  const catalogo=obtenerCatalogoRecursosOperativos();
  const registroActual=await obtenerEstadoOperativoV2({
