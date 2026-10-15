@@ -27,5 +27,7 @@ export function calcularMovimientoRecursos({modo,actual={},seleccion={}}={}){
  const cantidad=r=>grupos.reduce((a,k)=>a+r[k].length,0)+Object.values(r.elementos).reduce((a,v)=>a+v.length,0);
  if(!cantidad(nuevo))throw Error('Seleccioná los recursos que quedarán asignados.');
  if(tipo==='ACOPLE'&&!cantidad(incorporados))throw Error('No se seleccionaron recursos nuevos para el acople.');
+ if(tipo==='RELEVO'&&!cantidad(retirados)&&!cantidad(incorporados))
+  throw Error('El RELEVO no modifica la dotación vigente: seleccioná un cambio real de personal, móviles o elementos.');
  return {modo:tipo,anterior:antiguo,vigente:nuevo,retirados,incorporados,permanecen};
 }
