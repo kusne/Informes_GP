@@ -1,0 +1,47 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { calcularMovimientoRecursos } from "../backend/dominio/compartido/recursos/movimientos-recursos.js";
+
+const anterior = {
+ personal: ["Inspector A","Oficial B"],
+ moviles: ["10139"], motos: ["12502"],
+ elementos: { ht: ["N°02"], pda: ["05"] }
+};
+
+test("RELEVO sustituye exactamente lo tildado y registra bajas e incorporaciones",()=>{
+ const m=calcularMovimientoRecursos({
+  modo:"RELEVO",actual:anterior,
+  seleccion:{personal:["Oficial B","Oficial C"],moviles:["12533"],motos:[],elementos:{ht:["N°02"]}}
+ });
+ assert.deepEqual(m.vigente.personal,["Oficial B","Oficial C"]);
+ assert.deepEqual(m.retirados.personal,["Inspector A"]);
+ assert.deepEqual(m.retirados.moviles,["10139"]);
+ assert.deepEqual(m.retirados.motos,["12502"]);
+ assert.deepEqual(m.incorporados.personal,["Oficial C"]);
+ assert.deepEqual(m.vigente.elementos.pda,[]);
+});
+
+test("ACOPLE suma recursos sin eliminar los existentes ni duplicarlos",()=>{
+ const m=calcularMovimientoRecursos({
+  modo:"ACOPLE",actual:anterior,
+  seleccion:{personal:["Oficial B","Oficial C"],moviles:["10139","12533"],elementos:{pda:["05","19"]}}
+ });
+ assert.deepEqual(m.vigente.personal,["Inspector A","Oficial B","Oficial C"]);
+ assert.deepEqual(m.vigente.moviles,["10139","12533"]);
+ assert.deepEqual(m.vigente.elementos.pda,["05","19"]);
+ assert.deepEqual(m.retirados.personal,[]);
+ assert.deepEqual(m.incorporados.elementos.pda,["19"]);
+});
+
+test("ACOPLE sin incorporaciones reales se rechaza",()=>{
+ assert.throws(()=>calcularMovimientoRecursos({
+  modo:"ACOPLE",actual:anterior,
+  seleccion:{personal:["Oficial B"],moviles:["10139"]}
+ }),/No se seleccionaron recursos nuevos/);
+});
+
+test("RELEVO sin recursos para dejar a cargo se rechaza",()=>{
+ assert.throws(()=>calcularMovimientoRecursos({
+  modo:"RELEVO",actual:anterior,seleccion:{}
+ }),/Seleccioná los recursos/);
+});
