@@ -16,13 +16,15 @@ export function textoMovimiento(m,operativo,hora){
  const descripcion=(r)=>'*Personal Policial:*\n'+(r.personal||[]).join('\n')+'\n\n*Móviles:* '+union(lista(r))+'\n\n*Elementos:*\n'+[['escopetas','Escopetas'],['ht','Ht'],['pda','Pda'],['impresoras','Impresoras'],['alometros','Alómetros'],['alcoholimetros','Alcoholímetros']].map(([k,n])=>n+': '+union(r.elementos?.[k])).join('\n');
  const ordenes=Array.isArray(operativo.ordenes_origen)?operativo.ordenes_origen:(operativo.datos?.ordenes_origen||[]);
  const observacion=m.modo==='RELEVO'
- ? 'Siendo las '+hora+' hs se procede a relevar al/los móvil/es N° '+union(lista(m.retirados))+
-   ', a cargo del personal saliente: '+union(m.retirados.personal)+
-   '. Acto seguido se retiran, quedando en el lugar el personal y móvil/es ut-supra: '+union(despues.personal)+'; '+union(lista(despues))+'.'
- : 'Siendo las '+hora+' hs se procede al acople del/de los móvil/es N° '+union(lista(m.incorporados))+
-   ', con incorporación del personal: '+union(m.incorporados.personal)+
-   ' y elementos: '+union(elementos(m.incorporados))+
-   '. Permanecen afectados al operativo los recursos ya asignados.';
+ ? ['Siendo las '+hora+' hs se procede al relevo del operativo.',
+   lista(m.retirados).length?'Se retira/n el/los móvil/es N° '+union(lista(m.retirados))+'.':'',
+   m.retirados.personal.length?'Personal saliente: '+m.retirados.personal.join(', ')+'.':'',
+   'Acto seguido permanecen en el lugar el personal y móvil/es indicados ut-supra.'].filter(Boolean).join(' ')
+ : ['Siendo las '+hora+' hs se procede al acople de recursos al operativo.',
+   lista(m.incorporados).length?'Se incorpora/n el/los móvil/es N° '+union(lista(m.incorporados))+'.':'',
+   m.incorporados.personal.length?'Personal incorporado: '+m.incorporados.personal.join(', ')+'.':'',
+   elementos(m.incorporados).length?'Elementos incorporados: '+union(elementos(m.incorporados))+'.':'',
+   'Permanecen afectados los recursos previamente asignados.'].filter(Boolean).join(' ');
  return '*Policia de la Provincia de Santa Fe - Direccion General Guardia Provincial*\n'+
  '*Brigada Motorizada Centro Norte*\n*Tercio Charlie*\n\n'+
  '*'+m.modo+' '+(operativo.tipo_nombre||operativo.tipo_operativo||'Operativo')+
