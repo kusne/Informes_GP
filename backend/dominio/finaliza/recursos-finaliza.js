@@ -1,6 +1,22 @@
-import { obtenerCatalogoRecursosOperativos, presentarPersonalOperativo } from "../compartido/recursos/catalogo-recursos-operativos.js";
+import { obtenerCatalogoRecursosOperativos, construirResumenRecursosOperativos, presentarPersonalOperativo } from "../compartido/recursos/catalogo-recursos-operativos.js";
 
 export function resolverRecursosInicioParaFinaliza(operativo = {}) {
+  const vigentes = objeto(objeto(operativo?.datos).recursos_vigentes);
+  if (Object.keys(vigentes).length) {
+    const seleccionInicial = {
+      personal: Array.isArray(vigentes.personal) ? vigentes.personal : [],
+      moviles: Array.isArray(vigentes.moviles) ? vigentes.moviles : [],
+      motos: Array.isArray(vigentes.motos) ? vigentes.motos : [],
+      elementos: objeto(vigentes.elementos)
+    };
+    return {
+      ...construirResumenRecursosOperativos(seleccionInicial),
+      seleccionInicial,
+      tienePersonal: seleccionInicial.personal.length > 0,
+      tieneMovilidad: seleccionInicial.moviles.length + seleccionInicial.motos.length > 0,
+      tieneElementos: Object.values(seleccionInicial.elementos).some(lista => Array.isArray(lista) && lista.length > 0)
+    };
+  }
   const payload = objeto(operativo?.inicio_payload);
   const datos = objeto(operativo?.datos);
   const metadata = objeto(operativo?.metadata);
