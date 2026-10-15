@@ -28,9 +28,21 @@ function redactarObservacionMovimiento(m,hora){
  const partes=[];
  const retirados=movilidad(m.retirados),incorporados=movilidad(m.incorporados);
  if(m.modo==="RELEVO"){
+  const salientes=ordenarPersonal(m.retirados.personal);
   partes.push("Siendo las "+hora+" hs se procede a efectuar el relevo del operativo.");
-  if(retirados.length)partes.push((retirados.length===1?"Se retira el Móvil N° ":"Se retiran los Móviles N° ")+mostrar(retirados)+".");
-  if(m.retirados.personal.length)partes.push("Personal que se retira: "+ordenarPersonal(m.retirados.personal).join(", ")+".");
+  if(retirados.length && salientes.length){
+   partes.push((retirados.length===1?"Se releva al Móvil N° ":"Se relevan los Móviles N° ")+mostrar(retirados)+
+    ", a cargo del personal saliente: "+salientes.join(", ")+".");
+   partes.push("Dicho personal y móvil/es se retiran del lugar.");
+  }else if(retirados.length){
+   partes.push((retirados.length===1?"Se retira el Móvil N° ":"Se retiran los Móviles N° ")+mostrar(retirados)+".");
+  }else if(salientes.length){
+   partes.push("Personal que se retira: "+salientes.join(", ")+".");
+  }else{
+   // Puede haber relevo sólo de elementos: no atribuir bajas inexistentes
+   // ni volver a contar personal y móviles retirados en informes anteriores.
+   partes.push("En este relevo no se registra retiro de personal ni de móviles.");
+  }
   const retiradosElementos=Object.values(m.retirados.elementos||{}).flat();
   if(retiradosElementos.length)partes.push("Elementos retirados: "+mostrar(retiradosElementos)+".");
   partes.push("Acto seguido permanece en el lugar el personal, los móviles y los elementos detallados ut-supra.");
