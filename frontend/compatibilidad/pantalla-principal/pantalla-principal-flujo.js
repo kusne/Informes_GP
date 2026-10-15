@@ -79,7 +79,7 @@
   function esSelectorPrincipal(select) {
     const opciones = opcionesNormalizadas(select);
     return (
-      opciones.includes("INICIA") &&
+      (opciones.includes("INICIA") || opciones.includes("INICIO") || opciones.includes("INICIO")) &&
       (opciones.includes("FINALIZA") || opciones.includes("FINALIZADO")) &&
       (opciones.includes("INFORMES") || opciones.includes("CONTROL DE MOVILES") || opciones.includes("CONTROL DE MÓVILES"))
     );
@@ -101,7 +101,7 @@
     const actuales = opcionesNormalizadas(select);
 
     const deseadas = [
-      { value: "INICIA", label: "INICIA" },
+      { value: "INICIA", label: "INICIO" },
       { value: "RELEVO", label: "RELEVO" },\n      { value: "ACOPLE", label: "ACOPLE" },\n      { value: "FINALIZA", label: "FINALIZADO" },
       { value: "INFORMES", label: "INFORMES" },
       { value: "CONTROL_MOVILES", label: "CONTROL DE MÓVILES" },
