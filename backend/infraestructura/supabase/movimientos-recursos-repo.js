@@ -2,35 +2,69 @@ import { obtenerEstadoOperativoV2 } from "./operativos-estado-v2-repo.js";
 import { supabase, TABLAS_SUPABASE } from "./supabase-client.js";
 import { resolverRecursosInicioParaFinaliza } from "../../dominio/finaliza/recursos-finaliza.js";
 import { calcularMovimientoRecursos } from "../../dominio/compartido/recursos/movimientos-recursos.js";
+import { construirTextoInicioBase } from "../../dominio/inicia/inicio-salida-texto-base.js";
+import { construirResumenRecursosOperativos } from "../../dominio/compartido/recursos/catalogo-recursos-operativos.js";
 
 export function dotacionVigenteOperativo(operativo={}){
  const datos=typeof operativo.datos==='object'&&operativo.datos?operativo.datos:{};
  if(datos.recursos_vigentes)return datos.recursos_vigentes;
  return resolverRecursosInicioParaFinaliza(operativo).seleccionInicial;
 }
-const union=arr=>(arr||[]).filter(Boolean).join(' / ')||'/';
+const movilidad = r => [...(r?.moviles || []), ...(r?.motos || [])];
+const mostrar = valores => (valores || []).filter(Boolean).join(" / ");
+const RANGOS = ["COMISARIO GENERAL","COMISARIO MAYOR","COMISARIO SUPERVISOR","COMISARIO",
+  "SUBCOMISARIO","INSPECTOR","SUBINSPECTOR","OFICIAL PRINCIPAL","OFICIAL",
+  "SUBOFICIAL MAYOR","SUBOFICIAL PRINCIPAL","SUBOFICIAL","SARGENTO","CABO","AGENTE"];
+function ordenarPersonal(personal = []) {
+ const posicion = nombre => {
+  const n=String(nombre).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase();
+  const i=RANGOS.findIndex(r=>n===r||n.startsWith(r+" ")||n.startsWith(r+" DE POLICIA "));
+  return i<0?RANGOS.length:i;
+ };
+ // Orden estable: el catálogo ya ordena por N.I. dentro de cada jerarquía.
+ return [...personal].sort((a,b)=>posicion(a)-posicion(b));
+}
+function redactarObservacionMovimiento(m,hora){
+ const partes=[];
+ const retirados=movilidad(m.retirados),incorporados=movilidad(m.incorporados);
+ if(m.modo==="RELEVO"){
+  partes.push("Siendo las "+hora+" hs se procede a efectuar el relevo del operativo.");
+  if(retirados.length)partes.push((retirados.length===1?"Se retira el Móvil N° ":"Se retiran los Móviles N° ")+mostrar(retirados)+".");
+  if(m.retirados.personal.length)partes.push("Personal que se retira: "+ordenarPersonal(m.retirados.personal).join(", ")+".");
+  const retiradosElementos=Object.values(m.retirados.elementos||{}).flat();
+  if(retiradosElementos.length)partes.push("Elementos retirados: "+mostrar(retiradosElementos)+".");
+  partes.push("Acto seguido permanece en el lugar el personal, los móviles y los elementos detallados ut-supra.");
+ }else{
+  partes.push("Siendo las "+hora+" hs se procede al acople de recursos al operativo.");
+  if(incorporados.length)partes.push((incorporados.length===1?"Se incorpora el Móvil N° ":"Se incorporan los Móviles N° ")+mostrar(incorporados)+".");
+  if(m.incorporados.personal.length)partes.push("Personal incorporado: "+ordenarPersonal(m.incorporados.personal).join(", ")+".");
+  const incorporadosElementos=Object.values(m.incorporados.elementos||{}).flat();
+  if(incorporadosElementos.length)partes.push("Elementos incorporados: "+mostrar(incorporadosElementos)+".");
+  partes.push("Los recursos anteriores permanecen afectados al operativo.");
+ }
+ return partes.join(" ");
+}
 export function textoMovimiento(m,operativo,hora){
- const previo=m.anterior,despues=m.vigente;
- const lista=(r)=>[...(r.moviles||[]),...(r.motos||[])];
- const elementos=r=>Object.entries(r.elementos||{}).flatMap(([k,v])=>v.map(n=>k+': '+n));
- const descripcion=(r)=>'*Personal Policial:*\n'+(r.personal||[]).join('\n')+'\n\n*Móviles:* '+union(lista(r))+'\n\n*Elementos:*\n'+[['escopetas','Escopetas'],['ht','Ht'],['pda','Pda'],['impresoras','Impresoras'],['alometros','Alómetros'],['alcoholimetros','Alcoholímetros']].map(([k,n])=>n+': '+union(r.elementos?.[k])).join('\n');
- const ordenes=Array.isArray(operativo.ordenes_origen)?operativo.ordenes_origen:(operativo.datos?.ordenes_origen||[]);
- const observacion=m.modo==='RELEVO'
- ? ['Siendo las '+hora+' hs se procede al relevo del operativo.',
-   lista(m.retirados).length?'Se retira/n el/los móvil/es N° '+union(lista(m.retirados))+'.':'',
-   m.retirados.personal.length?'Personal saliente: '+m.retirados.personal.join(', ')+'.':'',
-   'Acto seguido permanecen en el lugar el personal y móvil/es indicados ut-supra.'].filter(Boolean).join(' ')
- : ['Siendo las '+hora+' hs se procede al acople de recursos al operativo.',
-   lista(m.incorporados).length?'Se incorpora/n el/los móvil/es N° '+union(lista(m.incorporados))+'.':'',
-   m.incorporados.personal.length?'Personal incorporado: '+m.incorporados.personal.join(', ')+'.':'',
-   elementos(m.incorporados).length?'Elementos incorporados: '+union(elementos(m.incorporados))+'.':'',
-   'Permanecen afectados los recursos previamente asignados.'].filter(Boolean).join(' ');
- return '*Policia de la Provincia de Santa Fe - Direccion General Guardia Provincial*\n'+
- '*Brigada Motorizada Centro Norte*\n*Tercio Charlie*\n\n'+
- '*'+m.modo+' '+(operativo.tipo_nombre||operativo.tipo_operativo||'Operativo')+
- (ordenes.length?' - '+ordenes.join(' - '):'')+'*\n\n'+
- '*Fecha:* '+String(operativo.datos?.fecha_operativo||operativo.guardia_fecha).replace(/^(\d{4})-(\d{2})-(\d{2})$/,'$3/$2/$1')+'\n*Horario:* '+hora+' HS\n'+
- '*Lugar:* '+operativo.lugar+'\n\n'+descripcion(despues)+'\n\n*Observaciones:*\n'+observacion;
+ const actual=m.vigente;
+ const resumen=construirResumenRecursosOperativos({
+  personal:ordenarPersonal(actual.personal),
+  moviles:actual.moviles,
+  motos:actual.motos,
+  elementos:actual.elementos
+ });
+ const datos=operativo.datos||{};
+ const inicio=datos.inicio_snapshot||{};
+ return construirTextoInicioBase({
+  prefijoTitulo:m.modo,
+  horarioReporte:hora+" HS",
+  fecha_operativo:datos.fecha_operativo||inicio.fecha_operativo||operativo.guardia_fecha,
+  hora_inicio:operativo.hora_inicio,
+  hora_fin:operativo.hora_fin,
+  lugar:operativo.lugar,
+  tipo_operativo:operativo.tipo_operativo,
+  operativo,
+  formulario:{...resumen,observaciones:redactarObservacionMovimiento(m,hora)}
+ });
 }
 export async function guardarMovimientoOperativo({modo,operativo_key,guardia_fecha,seleccion}={}){
  if(!supabase)throw Error('No hay conexión con Supabase.');
