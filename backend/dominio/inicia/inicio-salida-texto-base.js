@@ -12,11 +12,13 @@ export function construirTextoInicioBase(inicio) {
   lineas.push(negrita("Tercio Charlie"));
   lineas.push("");
 
-  lineas.push(negrita(`Inicia ${resolverTituloOperativo(inicio, operativo)}`.trim()));
+  // Prefijo configurable únicamente para los movimientos de dotación. INICIA conserva su comportamiento.
+  const prefijo = ["RELEVO", "ACOPLE"].includes(inicio.prefijoTitulo) ? inicio.prefijoTitulo : "Inicia";
+  lineas.push(negrita(`${prefijo} ${resolverTituloOperativo(inicio, operativo)}`.trim()));
   lineas.push("");
 
   lineas.push(`${negrita("Fecha:")} ${formatearFecha(inicio.fecha_operativo || operativo?.fecha_operativo || inicio.fecha)}`);
-  lineas.push(`${negrita("Horario:")} ${formatearHorario(inicio)}`);
+  lineas.push(`${negrita("Horario:")} ${texto(inicio.horarioReporte) || formatearHorario(inicio)}`);
   lineas.push(`${negrita("Lugar:")} ${normalizarLugar(inicio.lugar)}`);
   lineas.push("");
 
