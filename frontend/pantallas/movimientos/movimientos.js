@@ -1,8 +1,8 @@
-import { obtenerCatalogoRecursosOperativos } from "../../../backend/dominio/compartido/recursos/catalogo-recursos-operativos.js";
+import { obtenerCatalogoRecursosOperativos } from "../../../api/app-api.js";
 import { renderPersonalPolicial, obtenerPersonalSeleccionado } from "../inicia/componentes/personal-policial/personal-policial.js";
 import { renderMovilidad, obtenerMovilidadSeleccionada } from "../inicia/componentes/movilidad/movilidad.js";
 import { renderElementos, obtenerElementosSeleccionados } from "../inicia/componentes/elementos/elementos.js";
-import { guardarMovimientoOperativo, dotacionVigenteOperativo } from "../../../backend/infraestructura/supabase/movimientos-recursos-repo.js";\nimport { obtenerEstadoOperativoV2 } from "../../../backend/infraestructura/supabase/operativos-estado-v2-repo.js";\nimport { consultarRecursosGuardiaV2 } from "../../../api/recursos-guardia-api.js";
+import { guardarMovimientoOperativo, dotacionVigenteOperativo } from "../../../api/persistencia-api.js";\nimport { obtenerEstadoOperativoV2 } from "../../../api/persistencia-api.js";\nimport { consultarRecursosGuardiaV2 } from "../../../api/recursos-guardia-api.js";
 import { abrirWhatsappConTexto, prepararVentanaWhatsapp, cerrarVentanaWhatsappPreparada } from "../../servicios/whatsapp/abrir-whatsapp.js";
 
 export async function iniciarFormularioMovimiento({host,modo,operativoSeleccionado,onGuardado}={}){
