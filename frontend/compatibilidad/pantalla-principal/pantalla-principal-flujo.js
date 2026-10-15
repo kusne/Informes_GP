@@ -80,7 +80,7 @@
     const opciones = opcionesNormalizadas(select);
     return (
       opciones.includes("INICIA") &&
-      opciones.includes("FINALIZA") &&
+      (opciones.includes("FINALIZA") || opciones.includes("FINALIZADO")) &&
       (opciones.includes("INFORMES") || opciones.includes("CONTROL DE MOVILES") || opciones.includes("CONTROL DE MÓVILES"))
     );
   }
@@ -102,7 +102,7 @@
 
     const deseadas = [
       { value: "INICIA", label: "INICIA" },
-      { value: "FINALIZA", label: "FINALIZA" },
+      { value: "RELEVO", label: "RELEVO" },\n      { value: "ACOPLE", label: "ACOPLE" },\n      { value: "FINALIZA", label: "FINALIZADO" },
       { value: "INFORMES", label: "INFORMES" },
       { value: "CONTROL_MOVILES", label: "CONTROL DE MÓVILES" },
     ];
