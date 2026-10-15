@@ -20,9 +20,11 @@ export function resolverRecursosInicioParaFinaliza(operativo = {}) {
   const payload = objeto(operativo?.inicio_payload);
   const datos = objeto(operativo?.datos);
   const metadata = objeto(operativo?.metadata);
+  const inicio = objeto(datos.inicio_snapshot);
 
   const personal = primerTexto(
     payload.personal,
+    inicio.personal,
     operativo.personal,
     operativo.personal_inicio,
     datos.personal_inicio,
@@ -33,6 +35,7 @@ export function resolverRecursosInicioParaFinaliza(operativo = {}) {
 
   const movilesMotos = primerTexto(
     payload.moviles_motos,
+    inicio.moviles_motos,
     operativo.moviles_motos,
     datos.moviles_motos,
     metadata.moviles_motos,
@@ -41,7 +44,7 @@ export function resolverRecursosInicioParaFinaliza(operativo = {}) {
     unirMovilidad(metadata.moviles, metadata.motos)
   );
 
-  const elementosFuente = payload.elementos ?? operativo.elementos ?? datos.elementos_inicio ?? datos.elementos ?? metadata.elementos_inicio ?? metadata.elementos;
+  const elementosFuente = payload.elementos ?? inicio.elementos ?? operativo.elementos ?? datos.elementos_inicio ?? datos.elementos ?? metadata.elementos_inicio ?? metadata.elementos;
   const elementos = normalizarElementosTexto(elementosFuente);
 
   const seleccionInicial = construirSeleccionInicial({
