@@ -278,7 +278,7 @@ async function iniciarSelectorModoSeguro() {
       <div class="selector-modo-informe">
         <label for="selectorModoInforme">Informes</label>
         <select id="selectorModoInforme">
-          <option value="INICIA" selected>INICIA</option>
+          <option value="INICIA" selected>INICIO</option>
           <option value="RELEVO">RELEVO</option>\n          <option value="ACOPLE">ACOPLE</option>\n          <option value="FINALIZA">FINALIZADO</option>
           <option value="INFORMES">INFORMES</option>
           <option value="CONTROL_MOVILES">CONTROL DE MÓVILES</option>
