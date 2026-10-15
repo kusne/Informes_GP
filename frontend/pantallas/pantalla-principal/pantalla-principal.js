@@ -81,7 +81,7 @@ async function cambiarModoPantalla(modo, { operativosPrefetched = null } = {}) {
 
   // Mostrar INICIA/FINALIZA sin cargar aún los componentes del formulario.
   // La consulta de operativos es la primera tarea de contenido del arranque.
-  if (estadoPantalla.modo === "INICIA" || estadoPantalla.modo === "FINALIZA") {
+  if (["INICIA","FINALIZA","RELEVO","ACOPLE"].includes(estadoPantalla.modo)) {
     mostrarEsperaSeleccionOperativo(estadoPantalla.modo);
   }
 
@@ -183,8 +183,8 @@ async function recargarItemsPantalla({
 function mostrarEsperaSeleccionOperativo(modo) {
   const host = document.getElementById("contenedorDinamicoHost");
   if (!host) return;
-  const titulo = modo === "FINALIZA" ? "FINALIZA" : "INICIA";
-  const mensaje = modo === "FINALIZA"
+  const titulo = ["FINALIZA","RELEVO","ACOPLE"].includes(modo) ? modo : "INICIA";
+  const mensaje = ["FINALIZA","RELEVO","ACOPLE"].includes(modo)
     ? "Seleccione un operativo iniciado para finalizar."
     : "Seleccione un operativo programado para iniciar.";
   host.innerHTML = `<section class="pantalla-mensaje"><h2>${titulo}</h2><p>${mensaje}</p></section>`;
@@ -279,7 +279,7 @@ async function iniciarSelectorModoSeguro() {
         <label for="selectorModoInforme">Informes</label>
         <select id="selectorModoInforme">
           <option value="INICIA" selected>INICIA</option>
-          <option value="FINALIZA">FINALIZA</option>
+          <option value="RELEVO">RELEVO</option>\n          <option value="ACOPLE">ACOPLE</option>\n          <option value="FINALIZA">FINALIZADO</option>
           <option value="INFORMES">INFORMES</option>
           <option value="CONTROL_MOVILES">CONTROL DE MÓVILES</option>
         </select>
@@ -844,7 +844,7 @@ function registrarListenerPostEnvio() {
 
       // INICIA y FINALIZA deben volver al selector principal al regresar de WhatsApp,
       // con INICIA seleccionado y sin conservar el formulario enviado.
-      if (estadoPantalla.modo === "INICIA" || estadoPantalla.modo === "FINALIZA") {
+      if (["INICIA","FINALIZA","RELEVO","ACOPLE"].includes(estadoPantalla.modo)) {
         const selector = document.querySelector("#selectorModoInformeSelect, #selectorModoInforme");
         if (selector) selector.value = "INICIA";
         await cambiarModoPantalla("INICIA");
