@@ -8,12 +8,12 @@ export function dotacionVigenteOperativo(operativo={}){
  if(datos.recursos_vigentes)return datos.recursos_vigentes;
  return resolverRecursosInicioParaFinaliza(operativo).seleccionInicial;
 }
-const union=arr=>(arr||[]).filter(Boolean).join(', ')||'sin recursos';
+const union=arr=>(arr||[]).filter(Boolean).join(' / ')||'/';
 export function textoMovimiento(m,operativo,hora){
  const previo=m.anterior,despues=m.vigente;
  const lista=(r)=>[...(r.moviles||[]),...(r.motos||[])];
  const elementos=r=>Object.entries(r.elementos||{}).flatMap(([k,v])=>v.map(n=>k+': '+n));
- const descripcion=(r)=>'Personal: '+union(r.personal)+'\nMóviles: '+union(lista(r))+'\nElementos: '+union(elementos(r));
+ const descripcion=(r)=>'*Personal Policial:*\n'+(r.personal||[]).join('\n')+'\n\n*Móviles:* '+union(lista(r))+'\n\n*Elementos:*\n'+[['escopetas','Escopetas'],['ht','Ht'],['pda','Pda'],['impresoras','Impresoras'],['alometros','Alómetros'],['alcoholimetros','Alcoholímetros']].map(([k,n])=>n+': '+union(r.elementos?.[k])).join('\n');
  const ordenes=Array.isArray(operativo.ordenes_origen)?operativo.ordenes_origen:(operativo.datos?.ordenes_origen||[]);
  const observacion=m.modo==='RELEVO'
  ? 'Siendo las '+hora+' hs se procede a relevar al/los móvil/es N° '+union(lista(m.retirados))+
@@ -23,12 +23,12 @@ export function textoMovimiento(m,operativo,hora){
    ', con incorporación del personal: '+union(m.incorporados.personal)+
    ' y elementos: '+union(elementos(m.incorporados))+
    '. Permanecen afectados al operativo los recursos ya asignados.';
- return 'Policia de la Provincia de Santa Fe - Direccion General Guardia Provincial\n'+
- 'Brigada Motorizada Centro Norte\nTercio Charlie\n'+
- m.modo+' '+(operativo.tipo_nombre||operativo.tipo_operativo||'Operativo')+
- (ordenes.length?' - '+ordenes.join(' - '):'')+'\n'+
- 'Fecha de guardia: '+operativo.guardia_fecha+'\nHorario: '+hora+' HS\n'+
- 'Lugar: '+operativo.lugar+'\n\n'+descripcion(despues)+'\n\nObservaciones:\n'+observacion;
+ return '*Policia de la Provincia de Santa Fe - Direccion General Guardia Provincial*\n'+
+ '*Brigada Motorizada Centro Norte*\n*Tercio Charlie*\n\n'+
+ '*'+m.modo+' '+(operativo.tipo_nombre||operativo.tipo_operativo||'Operativo')+
+ (ordenes.length?' - '+ordenes.join(' - '):'')+'*\n\n'+
+ '*Fecha:* '+String(operativo.datos?.fecha_operativo||operativo.guardia_fecha).replace(/^(\\d{4})-(\\d{2})-(\\d{2})$/,'$3/$2/$1')+'\n*Horario:* '+hora+' HS\n'+
+ '*Lugar:* '+operativo.lugar+'\n\n'+descripcion(despues)+'\n\n*Observaciones:*\n'+observacion;
 }
 export async function guardarMovimientoOperativo({modo,operativo_key,guardia_fecha,seleccion}={}){
  if(!supabase)throw Error('No hay conexión con Supabase.');
