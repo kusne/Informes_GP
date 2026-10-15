@@ -5,7 +5,7 @@ import { renderElementos, obtenerElementosSeleccionados } from "../inicia/compon
 import { guardarMovimientoOperativo, dotacionVigenteOperativo } from "../../../api/persistencia-api.js";
 import { obtenerEstadoOperativoV2 } from "../../../api/persistencia-api.js";
 import { consultarRecursosGuardiaV2 } from "../../../api/recursos-guardia-api.js";
-import { abrirWhatsappConTexto, prepararVentanaWhatsapp, cerrarVentanaWhatsappPreparada } from "../../servicios/whatsapp/abrir-whatsapp.js";
+import { abrirWhatsappAppDirectamente } from "../../servicios/whatsapp/abrir-whatsapp.js";
 
 export async function iniciarFormularioMovimiento({host,modo,operativoSeleccionado,onGuardado}={}){
  const tipo=String(modo||'').toUpperCase();
@@ -23,6 +23,7 @@ export async function iniciarFormularioMovimiento({host,modo,operativoSelecciona
   '<h3 style="color:#fff;font-weight:700">B) '+preguntas[1]+'</h3><div data-movilidad></div>'+
   '<h3 style="color:#fff;font-weight:700">C) '+preguntas[2]+'</h3><div data-elementos></div>'+
   '<p data-error role="alert" style="color:#fff"></p>'+
+  '<button type="button" data-reintentar-whatsapp hidden>Abrir WhatsApp</button>'+
   '<button type="button" data-enviar-movimiento>Enviar '+tipo+' por WhatsApp</button></section>';
  const catalogo=obtenerCatalogoRecursosOperativos();
  const registroActual=await obtenerEstadoOperativoV2({
@@ -48,6 +49,11 @@ export async function iniciarFormularioMovimiento({host,modo,operativoSelecciona
  renderElementos({host:host.querySelector('[data-elementos]'),grupos:catalogo.elementos,seleccionInicial:{}});
  const boton=host.querySelector('[data-enviar-movimiento]');
  const error=host.querySelector('[data-error]');
+ const reintentar=host.querySelector('[data-reintentar-whatsapp]');
+ let textoGuardado='';
+ reintentar.addEventListener('click',()=>{
+  if(textoGuardado)abrirWhatsappAppDirectamente(textoGuardado);
+ });
  boton.addEventListener('click',()=>{
   const seleccion={
    personal:obtenerPersonalSeleccionado(host),
@@ -59,19 +65,20 @@ export async function iniciarFormularioMovimiento({host,modo,operativoSelecciona
    :'Los recursos seleccionados se sumarán a la dotación vigente. ¿Confirmás el ACOPLE?';
   if(!confirm(explicacion))return;
   if(modoEnsayoActivo()){error.textContent='RELEVO y ACOPLE todavía no guardan cambios en modo ensayo.';return;}
-  const ventana=prepararVentanaWhatsapp();
   boton.disabled=true;error.textContent='Guardando '+tipo+'...';
   guardarMovimientoOperativo({
    modo:tipo,operativo_key:operativoSeleccionado.operativo_key,
    guardia_fecha:operativoSeleccionado.guardia_fecha,seleccion
   }).then(({texto})=>{
-   abrirWhatsappConTexto(texto,{ventanaPreparada:ventana});
-   error.textContent=tipo+' guardado. Se abrió WhatsApp.';
+   textoGuardado=texto;
+   reintentar.hidden=false;
+   error.textContent=tipo+' guardado. Si WhatsApp no se abre, tocá «Abrir WhatsApp».';
    window.dispatchEvent(new CustomEvent('informesgp:envio-whatsapp-ok',{detail:{modo:tipo,textoFinal:texto}}));
-   onGuardado?.();
+   // Enlace nativo: no utiliza wa.me ni api.whatsapp.com.
+   abrirWhatsappAppDirectamente(texto);
   }).catch(e=>{
-   cerrarVentanaWhatsappPreparada(ventana);
    error.textContent=e?.message||'No se pudo guardar el movimiento.';
-  }).finally(()=>{boton.disabled=false;});
+   if(!textoGuardado)boton.disabled=false;
+  });
  });
 }
