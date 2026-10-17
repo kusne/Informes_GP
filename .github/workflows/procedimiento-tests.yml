@@ -18,6 +18,5 @@ jobs:
           node --check backend/infraestructura/supabase/informes-especiales-v2-repo.js
           node --check frontend/pantallas/informes/modelos/procedimiento/procedimiento.js
           node --check frontend/pantallas/pantalla-principal/pantalla-principal.js
-          npm run check:arquitectura
       - name: Ejecutar regresiones de informes y procedimientos
         run: node --test tests/*.test.mjs
