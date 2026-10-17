@@ -1,0 +1,28 @@
+<section class="formulario-informe-especial" data-modelo-informe="PROCEDIMIENTO">
+  <h2>PROCEDIMIENTO</h2>
+  <p>El operativo permanecerá EN PROCEDIMIENTO hasta que se registre FINALIZADO. No modifica la dotación ni los numerales del finalizado.</p>
+  <div class="bloque-formulario">
+    <label for="procedimientoHecho">HECHO / MOTIVO</label>
+    <input id="procedimientoHecho" name="hecho" type="text" required value="PROCEDIMIENTO POR " placeholder="PROCEDIMIENTO POR ..." autocomplete="off">
+  </div>
+  <div class="bloque-formulario">
+    <label for="procedimientoLugar">LUGAR DEL PROCEDIMIENTO</label>
+    <input id="procedimientoLugar" name="lugar_hecho" type="text" required placeholder="Ej.: RP1 KM17 ARROYO LEYES">
+  </div>
+  <div class="bloque-formulario">
+    <label for="procedimientoFecha">FECHA</label>
+    <input id="procedimientoFecha" name="fecha_hecho" type="date" required>
+    <label for="procedimientoHora">HORA DE INICIO DEL PROCEDIMIENTO</label>
+    <input id="procedimientoHora" name="hora_hecho" type="time" required>
+  </div>
+  <div class="bloque-formulario">
+    <label for="procedimientoPersonal">PERSONAL POLICIAL</label>
+    <textarea id="procedimientoPersonal" name="personal" rows="5" required placeholder="Un efectivo por renglón"></textarea>
+    <label for="procedimientoMoviles">MÓVIL/ES</label>
+    <input id="procedimientoMoviles" name="moviles" type="text" required placeholder="10139/12402">
+  </div>
+  <div class="bloque-formulario">
+    <label for="procedimientoObservaciones">OBSERVACIONES / RELATO DEL HECHO</label>
+    <textarea id="procedimientoObservaciones" name="observaciones" rows="10" required placeholder="Relato del procedimiento policial. Se ampliará."></textarea>
+  </div>
+</section>
