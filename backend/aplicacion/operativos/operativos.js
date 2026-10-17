@@ -210,7 +210,7 @@ export function filtrarOperativosIniciadosParaFinalizar(operativos = []) {
 }
 
 function filtrarSegunModo(modo, operativos = []) {
-  if (["FINALIZA","RELEVO","ACOPLE"].includes(modo)) return filtrarOperativosIniciadosParaFinalizar(operativos);
+  if (["FINALIZA","RELEVO","ACOPLE","PROCEDIMIENTO"].includes(modo)) return filtrarOperativosIniciadosParaFinalizar(operativos);
   if (modo === "INFORMES") return seleccionarUltimosOperativosIniciados(operativos, 2);
   return normalizarOperativos(operativos);
 }
