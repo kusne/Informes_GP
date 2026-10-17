@@ -71,7 +71,9 @@ export const iniciarInformesEspeciales = iniciarModuloInformes;
 
 async function cargarOperativosInternos() {
   try {
-    estadoInforme.operativos = await obtenerOperativosPorModo("INFORMES");
+    estadoInforme.operativos = await obtenerOperativosPorModo(
+      estadoInforme.modelo?.codigo === "PROCEDIMIENTO" ? "PROCEDIMIENTO" : "INFORMES"
+    );
   } catch (error) {
     console.error("[Informes_GP] No se pudieron leer los últimos operativos iniciados para informe:", error);
     estadoInforme.operativos = [];
