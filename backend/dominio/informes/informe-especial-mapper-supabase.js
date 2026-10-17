@@ -16,7 +16,7 @@ export function mapearInformeEspecialParaSupabase(informe) {
     : "";
 
   return limpiarObjeto({
-    informe_key: construirInformeKey({
+    informe_key: keyProcedimiento || construirInformeKey({
       informeKey: informe.informe_key,
       operativoKey,
       tipoInforme,
