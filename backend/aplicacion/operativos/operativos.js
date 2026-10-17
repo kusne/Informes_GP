@@ -130,14 +130,25 @@ async function obtenerOperativosDesdeSupabase({ modo, guardiaFecha, ahora = new 
       console.warn("[Informes_GP] No se pudo recuperar fecha_operativo de la guardia actual para FINALIZA:", programadosActualResultado.reason);
     }
 
-    if (!guardiaAnterior) return actualEnriquecido;
+    // EN_PROCEDIMIENTO puede superar cualquier límite horario/guardia.
+    // Para FINALIZAR no restringirlo a las 6 horas de tolerancia anterior.
+    let enProcedimientoAbiertos=[];
+    if(["FINALIZA","PROCEDIMIENTO"].includes(modo)){
+      try{
+        enProcedimientoAbiertos=(await listarUltimosEstadosOperativosRestRapido({limite:100}))
+          .filter(op=>normalizarEstado(op?.estado)==="EN_PROCEDIMIENTO");
+      }catch(error){
+        console.warn("[Informes_GP] No se pudo consultar procedimientos abiertos de guardias anteriores:",error);
+      }
+    }
+    if (!guardiaAnterior) return combinarOperativosSinDuplicar([...actualEnriquecido,...enProcedimientoAbiertos]);
 
     const estadosAnteriorResultado = resultados[2];
     const programadosAnteriorResultado = resultados[3];
 
     if (estadosAnteriorResultado.status !== "fulfilled") {
       console.warn("[Informes_GP] No se pudieron recuperar EN_CURSO de la guardia anterior para FINALIZA:", estadosAnteriorResultado.reason);
-      return actualEnriquecido;
+      return combinarOperativosSinDuplicar([...actualEnriquecido,...enProcedimientoAbiertos]);
     }
 
     const enCursoAnterior = (estadosAnteriorResultado.value || [])
@@ -151,7 +162,7 @@ async function obtenerOperativosDesdeSupabase({ modo, guardiaFecha, ahora = new 
       console.warn("[Informes_GP] No se pudo recuperar fecha_operativo de la guardia anterior para FINALIZA:", programadosAnteriorResultado.reason);
     }
 
-    return combinarOperativosSinDuplicar([...actualEnriquecido, ...anteriorEnriquecido]);
+    return combinarOperativosSinDuplicar([...actualEnriquecido, ...anteriorEnriquecido, ...enProcedimientoAbiertos]);
   }
 
   if (modo === "INFORMES") {
