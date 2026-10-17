@@ -265,6 +265,15 @@ async function iniciarSelectorModoSeguro() {
     await modulo.iniciarSelectorModoInforme({
       hostSelector: "#selectorModoInformeHost",
       onChange: async (modo) => {
+        if(modo==="PROCEDIMIENTO"){
+          const selector=document.querySelector("#selectorModoInformeSelect, #selectorModoInforme");
+          if(selector)selector.value="INFORMES";
+          await cambiarModoPantalla("INFORMES");
+          const btn=document.querySelector('[data-modelo-informe="procedimiento"]');
+          if(!btn) throw Error("No se encontró el formulario PROCEDIMIENTO.");
+          btn.click();
+          return;
+        }
         await cambiarModoPantalla(modo);
       }
     });
@@ -280,6 +289,7 @@ async function iniciarSelectorModoSeguro() {
         <select id="selectorModoInforme">
           <option value="INICIA" selected>INICIO</option>
           <option value="RELEVO">RELEVO</option>\n          <option value="ACOPLE">ACOPLE</option>\n          <option value="FINALIZA">FINALIZADO</option>
+          <option value="PROCEDIMIENTO">PROCEDIMIENTO</option>
           <option value="INFORMES">INFORMES</option>
           <option value="CONTROL_MOVILES">CONTROL DE MÓVILES</option>
         </select>
@@ -288,7 +298,11 @@ async function iniciarSelectorModoSeguro() {
 
     const selector = host.querySelector("#selectorModoInforme");
     selector?.addEventListener("change", async () => {
-      await cambiarModoPantalla(selector.value);
+      if(selector.value==="PROCEDIMIENTO"){
+        selector.value="INFORMES";
+        await cambiarModoPantalla("INFORMES");
+        document.querySelector('[data-modelo-informe="procedimiento"]')?.click();
+      } else await cambiarModoPantalla(selector.value);
     });
   }
 }
