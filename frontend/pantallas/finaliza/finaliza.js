@@ -1,6 +1,8 @@
 import { registrarFinalizadoModulo } from "../../../api/app-api.js";
 import { obtenerCatalogoRecursosOperativos, construirResumenRecursosOperativos } from "../../../api/app-api.js";
 import { resolverRecursosInicioParaFinaliza } from "../../../api/app-api.js";
+import { obtenerEstadoOperativoV2 } from "../../../api/persistencia-api.js";
+import { modoEnsayoActivo } from "../../../api/app-api.js";
 import { cargarFotosDeFormulario } from "../../servicios/fotos/fotos-formulario-loader.js";
 import { cargarNumeralesFinaliza, limpiarNumeralesFinaliza } from "./numerales/numerales-finaliza.js";
 import { construirFinalizadoDesdeFormulario } from "./compartido/finalizado-builder.js";
@@ -26,6 +28,17 @@ export async function iniciarFormularioFinaliza({
   const form = root.querySelector?.(".formulario-finaliza") || document.querySelector(".formulario-finaliza");
   ultimoFormularioFinaliza = form;
   ultimoOperativoFinaliza = operativoSeleccionado || null;
+  // Refrescar el estado ANTES de construir FINALIZADO. Así incorpora
+  // CONTROL SUPERIOR + ACOPLE y otros movimientos hechos en otro dispositivo.
+  if(ultimoOperativoFinaliza?.operativo_key && !modoEnsayoActivo()){
+    try{
+      const actualizado = await obtenerEstadoOperativoV2({
+        guardia_fecha:ultimoOperativoFinaliza.guardia_fecha,
+        operativo_key:ultimoOperativoFinaliza.operativo_key
+      });
+      if(actualizado)ultimoOperativoFinaliza=actualizado;
+    }catch(error){console.warn("No se pudo refrescar dotación antes del FINALIZADO",error);}
+  }
   recursosInicioActual = resolverRecursosInicioParaFinaliza(ultimoOperativoFinaliza || {});
 
   if (!form) {
@@ -38,6 +51,15 @@ export async function iniciarFormularioFinaliza({
   configurarMismosPorDefecto(form);
 
   const catalogo = obtenerCatalogoRecursosOperativos();
+  // El catálogo de respaldo no contiene otros efectivos ni móviles reales.
+  // Agregar siempre todos los recursos vigentes obtenidos desde Supabase.
+  const vigente = recursosInicioActual?.seleccionInicial || {};
+  const unir = (a,b) => [...new Set([...(a||[]),...(b||[])])];
+  catalogo.personal = unir(catalogo.personal,vigente.personal);
+  catalogo.moviles = unir(catalogo.moviles,vigente.moviles);
+  catalogo.motos = unir(catalogo.motos,vigente.motos);
+  for(const grupo of catalogo.elementos)
+    grupo.items = unir(grupo.items,vigente.elementos?.[grupo.clave]);
   renderPersonalFinaliza({
     host: form.querySelector("#finalizaPersonalPolicialHost"),
     personal: catalogo.personal,
