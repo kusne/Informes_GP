@@ -205,7 +205,7 @@ export function filtrarOperativosIniciadosParaFinalizar(operativos = []) {
     const estado = normalizarEstado(op?.estado);
     if (op?.finalizado_evento_id) return false;
     if (["FINALIZADO", "CERRADO"].includes(estado)) return false;
-    return ["EN_CURSO", "INICIADO", "ACTIVO"].includes(estado) || Boolean(op?.inicio_evento_id);
+    return ["EN_CURSO", "EN_PROCEDIMIENTO", "INICIADO", "ACTIVO"].includes(estado) || Boolean(op?.inicio_evento_id);
   });
 }
 
