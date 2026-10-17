@@ -1,5 +1,13 @@
 export const MODELOS_INFORMES_GP = [
   {
+    modelo_key: "PROCEDIMIENTO",
+    codigo: "PROCEDIMIENTO",
+    nombre: "PROCEDIMIENTO",
+    label: "PROCEDIMIENTO",
+    html: "/frontend/pantallas/informes/modelos/procedimiento/procedimiento.html",
+    modulo: "/frontend/pantallas/informes/modelos/procedimiento/procedimiento.js"
+  },
+  {
     modelo_key: "CONTROL_SUPERIOR",
     codigo: "CONTROL_SUPERIOR",
     nombre: "CONTROL SUPERIOR",
