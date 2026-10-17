@@ -256,8 +256,10 @@ export async function borrarFinalizadoOperativoV2({
   const datos = fusionarDatosJson(datosActuales, marcaBorrado);
 
   const patch = limpiarObjeto({
-    estado: "EN_CURSO",
-    tipo_evento: "INICIO",
+    estado: Array.isArray(datosActuales.procedimientos_eventos) && datosActuales.procedimientos_eventos.length
+      ? "EN_PROCEDIMIENTO" : "EN_CURSO",
+    tipo_evento: Array.isArray(datosActuales.procedimientos_eventos) && datosActuales.procedimientos_eventos.length
+      ? "PROCEDIMIENTO" : "INICIO",
     tipo_operativo: snapshot.tipo_operativo || existente.tipo_operativo,
     tipo_nombre: snapshot.tipo_nombre || datosActuales.tipo_nombre || existente.tipo_nombre,
     hora_inicio: snapshot.hora_inicio || existente.hora_inicio,
