@@ -50,6 +50,13 @@ export async function guardarInformeEspecialV2(payload) {
     throw new Error("Supabase no devolvió id del informe intradiario guardado.");
   }
 
+  const items = construirItemsInformeEspecial({
+    informe,
+    payload: limpio
+  });
+
+  const resultadoItems = await reemplazarItemsInformeIntradiarioV2(informe.id, items);
+
   if(acople){
     const fechaCambio=new Date().toISOString();
     const anterior=estadoAnterior.datos||{};
@@ -79,13 +86,6 @@ export async function guardarInformeEspecialV2(payload) {
       throw cambioError||Error("La dotación cambió en otro dispositivo. Reintentá CONTROL SUPERIOR.");
     }
   }
-
-  const items = construirItemsInformeEspecial({
-    informe,
-    payload: limpio
-  });
-
-  const resultadoItems = await reemplazarItemsInformeIntradiarioV2(informe.id, items);
 
   return {
     ...crearResultadoSupabaseOk({
