@@ -2,6 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { procesarInformeEspecialFormulario }
   from "../backend/aplicacion/procesamiento/procesar-informe-especial.js";
+import { construirTransicionProcedimiento }
+  from "../backend/infraestructura/supabase/informes-especiales-v2-repo.js";
 import { filtrarOperativosIniciadosParaFinalizar }
   from "../backend/aplicacion/operativos/operativos.js";
 
@@ -58,4 +60,29 @@ test("FINALIZADO admite EN_PROCEDIMIENTO y no permite finalizar dos veces",()=>{
     {...base.operativoSeleccionado,operativo_key:"OCV-3",estado:"FINALIZADO"},
   ]);
   assert.deepEqual(activos.map(x=>x.operativo_key).sort(),["OCV-2","OCV-2018"]);
+});
+
+test("Transición preserva INICIO, recursos y horas; dos hechos suman dos, reenvío idempotente",()=>{
+  const estado={id:"op-01",estado:"EN_CURSO",tipo_evento:"INICIO",hora_inicio:"17:00",
+    hora_fin:"19:00",datos:{
+      inicio_snapshot:{texto_salida:"INICIO ORIGINAL",personal:"Personal original"},
+      recursos_vigentes:{moviles:["10139"],personal:["Funcionario"],motos:[],elementos:{}},
+      movimientos_recursos:[{modo:"ACOPLE"}]
+    }};
+  const uno=procesarInformeEspecialFormulario(base).supabasePayload;
+  const dos=procesarInformeEspecialFormulario({...base,formulario:{
+    ...base.formulario,procedimiento_id:"proc-unico-2",hecho:"PROCEDIMIENTO POR SEGUNDO HECHO"
+  }}).supabasePayload;
+  const primero=construirTransicionProcedimiento(estado,uno,{id:"informe-1"});
+  assert.equal(primero.estado,"EN_PROCEDIMIENTO");
+  assert.equal(primero.tipo_evento,"PROCEDIMIENTO");
+  assert.deepEqual(primero.datos.inicio_snapshot,estado.datos.inicio_snapshot);
+  assert.deepEqual(primero.datos.recursos_vigentes,estado.datos.recursos_vigentes);
+  assert.deepEqual(primero.datos.movimientos_recursos,estado.datos.movimientos_recursos);
+  assert.equal(estado.datos.procedimientos_eventos,undefined);
+  const nuevamente=construirTransicionProcedimiento({...estado,datos:primero.datos},uno,{id:"informe-1"});
+  assert.equal(nuevamente.datos.procedimientos_eventos.length,1);
+  const segundo=construirTransicionProcedimiento({...estado,datos:nuevamente.datos},dos,{id:"informe-2"});
+  assert.equal(segundo.datos.procedimientos_eventos.length,2);
+  assert.equal(segundo.datos.recursos_vigentes.moviles[0],"10139");
 });
