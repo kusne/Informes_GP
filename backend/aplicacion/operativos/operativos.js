@@ -83,13 +83,13 @@ async function obtenerOperativosDesdeSupabase({ modo, guardiaFecha, ahora = new 
       console.warn("[Informes_GP] No se pudo leer bmzcn_operativos_estado_v2 para filtrar INICIA:", estadosResultado.reason);
     }
 
-    const enCurso = estados.filter((op) => normalizarEstado(op?.estado) === "EN_CURSO");
+    const enCurso = estados.filter((op) => ["EN_CURSO", "EN_PROCEDIMIENTO"].includes(normalizarEstado(op?.estado)));
     const finalizados = estados.filter((op) => normalizarEstado(op?.estado) === "FINALIZADO");
 
     return filtrarProgramadosPendientes({ programados, enCurso, finalizados });
   }
 
-  if (modo === "FINALIZA" || modo === "RELEVO" || modo === "ACOPLE") {
+  if (["FINALIZA", "RELEVO", "ACOPLE", "PROCEDIMIENTO"].includes(modo)) {
     const incluirGuardiaAnterior = debeIncluirGuardiaAnteriorFinaliza({ guardiaFecha, ahora });
     const guardiaAnterior = incluirGuardiaAnterior ? obtenerGuardiaAnterior(guardiaFecha) : "";
 
@@ -130,14 +130,25 @@ async function obtenerOperativosDesdeSupabase({ modo, guardiaFecha, ahora = new 
       console.warn("[Informes_GP] No se pudo recuperar fecha_operativo de la guardia actual para FINALIZA:", programadosActualResultado.reason);
     }
 
-    if (!guardiaAnterior) return actualEnriquecido;
+    // EN_PROCEDIMIENTO puede superar cualquier límite horario/guardia.
+    // Para FINALIZAR no restringirlo a las 6 horas de tolerancia anterior.
+    let enProcedimientoAbiertos=[];
+    if(["FINALIZA","PROCEDIMIENTO"].includes(modo)){
+      try{
+        enProcedimientoAbiertos=(await listarUltimosEstadosOperativosRestRapido({limite:100}))
+          .filter(op=>normalizarEstado(op?.estado)==="EN_PROCEDIMIENTO");
+      }catch(error){
+        console.warn("[Informes_GP] No se pudo consultar procedimientos abiertos de guardias anteriores:",error);
+      }
+    }
+    if (!guardiaAnterior) return combinarOperativosSinDuplicar([...actualEnriquecido,...enProcedimientoAbiertos]);
 
     const estadosAnteriorResultado = resultados[2];
     const programadosAnteriorResultado = resultados[3];
 
     if (estadosAnteriorResultado.status !== "fulfilled") {
       console.warn("[Informes_GP] No se pudieron recuperar EN_CURSO de la guardia anterior para FINALIZA:", estadosAnteriorResultado.reason);
-      return actualEnriquecido;
+      return combinarOperativosSinDuplicar([...actualEnriquecido,...enProcedimientoAbiertos]);
     }
 
     const enCursoAnterior = (estadosAnteriorResultado.value || [])
@@ -151,7 +162,7 @@ async function obtenerOperativosDesdeSupabase({ modo, guardiaFecha, ahora = new 
       console.warn("[Informes_GP] No se pudo recuperar fecha_operativo de la guardia anterior para FINALIZA:", programadosAnteriorResultado.reason);
     }
 
-    return combinarOperativosSinDuplicar([...actualEnriquecido, ...anteriorEnriquecido]);
+    return combinarOperativosSinDuplicar([...actualEnriquecido, ...anteriorEnriquecido, ...enProcedimientoAbiertos]);
   }
 
   if (modo === "INFORMES") {
@@ -205,12 +216,12 @@ export function filtrarOperativosIniciadosParaFinalizar(operativos = []) {
     const estado = normalizarEstado(op?.estado);
     if (op?.finalizado_evento_id) return false;
     if (["FINALIZADO", "CERRADO"].includes(estado)) return false;
-    return ["EN_CURSO", "INICIADO", "ACTIVO"].includes(estado) || Boolean(op?.inicio_evento_id);
+    return ["EN_CURSO", "EN_PROCEDIMIENTO", "INICIADO", "ACTIVO"].includes(estado) || Boolean(op?.inicio_evento_id);
   });
 }
 
 function filtrarSegunModo(modo, operativos = []) {
-  if (["FINALIZA","RELEVO","ACOPLE"].includes(modo)) return filtrarOperativosIniciadosParaFinalizar(operativos);
+  if (["FINALIZA","RELEVO","ACOPLE","PROCEDIMIENTO"].includes(modo)) return filtrarOperativosIniciadosParaFinalizar(operativos);
   if (modo === "INFORMES") return seleccionarUltimosOperativosIniciados(operativos, 2);
   return normalizarOperativos(operativos);
 }
@@ -235,7 +246,7 @@ function fueIniciado(op = {}) {
     op?.created_at ||
     datos?.inicio_snapshot ||
     ["INICIO", "FINALIZADO"].includes(tipoEvento) ||
-    ["EN_CURSO", "INICIADO", "ACTIVO", "FINALIZADO", "CERRADO"].includes(estado)
+    ["EN_CURSO", "EN_PROCEDIMIENTO", "INICIADO", "ACTIVO", "FINALIZADO", "CERRADO"].includes(estado)
   );
 }
 

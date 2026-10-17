@@ -45,8 +45,21 @@ export function procesarInformeEspecialFormulario({
     calculos: calcularDatosModelo(modeloNormalizado, formulario || {})
   };
 
-  const numeralesSugeridos = construirNumeralesSugeridosInforme(base);
-  const incrementosSugeridos = construirIncrementosSugeridosInforme(base);
+  // El evento cuenta exactamente una vez y no inventa aprehendidos, actas,
+  // secuestros ni otras medidas; las confirma FINALIZADO por separado.
+  const esProcedimiento=modeloNormalizado==="PROCEDIMIENTO";
+  if(esProcedimiento){
+    const fecha=String(formulario.fecha_hecho||"").trim();
+    const hora=String(formulario.hora_hecho||"").trim();
+    if(/^\d{4}-\d{2}-\d{2}$/.test(fecha) && /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(hora)){
+      base.fecha=`${fecha}T${hora}:00-03:00`;
+      base.fecha_informe=fecha;
+      base.hora_informe=hora;
+    }
+    base.lugar=String(formulario.lugar_hecho||"").trim()||base.lugar;
+  }
+  const numeralesSugeridos = esProcedimiento ? [] : construirNumeralesSugeridosInforme(base);
+  const incrementosSugeridos = esProcedimiento ? {procedimientos_policiales:1} : construirIncrementosSugeridosInforme(base);
   const actual = {
     ...base,
     numerales_sugeridos: numeralesSugeridos,

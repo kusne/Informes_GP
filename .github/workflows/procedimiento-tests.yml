@@ -1,0 +1,23 @@
+name: Validar PROCEDIMIENTO y cierre de operativos
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, feat/evento-procedimiento-20261017]
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validar sintaxis e integridad de módulos
+        run: |
+          node --check backend/aplicacion/procesamiento/procesar-informe-especial.js
+          node --check backend/infraestructura/supabase/informes-especiales-v2-repo.js
+          node --check frontend/pantallas/informes/modelos/procedimiento/procedimiento.js
+          node --check frontend/pantallas/pantalla-principal/pantalla-principal.js
+      - name: Ejecutar regresiones de informes y procedimientos
+        run: |
+          node --test tests/*.test.mjs

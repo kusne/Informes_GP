@@ -146,6 +146,9 @@ export async function guardarInicioOperativoV2(payload) {
     operativo_key: limpio.operativo_key
   });
 
+  if (existente?.estado === "EN_PROCEDIMIENTO") {
+    throw new Error("El operativo está EN PROCEDIMIENTO. No se puede reiniciar sin cerrar las actuaciones.");
+  }
   if (existente?.estado === "FINALIZADO") {
     throw new Error("No se puede actualizar INICIO porque el operativo ya está FINALIZADO.");
   }
@@ -253,8 +256,10 @@ export async function borrarFinalizadoOperativoV2({
   const datos = fusionarDatosJson(datosActuales, marcaBorrado);
 
   const patch = limpiarObjeto({
-    estado: "EN_CURSO",
-    tipo_evento: "INICIO",
+    estado: Array.isArray(datosActuales.procedimientos_eventos) && datosActuales.procedimientos_eventos.length
+      ? "EN_PROCEDIMIENTO" : "EN_CURSO",
+    tipo_evento: Array.isArray(datosActuales.procedimientos_eventos) && datosActuales.procedimientos_eventos.length
+      ? "PROCEDIMIENTO" : "INICIO",
     tipo_operativo: snapshot.tipo_operativo || existente.tipo_operativo,
     tipo_nombre: snapshot.tipo_nombre || datosActuales.tipo_nombre || existente.tipo_nombre,
     hora_inicio: snapshot.hora_inicio || existente.hora_inicio,

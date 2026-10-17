@@ -1,3 +1,4 @@
+import { construirTransicionProcedimiento } from "../../dominio/informes/procedimiento-transicion.js";
 import { obtenerEstadoOperativoV2 } from "./operativos-estado-v2-repo.js";
 import { obtenerSupabaseClient, TABLAS_SUPABASE } from "./supabase-client.js";
 import { dotacionVigenteOperativo } from "./movimientos-recursos-repo.js";
@@ -42,7 +43,18 @@ export async function guardarInformeEspecialV2(payload) {
       informe_key:limpio.informe_key
     });
   }
-  const informeExistente=acople?await buscarInformePorKey(limpio.informe_key):null;
+  // Validar el estado ANTES de persistir. PROCEDIMIENTO no finaliza el
+  // operativo ni modifica el estado del INICIO/los recursos asignados.
+  const esProcedimiento=limpio.tipo_informe==="PROCEDIMIENTO";
+  if(esProcedimiento){
+    estadoAnterior=await obtenerEstadoOperativoV2({
+      operativo_key:limpio.operativo_key,guardia_fecha:limpio.guardia_fecha
+    });
+    if(!estadoAnterior||!["EN_CURSO","EN_PROCEDIMIENTO"].includes(estadoAnterior.estado))
+      throw Error("PROCEDIMIENTO requiere un operativo iniciado y aún no FINALIZADO.");
+  }
+  const informeExistente=(acople||esProcedimiento)
+    ? await buscarInformePorKey(limpio.informe_key) : null;
   const resultadoInforme = await guardarInformeIntradiarioV2(limpio);
   const informe = resultadoInforme?.data || null;
 
@@ -56,6 +68,24 @@ export async function guardarInformeEspecialV2(payload) {
   });
 
   const resultadoItems = await reemplazarItemsInformeIntradiarioV2(informe.id, items);
+
+  if(esProcedimiento){
+    const actualizado=construirTransicionProcedimiento(estadoAnterior,limpio,informe);
+    let query=obtenerSupabaseClient().from(TABLAS_SUPABASE.operativosEstado)
+      .update(actualizado)
+      .eq("id",estadoAnterior.id)
+      .in("estado",["EN_CURSO","EN_PROCEDIMIENTO"]);
+    if(estadoAnterior.updated_at) query=query.eq("updated_at",estadoAnterior.updated_at);
+    const {data:confirmacion,error:cambioError}=await query.select("id").maybeSingle();
+    if(cambioError || !confirmacion){
+      if(!informeExistente){
+        try{await obtenerSupabaseClient().from(TABLAS_SUPABASE.informesIntradiarios)
+          .update({activo:false}).eq("id",informe.id).eq("informe_key",limpio.informe_key);}
+        catch(errorRollback){console.error("No se pudo anular PROCEDIMIENTO sin transición confirmada",errorRollback);}
+      }
+      throw cambioError||Error("El operativo cambió desde otro dispositivo; reintentá PROCEDIMIENTO.");
+    }
+  }
 
   if(acople){
     const fechaCambio=new Date().toISOString();
@@ -96,6 +126,8 @@ export async function guardarInformeEspecialV2(payload) {
   };
 }
 
+// Transformación pura: admite más de un PROCEDIMIENTO por operativo, conserva
+// los recursos vigentes e inicio_snapshot y no produce evento FINALIZADO.
 export async function listarInformesEspecialesV2({
   guardia_fecha,
   operativo_key,

@@ -8,6 +8,7 @@
   const VERSION = "pantalla-principal-flujo-20260829-requisa-v1";
 
   const MODELOS_INFORMES = [
+    { id: "procedimiento", titulo: "Procedimiento", descripcion: "Evento que mantiene abierto el operativo como EN PROCEDIMIENTO" },
     {
       id: "control-superior",
       titulo: "Control Superior",
@@ -105,6 +106,7 @@
       { value: "RELEVO", label: "RELEVO" },
       { value: "ACOPLE", label: "ACOPLE" },
       { value: "FINALIZA", label: "FINALIZADO" },
+      { value: "PROCEDIMIENTO", label: "PROCEDIMIENTO" },
       { value: "INFORMES", label: "INFORMES" },
       { value: "CONTROL_MOVILES", label: "CONTROL DE MÓVILES" },
     ];
