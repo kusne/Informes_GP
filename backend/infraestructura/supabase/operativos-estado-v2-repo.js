@@ -146,6 +146,9 @@ export async function guardarInicioOperativoV2(payload) {
     operativo_key: limpio.operativo_key
   });
 
+  if (existente?.estado === "EN_PROCEDIMIENTO") {
+    throw new Error("El operativo está EN PROCEDIMIENTO. No se puede reiniciar sin cerrar las actuaciones.");
+  }
   if (existente?.estado === "FINALIZADO") {
     throw new Error("No se puede actualizar INICIO porque el operativo ya está FINALIZADO.");
   }
