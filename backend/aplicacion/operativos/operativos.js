@@ -89,7 +89,7 @@ async function obtenerOperativosDesdeSupabase({ modo, guardiaFecha, ahora = new 
     return filtrarProgramadosPendientes({ programados, enCurso, finalizados });
   }
 
-  if (modo === "FINALIZA" || modo === "RELEVO" || modo === "ACOPLE") {
+  if (["FINALIZA", "RELEVO", "ACOPLE", "PROCEDIMIENTO"].includes(modo)) {
     const incluirGuardiaAnterior = debeIncluirGuardiaAnteriorFinaliza({ guardiaFecha, ahora });
     const guardiaAnterior = incluirGuardiaAnterior ? obtenerGuardiaAnterior(guardiaFecha) : "";
 
