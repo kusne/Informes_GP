@@ -42,7 +42,18 @@ export async function guardarInformeEspecialV2(payload) {
       informe_key:limpio.informe_key
     });
   }
-  const informeExistente=acople?await buscarInformePorKey(limpio.informe_key):null;
+  // Validar el estado ANTES de persistir. PROCEDIMIENTO no finaliza el
+  // operativo ni modifica el estado del INICIO/los recursos asignados.
+  const esProcedimiento=limpio.tipo_informe==="PROCEDIMIENTO";
+  if(esProcedimiento){
+    estadoAnterior=await obtenerEstadoOperativoV2({
+      operativo_key:limpio.operativo_key,guardia_fecha:limpio.guardia_fecha
+    });
+    if(!estadoAnterior||!["EN_CURSO","EN_PROCEDIMIENTO"].includes(estadoAnterior.estado))
+      throw Error("PROCEDIMIENTO requiere un operativo iniciado y aún no FINALIZADO.");
+  }
+  const informeExistente=(acople||esProcedimiento)
+    ? await buscarInformePorKey(limpio.informe_key) : null;
   const resultadoInforme = await guardarInformeIntradiarioV2(limpio);
   const informe = resultadoInforme?.data || null;
 
@@ -56,6 +67,40 @@ export async function guardarInformeEspecialV2(payload) {
   });
 
   const resultadoItems = await reemplazarItemsInformeIntradiarioV2(informe.id, items);
+
+  if(esProcedimiento){
+    const anterior=estadoAnterior.datos||{};
+    const previos=Array.isArray(anterior.procedimientos_eventos)
+      ? anterior.procedimientos_eventos:[];
+    const contiene=previos.some(e=>e.informe_key===limpio.informe_key);
+    // Un reenvío del MISMO procedimiento se actualiza sin duplicar cronología
+    // ni el numeral. Un segundo hecho con otra identidad sí suma otro evento.
+    const evento={informe_key:limpio.informe_key,informe_id:informe.id,
+      fecha_evento:limpio.fecha_evento,hecho:String(limpio.datos?.hecho||""),
+      texto:limpio.texto_salida,lugar:limpio.lugar};
+    const procedimientos=contiene
+      ? previos.map(e=>e.informe_key===limpio.informe_key?evento:e)
+      : [...previos,evento];
+    const actualizado={
+      estado:"EN_PROCEDIMIENTO",tipo_evento:"PROCEDIMIENTO",
+      datos:{...anterior,procedimientos_eventos:procedimientos},
+      updated_at:new Date().toISOString()
+    };
+    let query=obtenerSupabaseClient().from(TABLAS_SUPABASE.operativosEstado)
+      .update(actualizado)
+      .eq("id",estadoAnterior.id)
+      .in("estado",["EN_CURSO","EN_PROCEDIMIENTO"]);
+    if(estadoAnterior.updated_at) query=query.eq("updated_at",estadoAnterior.updated_at);
+    const {data:confirmacion,error:cambioError}=await query.select("id").maybeSingle();
+    if(cambioError || !confirmacion){
+      if(!informeExistente){
+        try{await obtenerSupabaseClient().from(TABLAS_SUPABASE.informesIntradiarios)
+          .update({activo:false}).eq("id",informe.id).eq("informe_key",limpio.informe_key);}
+        catch(errorRollback){console.error("No se pudo anular PROCEDIMIENTO sin transición confirmada",errorRollback);}
+      }
+      throw cambioError||Error("El operativo cambió desde otro dispositivo; reintentá PROCEDIMIENTO.");
+    }
+  }
 
   if(acople){
     const fechaCambio=new Date().toISOString();
