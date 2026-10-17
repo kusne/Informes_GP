@@ -1,3 +1,8 @@
+import { obtenerEstadoOperativoV2 } from "./operativos-estado-v2-repo.js";
+import { obtenerSupabaseClient, TABLAS_SUPABASE } from "./supabase-client.js";
+import { dotacionVigenteOperativo } from "./movimientos-recursos-repo.js";
+import { crearAcopleDesdeControlSuperior } from "../../dominio/informes/control-superior-acople.js";
+import { buscarInformePorKey } from "./informes-intradiarios-v2-repo.js";
 import {
   crearResultadoSupabaseSaltado,
   crearResultadoSupabaseOk,
@@ -19,11 +24,60 @@ export async function guardarInformeEspecialV2(payload) {
     return crearResultadoSupabaseSaltado("Supabase no configurado. Informe no persistido.");
   }
 
+  // Prevalidar antes de grabar el informe. El acople queda asociado a ESTE
+  // informe (un documento, dos eventos), sin crear un segundo informe.
+  let acople=null,estadoAnterior=null;
+  if(limpio.tipo_informe==="CONTROL_SUPERIOR" && limpio.datos?.se_acopla===true){
+    estadoAnterior=await obtenerEstadoOperativoV2({
+      operativo_key:limpio.operativo_key,guardia_fecha:limpio.guardia_fecha
+    });
+    if(!estadoAnterior || estadoAnterior.estado!=="EN_CURSO")
+      throw Error("SE ACOPLA sólo puede aplicarse a un operativo EN CURSO.");
+    const movimientos=Array.isArray(estadoAnterior.datos?.movimientos_recursos)
+      ? estadoAnterior.datos.movimientos_recursos:[];
+    if(movimientos.some(m=>m.origen==="CONTROL_SUPERIOR"&&m.informe_key===limpio.informe_key))
+      throw Error("Este CONTROL SUPERIOR ya tiene registrado su ACOPLE.");
+    acople=crearAcopleDesdeControlSuperior({
+      formulario:limpio.datos,actual:dotacionVigenteOperativo(estadoAnterior),
+      informe_key:limpio.informe_key
+    });
+  }
+  const informeExistente=acople?await buscarInformePorKey(limpio.informe_key):null;
   const resultadoInforme = await guardarInformeIntradiarioV2(limpio);
   const informe = resultadoInforme?.data || null;
 
   if (!informe?.id) {
     throw new Error("Supabase no devolvió id del informe intradiario guardado.");
+  }
+
+  if(acople){
+    const fechaCambio=new Date().toISOString();
+    const anterior=estadoAnterior.datos||{};
+    const historial=Array.isArray(anterior.movimientos_recursos)?anterior.movimientos_recursos:[];
+    const cambio={
+      ...acople,fecha_evento:limpio.fecha_evento,
+      texto:limpio.texto_salida,informe_id:informe.id,
+      informe_key:limpio.informe_key,
+      origen:"CONTROL_SUPERIOR"
+    };
+    const datos={
+      ...anterior,recursos_vigentes:acople.vigente,
+      movimientos_recursos:[...historial,cambio]
+    };
+    let query=obtenerSupabaseClient().from(TABLAS_SUPABASE.operativosEstado)
+      .update({datos,updated_at:fechaCambio})
+      .eq("id",estadoAnterior.id).eq("estado","EN_CURSO");
+    if(estadoAnterior.updated_at)query=query.eq("updated_at",estadoAnterior.updated_at);
+    const {data:confirmacion,error:cambioError}=await query.select("id").maybeSingle();
+    if(cambioError||!confirmacion){
+      // No dejar un control sin ACOPLE confirmado como si fuera exitoso.
+      if(!informeExistente){
+        try{await obtenerSupabaseClient().from(TABLAS_SUPABASE.informesIntradiarios)
+          .update({activo:false}).eq("id",informe.id).eq("informe_key",limpio.informe_key);}
+        catch(errorRollback){console.error("No se pudo anular el control sin acople",errorRollback);}
+      }
+      throw cambioError||Error("La dotación cambió en otro dispositivo. Reintentá CONTROL SUPERIOR.");
+    }
   }
 
   const items = construirItemsInformeEspecial({
