@@ -235,7 +235,7 @@ function fueIniciado(op = {}) {
     op?.created_at ||
     datos?.inicio_snapshot ||
     ["INICIO", "FINALIZADO"].includes(tipoEvento) ||
-    ["EN_CURSO", "INICIADO", "ACTIVO", "FINALIZADO", "CERRADO"].includes(estado)
+    ["EN_CURSO", "EN_PROCEDIMIENTO", "INICIADO", "ACTIVO", "FINALIZADO", "CERRADO"].includes(estado)
   );
 }
 
