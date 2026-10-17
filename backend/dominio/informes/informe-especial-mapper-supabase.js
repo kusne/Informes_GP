@@ -6,6 +6,14 @@ export function mapearInformeEspecialParaSupabase(informe) {
   const horaInforme = resolverHoraInforme(informe, fechaEvento);
   const tipoInforme = normalizarModelo(informe.modelo || informe.tipo_informe || "");
   const operativoKey = String(informe.operativo_key || "").trim();
+  // La misma edición/envío del formulario conserva su ID. Diferentes hechos
+  // a la misma hora mantienen informes distintos.
+  const idProcedimiento=tipoInforme==="PROCEDIMIENTO"
+    ? String(informe.formulario?.procedimiento_id||"").trim().replace(/[^a-z0-9-]/gi,"")
+    : "";
+  const keyProcedimiento=idProcedimiento
+    ? ["IGP","PROCEDIMIENTO",normalizarComponenteClave(operativoKey),idProcedimiento].join("|")
+    : "";
 
   return limpiarObjeto({
     informe_key: construirInformeKey({
