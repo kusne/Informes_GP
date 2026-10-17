@@ -83,7 +83,7 @@ async function obtenerOperativosDesdeSupabase({ modo, guardiaFecha, ahora = new 
       console.warn("[Informes_GP] No se pudo leer bmzcn_operativos_estado_v2 para filtrar INICIA:", estadosResultado.reason);
     }
 
-    const enCurso = estados.filter((op) => normalizarEstado(op?.estado) === "EN_CURSO");
+    const enCurso = estados.filter((op) => ["EN_CURSO", "EN_PROCEDIMIENTO"].includes(normalizarEstado(op?.estado)));
     const finalizados = estados.filter((op) => normalizarEstado(op?.estado) === "FINALIZADO");
 
     return filtrarProgramadosPendientes({ programados, enCurso, finalizados });
