@@ -19,4 +19,6 @@ jobs:
           node --check frontend/pantallas/informes/modelos/procedimiento/procedimiento.js
           node --check frontend/pantallas/pantalla-principal/pantalla-principal.js
       - name: Ejecutar regresiones de informes y procedimientos
-        run: node --test tests/*.test.mjs
+        run: |
+          npm run check:regresion-informes
+          node --test tests/*.test.mjs
