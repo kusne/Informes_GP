@@ -69,23 +69,7 @@ export async function guardarInformeEspecialV2(payload) {
   const resultadoItems = await reemplazarItemsInformeIntradiarioV2(informe.id, items);
 
   if(esProcedimiento){
-    const anterior=estadoAnterior.datos||{};
-    const previos=Array.isArray(anterior.procedimientos_eventos)
-      ? anterior.procedimientos_eventos:[];
-    const contiene=previos.some(e=>e.informe_key===limpio.informe_key);
-    // Un reenvío del MISMO procedimiento se actualiza sin duplicar cronología
-    // ni el numeral. Un segundo hecho con otra identidad sí suma otro evento.
-    const evento={informe_key:limpio.informe_key,informe_id:informe.id,
-      fecha_evento:limpio.fecha_evento,hecho:String(limpio.datos?.hecho||""),
-      texto:limpio.texto_salida,lugar:limpio.lugar};
-    const procedimientos=contiene
-      ? previos.map(e=>e.informe_key===limpio.informe_key?evento:e)
-      : [...previos,evento];
-    const actualizado={
-      estado:"EN_PROCEDIMIENTO",tipo_evento:"PROCEDIMIENTO",
-      datos:{...anterior,procedimientos_eventos:procedimientos},
-      updated_at:new Date().toISOString()
-    };
+    const actualizado=construirTransicionProcedimiento(estadoAnterior,limpio,informe);
     let query=obtenerSupabaseClient().from(TABLAS_SUPABASE.operativosEstado)
       .update(actualizado)
       .eq("id",estadoAnterior.id)
@@ -138,6 +122,26 @@ export async function guardarInformeEspecialV2(payload) {
       items: resultadoItems?.data || []
     }),
     mensaje: "Informe guardado en Supabase V2."
+  };
+}
+
+// Transformación pura: admite más de un PROCEDIMIENTO por operativo, conserva
+// los recursos vigentes e inicio_snapshot y no produce evento FINALIZADO.
+export function construirTransicionProcedimiento(estado, payload, informe){
+  const anterior=estado?.datos||{};
+  const previos=Array.isArray(anterior.procedimientos_eventos)
+    ? anterior.procedimientos_eventos:[];
+  const evento={informe_key:payload.informe_key,informe_id:informe.id,
+    fecha_evento:payload.fecha_evento,hecho:String(payload.datos?.hecho||""),
+    texto:payload.texto_salida,lugar:payload.lugar};
+  const repetido=previos.some(e=>e.informe_key===payload.informe_key);
+  const eventos=repetido
+    ? previos.map(e=>e.informe_key===payload.informe_key?evento:e)
+    : [...previos,evento];
+  return {
+    estado:"EN_PROCEDIMIENTO",tipo_evento:"PROCEDIMIENTO",
+    datos:{...anterior,procedimientos_eventos:eventos},
+    updated_at:new Date().toISOString()
   };
 }
 
