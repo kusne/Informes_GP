@@ -19,18 +19,24 @@ label{display:block;font-weight:800;margin-bottom:9px}
 input{width:100%;padding:14px 13px;border:2px solid #b9c5d6;border-radius:12px;background:#fff;color:#111827;font:inherit;font-size:17px}
 input:focus{outline:3px solid #facc15;outline-offset:2px}
 .contador{font-size:13px;color:#cad5e5;margin:15px 0 7px}
-.item{border-top:1px solid #48566a;padding:16px 0;display:flex;flex-direction:column;gap:11px}
+.item{border-top:1px solid #48566a;padding:16px 0}
+.documento{display:flex;align-items:center;gap:15px}
+.documento-info{min-width:0;flex:1}
 .item h2{font-size:17px;color:#fff;margin:0;overflow-wrap:anywhere}
+.icono-descarga{display:block;position:relative;flex:0 0 68px;width:68px;height:68px;border-radius:50%;background:linear-gradient(145deg,#0cb4f8,#13a5e8);box-shadow:inset 0 -2px 3px #078bc7,0 3px 8px #09121d66;transition:transform .15s,box-shadow .15s}
+.icono-descarga::before{content:"";position:absolute;top:17px;left:18px;width:32px;height:30px;background:#fff;clip-path:polygon(26% 0,74% 0,74% 48%,100% 48%,50% 100%,0 48%,26% 48%);filter:drop-shadow(2px 2px 1px #086aa0)}
+.icono-descarga::after{content:"";position:absolute;top:51px;left:19px;width:30px;height:5px;background:#fff;box-shadow:2px 2px 1px #0874a8}
+.icono-descarga:hover{transform:translateY(-2px);box-shadow:inset 0 -2px 3px #078bc7,0 5px 12px #09121d88}
+.icono-descarga:focus-visible{outline:3px solid #facc15;outline-offset:4px}
 .detalles{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px;color:#cad5e5;margin-top:6px}
-.formato{display:inline-block;background:#39485c;border-radius:5px;padding:4px 7px;font-size:11px;font-weight:800}
 .desc{color:#d6deea;font-size:13px;margin:6px 0 0;line-height:1.45}
-.descargas-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.descargar{display:inline-flex;align-items:center;justify-content:center;align-self:flex-start;background:#facc15;color:#182231;text-decoration:none;font-weight:900;padding:12px 17px;border-radius:10px;min-height:43px}
-.descargar:focus{outline:3px solid white;outline-offset:2px}
+.descargas-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:11px}
+.descargar{display:inline-flex;align-items:center;justify-content:center;background:#facc15;color:#182231;text-decoration:none;font-weight:900;padding:10px 13px;border-radius:9px;min-height:42px;font-size:14px}
+.descargar:focus-visible{outline:3px solid white;outline-offset:2px}
 #estado{color:#e0e8f2;margin:16px 0 0;line-height:1.45}
 #estado.error{color:#fca5a5}
 [hidden]{display:none!important}
-@media(min-width:550px){.item{flex-direction:row;align-items:center;justify-content:space-between}.item .descargar{flex-shrink:0;align-self:center}}
+@media(max-width:370px){.documento{gap:11px}.icono-descarga{flex-basis:58px;width:58px;height:58px}.icono-descarga::before{top:14px;left:15px;width:28px;height:27px}.icono-descarga::after{top:43px;left:16px;width:26px;height:4px}}
 </style>
 </head>
 <body>
