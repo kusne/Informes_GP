@@ -23,33 +23,44 @@
     const filtrados = documentos.filter(doc => normalizar(
       [doc.nombre, doc.categoria, doc.descripcion].join(' ')
     ).includes(texto));
-    $('contador').textContent = filtrados.length + (filtrados.length === 1 ? ' documento disponible' : ' documentos disponibles');
+    // Si se publican Word y PDF del mismo modelo, se muestran juntos.
+    const grupos = new Map();
+    filtrados.forEach(doc => {
+      const clave = normalizar(doc.nombre) + '|' + normalizar(doc.categoria);
+      if (!grupos.has(clave)) grupos.set(clave, {
+        nombre: doc.nombre, categoria: doc.categoria, descripcion: doc.descripcion, versiones: []
+      });
+      const grupo = grupos.get(clave);
+      if (!grupo.descripcion && doc.descripcion) grupo.descripcion = doc.descripcion;
+      grupo.versiones.push(doc);
+    });
+    $('contador').textContent = grupos.size + (grupos.size === 1 ? ' acta disponible' : ' actas disponibles');
     const lista = $('lista');
     lista.replaceChildren();
-    filtrados.forEach(doc => {
+    grupos.forEach(grupo => {
       const item = celdaTexto('article', '', 'item');
       const info = document.createElement('div');
-      info.append(celdaTexto('h2', doc.nombre));
+      info.append(celdaTexto('h2', grupo.nombre));
       const detalles = celdaTexto('div', '', 'detalles');
-      detalles.append(
-        celdaTexto('span', doc.categoria),
-        celdaTexto('span', String(formatos[doc.extension] || doc.extension).toUpperCase(), 'formato')
-      );
-      if (doc.actualizado_en) {
-        detalles.append(celdaTexto('span', 'Actualizada: ' + new Date(doc.actualizado_en).toLocaleDateString('es-AR')));
-      }
+      detalles.append(celdaTexto('span', grupo.categoria));
       info.append(detalles);
-      if (doc.descripcion) info.append(celdaTexto('p', doc.descripcion, 'desc'));
-      const a = celdaTexto('a', '↓ Descargar ' + String(formatos[doc.extension] || doc.extension).toUpperCase(), 'descargar');
-      a.href = client.storage.from(BUCKET).getPublicUrl(doc.archivo_ruta, {
-        download: doc.archivo_nombre
-      }).data.publicUrl;
-      a.target = '_blank';
-      a.rel = 'noopener noreferrer';
-      item.append(info, a);
+      if (grupo.descripcion) info.append(celdaTexto('p', grupo.descripcion, 'desc'));
+      const acciones = celdaTexto('div', '', 'descargas-actions');
+      grupo.versiones.forEach(doc => {
+        const formato = String(formatos[doc.extension] || doc.extension).toUpperCase();
+        const a = celdaTexto('a', '↓ Descargar ' + formato, 'descargar');
+        a.href = client.storage.from(BUCKET).getPublicUrl(doc.archivo_ruta, {
+          download: doc.archivo_nombre
+        }).data.publicUrl;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.title = doc.archivo_nombre;
+        acciones.append(a);
+      });
+      item.append(info, acciones);
       lista.append(item);
     });
-    $('estado').hidden = filtrados.length > 0;
+    $('estado').hidden = grupos.size > 0;
     $('estado').className = '';
     $('estado').textContent = documentos.length
       ? 'No se encontraron documentos con esa búsqueda.'
