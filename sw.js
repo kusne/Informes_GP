@@ -54,6 +54,9 @@ self.addEventListener("fetch", (event) => {
 
 async function navigationNetworkFirst(request) {
   const cache = await caches.open(CACHE_ESTATICO);
+  // Cada pantalla conserva su propio HTML: Descargas nunca reemplaza index.html.
+  const claveNavegacion = new URL(request.url).pathname.endsWith("/descargas.html")
+    ? "./descargas.html" : "./index.html";
   const urlFresca = urlConVersion(request.url);
 
   try {
@@ -62,10 +65,10 @@ async function navigationNetworkFirst(request) {
       credentials: "same-origin",
       redirect: "follow"
     });
-    if (response?.ok) await cache.put("./index.html", response.clone());
+    if (response?.ok) await cache.put(claveNavegacion, response.clone());
     return response;
   } catch {
-    const cached = await cache.match("./index.html");
+    const cached = await cache.match(claveNavegacion);
     if (cached) return cached;
     return new Response("Sin conexión", { status: 503 });
   }
