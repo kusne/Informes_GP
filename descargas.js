@@ -39,16 +39,32 @@
     lista.replaceChildren();
     grupos.forEach(grupo => {
       const item = celdaTexto('article', '', 'item');
-      const info = document.createElement('div');
+      const fila = celdaTexto('div', '', 'documento');
+      const info = celdaTexto('div', '', 'documento-info');
       info.append(celdaTexto('h2', grupo.nombre));
       const detalles = celdaTexto('div', '', 'detalles');
       detalles.append(celdaTexto('span', grupo.categoria));
       info.append(detalles);
       if (grupo.descripcion) info.append(celdaTexto('p', grupo.descripcion, 'desc'));
+
+      // El ícono descarga el Word cuando existe; de lo contrario, el primer formato.
+      const principal = grupo.versiones.find(doc =>
+        ['doc', 'docx'].includes(String(doc.extension).toLowerCase())
+      ) || grupo.versiones[0];
+      const icono = celdaTexto('a', '', 'icono-descarga');
+      icono.href = client.storage.from(BUCKET).getPublicUrl(principal.archivo_ruta, {
+        download: principal.archivo_nombre
+      }).data.publicUrl;
+      icono.target = '_blank';
+      icono.rel = 'noopener noreferrer';
+      icono.title = 'Descargar ' + grupo.nombre;
+      icono.setAttribute('aria-label', 'Descargar ' + grupo.nombre + ' en ' +
+        String(formatos[principal.extension] || principal.extension).toUpperCase());
+
       const acciones = celdaTexto('div', '', 'descargas-actions');
       grupo.versiones.forEach(doc => {
         const formato = String(formatos[doc.extension] || doc.extension).toUpperCase();
-        const a = celdaTexto('a', '↓ Descargar ' + formato, 'descargar');
+        const a = celdaTexto('a', 'Descargar ' + formato, 'descargar');
         a.href = client.storage.from(BUCKET).getPublicUrl(doc.archivo_ruta, {
           download: doc.archivo_nombre
         }).data.publicUrl;
@@ -57,7 +73,9 @@
         a.title = doc.archivo_nombre;
         acciones.append(a);
       });
-      item.append(info, acciones);
+      info.append(acciones);
+      fila.append(icono, info);
+      item.append(fila);
       lista.append(item);
     });
     $('estado').hidden = grupos.size > 0;
