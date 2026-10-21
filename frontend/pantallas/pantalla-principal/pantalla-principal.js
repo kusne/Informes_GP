@@ -184,7 +184,7 @@ function mostrarEsperaSeleccionOperativo(modo) {
   const host = document.getElementById("contenedorDinamicoHost");
   if (!host) return;
   const titulo = ["FINALIZA","RELEVO","ACOPLE","RETIRO"].includes(modo) ? modo : "INICIA";
-  const mensaje = ["FINALIZA","RELEVO","ACOPLE"].includes(modo)
+  const mensaje = ["FINALIZA","RELEVO","ACOPLE","RETIRO"].includes(modo)
     ? "Seleccione un operativo iniciado para finalizar."
     : "Seleccione un operativo programado para iniciar.";
   host.innerHTML = `<section class="pantalla-mensaje"><h2>${titulo}</h2><p>${mensaje}</p></section>`;
@@ -858,7 +858,7 @@ function registrarListenerPostEnvio() {
 
       // INICIA y FINALIZA deben volver al selector principal al regresar de WhatsApp,
       // con INICIA seleccionado y sin conservar el formulario enviado.
-      if (["INICIA","FINALIZA","RELEVO","ACOPLE"].includes(estadoPantalla.modo)) {
+      if (["INICIA","FINALIZA","RELEVO","ACOPLE","RETIRO"].includes(estadoPantalla.modo)) {
         const selector = document.querySelector("#selectorModoInformeSelect, #selectorModoInforme");
         if (selector) selector.value = "INICIA";
         await cambiarModoPantalla("INICIA");
