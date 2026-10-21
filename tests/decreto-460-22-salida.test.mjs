@@ -45,9 +45,11 @@ test("460/22 no agrega JUZGADO al final incluso si se eligió un juzgado en el f
   assert.equal((salida.match(/\*OBSERVACIÓN:\*/g) || []).length, 1);
 });
 
-test("No altera el informe de alcoholemia con retención, que sí mantiene JUZGADO", () => {
-  const fuente = construirTextoInformeEspecial.toString();
-  assert.ok(fuente.includes("construirAlcoholemia"));
-  // La función 460/22 no debe borrar ni modificar el selector compartido de juzgados.
-  assert.equal(informeDePrueba().formulario.juzgado, "RINCON");
+test("460/22 conserva fecha, hora y recursos del operativo", () => {
+  const salida = construirTextoInformeEspecial(informeDePrueba());
+  assert.match(salida, /\*LUGAR:\* RN 168 KM 7,5/);
+  assert.match(salida, /\*HORA:\* 11:22 Hs/);
+  assert.match(salida, /\*FECHA:\* 21\/10\/2026/);
+  assert.match(salida, /\*MÓVIL:\* 10139/);
+  assert.match(salida, /\*PERSONAL\*\nSubinspector Mariaux Alejandra Anahi/);
 });
