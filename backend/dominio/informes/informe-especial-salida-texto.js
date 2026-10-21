@@ -294,7 +294,7 @@ function construirAlcoholemia(informe) {
   const observacion = construirObservacionAlcoholemia(informe, f, c);
 
   const lineas = [
-    "*POLICÍA DE LA PROVINCIA DE SANTA FE - DIRECCION GENERAL GUARDIA PROVINCIAL*",
+    "*POLICÍA DE LA PROVINCIA DE SANTA FE - DIRECCIÓN GENERAL GUARDIA PROVINCIAL*",
     "*BRIGADA MOTORIZADA ZONA CENTRO NORTE SANTA FE*",
     "*TERCIO CHARLIE*",
     "",
@@ -438,9 +438,9 @@ function construirDecreto46022(informe) {
   const operativoCumplimentado = construirDescripcionOperativo(informe, { mayusculas: true });
 
   const observacion = [
-    `Realizando ${operativoCumplimentado} procedemos a la detención en zona segura de un MOTOVEHÍCULO marca ${marca} modelo ${modelo}, dominio ${dominio}, labrándose acta de infracción N° ${numeroActa} por el código/s ${codigos.join(", ")}, remitiendo el birrodado al corralón de San Jose del Rincon.`,
+    `Realizando ${operativoCumplimentado} procedemos a la detención en zona segura de un MOTOVEHÍCULO marca ${marca} modelo ${modelo}, dominio ${dominio}, labrándose acta de infracción N° ${numeroActa} por el código/s ${codigos.join(", ")}, remitiendo el birrodado al corralón de San José del Rincón.`,
     "Labrando acta de inventario.",
-    "Cabe destacar que se realizo consulta sobre el vehiculo y persona por posibles requirimientos legales vigentes, con resultados negativos."
+    "Cabe destacar que se realizó consulta sobre el vehículo y persona por posibles requerimientos legales vigentes, con resultados negativos."
   ].join(" ");
 
   const lineas = [
@@ -448,7 +448,7 @@ function construirDecreto46022(informe) {
     "*BRIGADA MOTORIZADA ZONA CENTRO NORTE SANTA FE*",
     "*TERCIO CHARLIE*",
     "",
-    "*MOTIVO: REMISIÓN DE MOTOCICLETA POR DECTO 460/22*",
+    "*MOTIVO: REMISIÓN DE MOTOCICLETA POR DECRETO 460/22*",
     "",
     `*LUGAR:* ${texto(informe.lugar) || "/"}`,
     `*HORA:* ${resolverHoraInforme(informe)} Hs`,
@@ -459,9 +459,7 @@ function construirDecreto46022(informe) {
     "*PERSONAL*",
     normalizarPersonalInstitucional(recursos.personal) || "/",
     "",
-    `*OBSERVACIÓN:* ${observacion}`,
-    "",
-    `*JUZGADO:* ${juzgadoSeleccionado(f) || "/"}`
+    `*OBSERVACIÓN:* ${observacion}`
   ];
 
   return compactarSaltos(lineas.join("\n"));
