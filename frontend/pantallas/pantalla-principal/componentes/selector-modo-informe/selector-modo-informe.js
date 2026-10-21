@@ -8,7 +8,7 @@ export async function iniciarSelectorModoInforme({ hostSelector, onChange }) {
 
       <select id="selectorModoInformeSelect" class="obligatorio">
         <option value="INICIA" selected>INICIO</option>
-        <option value="RELEVO">RELEVO</option>\n        <option value="ACOPLE">ACOPLE</option>\n        <option value="FINALIZA">FINALIZADO</option>
+        <option value="RELEVO">RELEVO</option>\n        <option value="ACOPLE">ACOPLE</option>\n        <option value="RETIRO">RETIRO</option>\n        <option value="FINALIZA">FINALIZADO</option>
         <option value="PROCEDIMIENTO">PROCEDIMIENTO</option>
         <option value="INFORMES">INFORMES</option>
         <option value="CONTROL_MOVILES">CONTROL DE MÓVILES</option>
