@@ -96,3 +96,30 @@ test("la interfaz de movimientos utiliza exclusivamente el vínculo nativo para 
  assert.doesNotMatch(ui,/prepararVentanaWhatsapp|abrirWhatsappConTexto/);
  assert.match(whatsapp,/whatsapp:\/\/send\?text=/);
 });
+
+test("RETIRO informa únicamente bajas, mantiene la dotación y publica el detalle estructurado",()=>{
+ const anterior=resolverRecursosInicioParaFinaliza(op).seleccionInicial;
+ assert.ok(anterior.personal.length>=2);
+ const m=calcularMovimientoRecursos({modo:"RETIRO",actual:anterior,
+  seleccion:{personal:[anterior.personal[0]],moviles:["10139"],elementos:{pda:["67"]}}});
+ assert.equal(m.vigente.personal.length,anterior.personal.length-1);
+ assert.deepEqual(m.vigente.moviles,[]);
+ assert.deepEqual(m.incorporados.personal,[]);
+ const salida=textoMovimiento(m,op,"15:22");
+ assert.match(salida,/\*RETIRO OCV Prueba/);
+ assert.match(salida,/Siendo las 15:22 hs se procede al RETIRO parcial/);
+ assert.match(salida,/\*RECURSOS RETIRADOS:\*/);
+ assert.match(salida,/\*Personal Policial:\*/);
+ assert.match(salida,/\*Móviles:\* 10139/);
+ assert.match(salida,/Pda: 67/);
+ assert.doesNotMatch(salida,/al acople de recursos|efectuar el relevo/);
+});
+
+test("RETIRO figura en selector y formulario de Informes GP",()=>{
+ const files=[
+  "../frontend/pantallas/pantalla-principal/componentes/selector-modo-informe/selector-modo-informe.js",
+  "../frontend/pantallas/pantalla-principal/componentes/contenedor-dinamico/contenedor-dinamico.js",
+  "../frontend/pantallas/movimientos/movimientos.js"
+ ];
+ for(const ruta of files)assert.match(readFileSync(resolve(directorio,ruta),"utf8"),/RETIRO/);
+});
