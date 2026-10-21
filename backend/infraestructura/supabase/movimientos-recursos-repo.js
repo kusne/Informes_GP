@@ -46,6 +46,13 @@ function redactarObservacionMovimiento(m,hora){
   const retiradosElementos=Object.values(m.retirados.elementos||{}).flat();
   if(retiradosElementos.length)partes.push("Elementos retirados: "+mostrar(retiradosElementos)+".");
   partes.push("Acto seguido permanece en el lugar el personal, los móviles y los elementos detallados ut-supra.");
+ }else if(m.modo==='RETIRO'){
+  partes.push('Siendo las '+hora+' hs se procede al RETIRO parcial de recursos del operativo, sin reemplazos.');
+  if(m.retirados.personal.length)partes.push('Personal retirado: '+ordenarPersonal(m.retirados.personal).join(', ')+'.');
+  if(retirados.length)partes.push('Móviles retirados: '+mostrar(retirados)+'.');
+  const items=Object.values(m.retirados.elementos||{}).flat();
+  if(items.length)partes.push('Elementos retirados: '+mostrar(items)+'.');
+  partes.push('La dotación restante continúa afectada al operativo.');
  }else{
   partes.push("Siendo las "+hora+" hs se procede al acople de recursos al operativo.");
   if(incorporados.length)partes.push((incorporados.length===1?"Se incorpora el Móvil N° ":"Se incorporan los Móviles N° ")+mostrar(incorporados)+".");
@@ -66,7 +73,7 @@ export function textoMovimiento(m,operativo,hora){
  });
  const datos=operativo.datos||{};
  const inicio=datos.inicio_snapshot||{};
- return construirTextoInicioBase({
+ const base=construirTextoInicioBase({
   prefijoTitulo:m.modo,
   // Horario institucional: conservar la franja del INICIO; la hora exacta del movimiento va en Observaciones.
   horarioReporte:(!operativo.hora_inicio && !operativo.hora_fin) ? hora+" HS" : "",
@@ -78,6 +85,15 @@ export function textoMovimiento(m,operativo,hora){
   operativo,
   formulario:{...resumen,observaciones:redactarObservacionMovimiento(m,hora)}
  });
+ if(m.modo!=='RETIRO')return base;
+ // El informe muestra la dotación vigente arriba y el detalle retirado abajo:
+ // Desktop puede distinguir RETIRO de RELEVO sin inferir bajas desde el texto libre.
+ const e=m.retirados.elementos||{};
+ const etiquetas={escopetas:'Escopetas',ht:'Ht',pda:'Pda',impresoras:'Impresoras',alometros:'Alómetros',alcoholimetros:'Alcoholímetros'};
+ const lineas=Object.entries(etiquetas).map(([k,n])=>n+': '+mostrar(e[k]||[]));
+ return base+'\n\n*RECURSOS RETIRADOS:*\n*Personal Policial:*\n'+ordenarPersonal(m.retirados.personal).join('\n')+
+   '\n*Móviles:* '+mostrar(m.retirados.moviles)+'\n*Motos:* '+mostrar(m.retirados.motos)+
+   '\n*Elementos:*\n'+lineas.join('\n');
 }
 export async function guardarMovimientoOperativo({modo,operativo_key,guardia_fecha,seleccion}={}){
  if(!supabase)throw Error('No hay conexión con Supabase.');
