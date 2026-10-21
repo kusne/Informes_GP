@@ -294,7 +294,7 @@ function construirAlcoholemia(informe) {
   const observacion = construirObservacionAlcoholemia(informe, f, c);
 
   const lineas = [
-    "*POLICÍA DE LA PROVINCIA DE SANTA FE - DIRECCIÓN GENERAL GUARDIA PROVINCIAL*",
+    "*POLICÍA DE LA PROVINCIA DE SANTA FE - DIRECCION GENERAL GUARDIA PROVINCIAL*",
     "*BRIGADA MOTORIZADA ZONA CENTRO NORTE SANTA FE*",
     "*TERCIO CHARLIE*",
     "",
@@ -444,7 +444,7 @@ function construirDecreto46022(informe) {
   ].join(" ");
 
   const lineas = [
-    "*POLICÍA DE LA PROVINCIA DE SANTA FE - DIRECCION GENERAL GUARDIA PROVINCIAL*",
+    "*POLICÍA DE LA PROVINCIA DE SANTA FE - DIRECCIÓN GENERAL GUARDIA PROVINCIAL*",
     "*BRIGADA MOTORIZADA ZONA CENTRO NORTE SANTA FE*",
     "*TERCIO CHARLIE*",
     "",
