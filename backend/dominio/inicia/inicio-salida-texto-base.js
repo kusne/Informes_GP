@@ -13,7 +13,7 @@ export function construirTextoInicioBase(inicio) {
   lineas.push("");
 
   // Prefijo configurable únicamente para los movimientos de dotación. INICIA conserva su comportamiento.
-  const prefijo = ["RELEVO", "ACOPLE"].includes(inicio.prefijoTitulo) ? inicio.prefijoTitulo : "Inicia";
+  const prefijo = ["RELEVO", "ACOPLE", "RETIRO"].includes(inicio.prefijoTitulo) ? inicio.prefijoTitulo : "Inicia";
   lineas.push(negrita(`${prefijo} ${resolverTituloOperativo(inicio, operativo)}`.trim()));
   lineas.push("");
 

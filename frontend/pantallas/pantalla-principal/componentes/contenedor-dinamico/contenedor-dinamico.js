@@ -33,7 +33,7 @@ export async function renderContenedorDinamico({
       return;
     }
 
-    if (modoNormalizado === "RELEVO" || modoNormalizado === "ACOPLE") {
+    if (modoNormalizado === "RELEVO" || modoNormalizado === "ACOPLE" || modoNormalizado === "RETIRO") {
       if(!operativoSeleccionado){mostrarMensaje(host,{titulo:modoNormalizado,texto:"Seleccione un operativo EN CURSO."});return;}
       const modulo=await import("../../../movimientos/movimientos.js");
       await modulo.iniciarFormularioMovimiento({host,modo:modoNormalizado,operativoSeleccionado});
