@@ -72,7 +72,6 @@ function construirControlSuperior(informe) {
     `*FECHA:* ${resolverFechaInformeDocumento(informe, false)}`,
     "",
     `*OPERATIVO:* ${construirDescripcionOperativo(informe)}`,
-    `*HORARIO OPERATIVO:* ${construirHorarioOperativo(informe)}`,
     "",
     "*PERSONAL POLICIAL:*",
     normalizarPersonalInstitucional(recursos.personal) || "/",
