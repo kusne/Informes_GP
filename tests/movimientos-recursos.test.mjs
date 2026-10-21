@@ -8,6 +8,25 @@ const anterior = {
  elementos: { ht: ["N°02"], pda: ["05"] }
 };
 
+test("RETIRO descuenta únicamente recursos seleccionados y nunca incorpora",()=>{
+ const m=calcularMovimientoRecursos({modo:"RETIRO",actual:anterior,
+  seleccion:{personal:["Inspector A"],moviles:["10139"],elementos:{pda:["05"]}}});
+ assert.deepEqual(m.vigente.personal,["Oficial B"]);
+ assert.deepEqual(m.vigente.moviles,[]);
+ assert.deepEqual(m.vigente.motos,["12502"]);
+ assert.deepEqual(m.vigente.elementos.ht,["N°02"]);
+ assert.deepEqual(m.retirados.personal,["Inspector A"]);
+ assert.deepEqual(m.retirados.elementos.pda,["05"]);
+ assert.deepEqual(m.incorporados.personal,[]);
+ assert.deepEqual(m.incorporados.moviles,[]);
+});
+
+test("RETIRO rechaza recursos inexistentes, vacío y dejar sin personal",()=>{
+ assert.throws(()=>calcularMovimientoRecursos({modo:"RETIRO",actual:anterior,seleccion:{moviles:["99999"]}}),/no pertenece/);
+ assert.throws(()=>calcularMovimientoRecursos({modo:"RETIRO",actual:anterior,seleccion:{}}),/seleccioná al menos/);
+ assert.throws(()=>calcularMovimientoRecursos({modo:"RETIRO",actual:anterior,seleccion:{personal:[...anterior.personal]}}),/sin personal policial/);
+});
+
 test("RELEVO sustituye exactamente lo tildado y registra bajas e incorporaciones",()=>{
  const m=calcularMovimientoRecursos({
   modo:"RELEVO",actual:anterior,
