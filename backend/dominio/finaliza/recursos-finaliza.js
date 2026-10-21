@@ -65,13 +65,51 @@ export function resolverRecursosInicioParaFinaliza(operativo = {}) {
   };
 }
 
+// La jerarquía sólo afecta la presentación institucional; no modifica la
+// dotación vigente ni los movimientos de RELEVO/ACOPLE almacenados.
 export function normalizarPersonalSalidaFinaliza(valor) {
-  return texto(valor)
-    .split(/\r?\n/)
-    .map((linea) => linea.trim())
-    .filter(Boolean)
-    .map((linea) => presentarPersonalOperativo(linea).valor)
+  const lineas = (Array.isArray(valor) ? valor : texto(valor).split(/\r?\n/))
+    .map((linea) => texto(linea))
+    .filter(Boolean);
+  const unicos = new Set();
+  return lineas
+    .map((original, indice) => {
+      const presentado = presentarPersonalOperativo(original).valor;
+      return { original, presentado, indice, prioridad: prioridadJerarquicaPersonal(original, presentado) };
+    })
+    .filter(({ presentado }) => {
+      const clave = normalizarGradoPersonal(presentado);
+      if (!clave || unicos.has(clave)) return false;
+      unicos.add(clave);
+      return true;
+    })
+    .sort((a, b) => a.prioridad - b.prioridad || a.indice - b.indice)
+    .map(({ presentado }) => presentado)
     .join("\n");
+}
+
+// El cargo de jefe/subjefe tiene prioridad funcional; luego se ordena por
+// grado. Los grados no reconocidos conservan su orden relativo de ingreso.
+function prioridadJerarquicaPersonal(original, presentado) {
+  const fuente = normalizarGradoPersonal(original);
+  const nombre = normalizarGradoPersonal(presentado);
+  if (/^JEFE\b/.test(fuente) || /^SUBCOMISARIO CHOQUE\b/.test(nombre)) return 0;
+  if (/^SUBJEFE\b/.test(fuente) || /^INSPECTOR FERTONANI\b/.test(nombre)) return 1;
+  const grados = [
+    /^COMISARIO GENERAL\b/, /^COMISARIO MAYOR\b/,
+    /^COMISARIO SUPERVISOR\b/, /^COMISARIO\b/, /^SUBCOMISARIO\b/,
+    /^INSPECTOR\b/, /^SUBINSPECTOR\b/, /^OFICIAL PRINCIPAL\b/,
+    /^OFICIAL AUXILIAR\b/, /^OFICIAL\b/, /^SUBOFICIAL MAYOR\b/,
+    /^SUBOFICIAL PRINCIPAL\b/, /^SUBOFICIAL DE POLICIA\b/,
+    /^SUBOFICIAL\b/, /^SARGENTO AYUDANTE\b/, /^SARGENTO PRIMERO\b/,
+    /^SARGENTO\b/, /^CABO PRIMERO\b/, /^CABO\b/, /^AGENTE\b/
+  ];
+  const posicion = grados.findIndex((patron) => patron.test(nombre));
+  return posicion < 0 ? 1000 : posicion + 2;
+}
+function normalizarGradoPersonal(valor) {
+  return texto(valor).normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase().replace(/[^A-Z0-9]+/g, " ").trim();
 }
 
 function construirSeleccionInicial({ personal, movilesMotos, elementosFuente, elementosTexto }) {
