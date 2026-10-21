@@ -81,7 +81,7 @@ async function cambiarModoPantalla(modo, { operativosPrefetched = null } = {}) {
 
   // Mostrar INICIA/FINALIZA sin cargar aún los componentes del formulario.
   // La consulta de operativos es la primera tarea de contenido del arranque.
-  if ([true].includes(estadoPantalla.modo)) {
+  if (["INICIA","FINALIZA","RELEVO","ACOPLE","RETIRO"].includes(estadoPantalla.modo)) {
     mostrarEsperaSeleccionOperativo(estadoPantalla.modo);
   }
 
@@ -183,7 +183,7 @@ async function recargarItemsPantalla({
 function mostrarEsperaSeleccionOperativo(modo) {
   const host = document.getElementById("contenedorDinamicoHost");
   if (!host) return;
-  const titulo = [true].includes(modo) ? modo : "INICIA";
+  const titulo = ["FINALIZA","RELEVO","ACOPLE","RETIRO"].includes(modo) ? modo : "INICIA";
   const mensaje = ["FINALIZA","RELEVO","ACOPLE"].includes(modo)
     ? "Seleccione un operativo iniciado para finalizar."
     : "Seleccione un operativo programado para iniciar.";
