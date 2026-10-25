@@ -7,6 +7,7 @@ import {
 } from "../../dominio/informes/informe-especial-reglas-numerales.js";
 import { obtenerFotosPorPrefijo } from "../estado/fotos-estado.js";
 import { obtenerEstadoInformes } from "../estado/informes-state.js";
+import { interpretarLicenciaDniAlcoholemia } from "../../dominio/informes/licencia-dni-alcoholemia.js";
 
 export function procesarInformeEspecialFormulario({
   formulario = {},
@@ -16,6 +17,11 @@ export function procesarInformeEspecialFormulario({
   contexto = {}
 } = {}) {
   const modeloNormalizado = normalizarModelo(modelo);
+  // Sólo se deriva información estructurada internamente. La pantalla
+  // mantiene un único input "Licencia / DNI", sin solicitar otros campos.
+  const formularioInterpretado = modeloNormalizado === "ALCOHOLEMIA_POSITIVA"
+    ? enriquecerFormularioAlcoholemia(formulario)
+    : { ...(formulario || {}) };
   const ahora = new Date();
   const estado = obtenerEstadoInformes();
   const fotosHabilitadas = admiteFotosModelo(modeloNormalizado) && Boolean(fotoPrefijo);
@@ -39,10 +45,10 @@ export function procesarInformeEspecialFormulario({
     hora_inicio: operativoSeleccionado?.hora_inicio || "",
     hora_fin: operativoSeleccionado?.hora_fin || "",
     lugar: operativoSeleccionado?.lugar || "",
-    formulario: { ...(formulario || {}) },
+    formulario: formularioInterpretado,
     foto_prefijo: fotosHabilitadas ? fotoPrefijo : "",
     fotos: fotosHabilitadas ? obtenerFotosPorPrefijo(fotoPrefijo) : [],
-    calculos: calcularDatosModelo(modeloNormalizado, formulario || {})
+    calculos: calcularDatosModelo(modeloNormalizado, formularioInterpretado)
   };
 
   // El evento cuenta exactamente una vez y no inventa aprehendidos, actas,
@@ -76,6 +82,18 @@ export function procesarInformeEspecialFormulario({
   const supabasePayload = mapearInformeEspecialParaSupabase({ ...actual, texto });
 
   return { actual, errores, texto, supabasePayload };
+}
+
+function enriquecerFormularioAlcoholemia(formulario = {}) {
+  const interpretado = interpretarLicenciaDniAlcoholemia(formulario.clase);
+  return {
+    ...formulario,
+    licencia_clase: interpretado.clase,
+    dni_conductor: interpretado.dni,
+    licencia_tipo: interpretado.tipo === "LICENCIA"
+      ? (Boolean(formulario.licencia_digital) ? "DIGITAL" : "FISICA")
+      : interpretado.tipo === "DNI" ? "SOLO_DNI" : "PENDIENTE"
+  };
 }
 
 function admiteFotosModelo(modelo) {
