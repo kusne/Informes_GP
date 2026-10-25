@@ -369,7 +369,8 @@ function construirLicenciaObservacionAlcoholemia(f = {}) {
   if (!dato.valido) return "";
   if (dato.tipo === "DNI") return `Posee DNI N° ${dato.dniFormateado}.`;
   const soporte = Boolean(f.licencia_digital) ? "Digital" : "Física";
-  return `Posee licencia de conducir ${soporte} clase ${dato.clase}`+
+  const detalle = dato.clases.length > 1 ? "clases " + dato.clases.slice(0, -1).join(", ") + " y " + dato.clases.at(-1) : "clase " + dato.clase;
+  return `Posee licencia de conducir ${soporte} ${detalle}`+
     (dato.dni ? `, N° ${dato.dniFormateado}` : "")+".";
 }
 
