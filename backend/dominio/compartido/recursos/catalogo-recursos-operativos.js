@@ -1,3 +1,11 @@
+// Estado temporal del equipamiento. Los identificadores inactivos se conservan
+// aquí para rehabilitarlos sin afectar informes y operativos históricos.
+const ALCOHOLIMETROS = Object.freeze([
+  Object.freeze({ numero: "ARUJ-0239", disponible: true }),
+  Object.freeze({ numero: "ARLM-0652", disponible: false }), // Retirado temporalmente.
+  Object.freeze({ numero: "ARLM-0536", disponible: true }) // Nuevo equipo en servicio.
+]);
+
 const CATALOGO_RECURSOS_OPERATIVOS = Object.freeze({
   personal: Object.freeze(["JEFE", "SUBJEFE"]),
   moviles: Object.freeze([]),
@@ -8,7 +16,7 @@ const CATALOGO_RECURSOS_OPERATIVOS = Object.freeze({
     Object.freeze({ clave: "pda", etiqueta: "PDA", etiquetaSalida: "Pda", items: Object.freeze(["05", "19", "67", "68"]) }),
     Object.freeze({ clave: "impresoras", etiqueta: "IMPRESORA", etiquetaSalida: "Impresoras", items: Object.freeze(["N°05", "N°39", "N°64"]) }),
     Object.freeze({ clave: "alometros", etiqueta: "Alómetro", etiquetaSalida: "Alómetros", items: Object.freeze(["AREC-0127", "ARTL-0425", "ARSA-0360"]) }),
-    Object.freeze({ clave: "alcoholimetros", etiqueta: "Alcoholímetro", etiquetaSalida: "Alcoholímetros", items: Object.freeze(["ARUJ-0239", "ARLM-0652"]) })
+    Object.freeze({ clave: "alcoholimetros", etiqueta: "Alcoholímetro", etiquetaSalida: "Alcoholímetros", items: Object.freeze(ALCOHOLIMETROS.filter((equipo) => equipo.disponible).map((equipo) => equipo.numero)) })
   ])
 });
 
