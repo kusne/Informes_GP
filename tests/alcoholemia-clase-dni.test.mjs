@@ -27,6 +27,7 @@ test("Letra inicial indica clase: B2 y DNI de ocho cifras coexisten en un único
   assert.deepEqual(r,{tipo:"LICENCIA",clase:"B2",dni:"27762328",dniFormateado:"27.762.328",valido:true});
   assert.equal(interpretarLicenciaDniAlcoholemia("B2, N°27.762.328").tipo,"LICENCIA");
   assert.equal(interpretarLicenciaDniAlcoholemia("A1.3 27762328").clase,"A1.3");
+  assert.equal(interpretarLicenciaDniAlcoholemia("G 27762328").clase,"G");
 });
 
 test("Sólo los ocho dígitos sin clase constituyen un DNI aislado",()=>{
