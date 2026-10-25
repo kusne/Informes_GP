@@ -1,5 +1,6 @@
 import { extraerCodigosFalta, getNomencladorFalta } from "../finaliza/numerales/nomenclador.js";
 import { resolverOrdenesOrigenOperativo, resolverTipoNombreOperativo } from "../compartido/operativo-identidad.js";
+import { interpretarLicenciaDniAlcoholemia } from "./licencia-dni-alcoholemia.js";
 
 const ENCABEZADO_INFORMES = "*POLICÍA DE LA PROVINCIA DE SANTA FE- DIRECCION GENERAL GUARDIA PROVINCIAL - BRIGADA MOTORIZADA ZONA CENTRO NORTE*";
 
@@ -330,7 +331,7 @@ function construirObservacionAlcoholemia(informe, f = {}, c = {}) {
   const condicion = c.sancionable ? "sancionable" : "no sancionable";
   const operativo = construirDescripcionOperativo(informe, { mayusculas: true });
 
-  let descripcionVehiculo = `un vehiculo tipo ${tipoVehiculo || "vehículo"}`;
+  let descripcionVehiculo = `un vehículo tipo ${tipoVehiculo || "vehículo"}`;
   if (marca) descripcionVehiculo += ` marca ${marca}`;
   if (modelo) descripcionVehiculo += ` modelo ${modelo}`;
   if (dominio) descripcionVehiculo += `, dominio ${dominio}`;
@@ -364,14 +365,12 @@ function construirObservacionAlcoholemia(informe, f = {}, c = {}) {
 }
 
 function construirLicenciaObservacionAlcoholemia(f = {}) {
-  const clase = texto(f.clase).toLocaleUpperCase("es-AR");
-  if (!clase) return "";
-
-  if (contieneDni(clase)) {
-    return `Posee DNI ${clase}.`;
-  }
-
-  return `Posee LICENCIA CLASE ${clase}.`;
+  const dato = interpretarLicenciaDniAlcoholemia(f.clase);
+  if (!dato.valido) return "";
+  if (dato.tipo === "DNI") return `Posee DNI N° ${dato.dniFormateado}.`;
+  const soporte = Boolean(f.licencia_digital) ? "Digital" : "Física";
+  return `Posee licencia de conducir ${soporte} clase ${dato.clase}`+
+    (dato.dni ? `, N° ${dato.dniFormateado}` : "")+".";
 }
 
 function construirCodigosAlcoholemia(f = {}, c = {}) {
