@@ -1,4 +1,5 @@
 import { extraerCodigosFalta, getNomencladorFalta } from "../finaliza/numerales/nomenclador.js";
+import { interpretarLicenciaDniAlcoholemia } from "./licencia-dni-alcoholemia.js";
 
 export function construirNumeralesSugeridosInforme(informe) {
   if (!informe) return [];
@@ -136,8 +137,9 @@ function construirNumeralesDecreto46022(informe) {
 }
 
 function debeSugerirSinLicencia(formulario) {
-  const clase = String(formulario?.clase || "").trim();
-  return /\b\d{7,8}\b/.test(clase);
+  // B2 27762328 incluye un DNI, pero NO significa que carezca de licencia.
+  // Conservar sugerencia histórica sólo cuando se ingresó exclusivamente DNI.
+  return interpretarLicenciaDniAlcoholemia(formulario?.clase).tipo === "DNI";
 }
 
 function agregarItemUnico(items, item) {
