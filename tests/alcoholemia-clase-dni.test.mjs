@@ -24,10 +24,10 @@ const base = (clase,medidaRetencion=true) => ({
 
 test("Letra inicial indica clase: B2 y DNI de ocho cifras coexisten en un único campo",()=>{
   const r=interpretarLicenciaDniAlcoholemia("B2 27762328");
-  assert.deepEqual(r,{tipo:"LICENCIA",clase:"B2",dni:"27762328",dniFormateado:"27.762.328",valido:true});
+  assert.deepEqual({...r,clases:[...r.clases]},{tipo:"LICENCIA",clase:"B2",clases:["B2"],dni:"27762328",dniFormateado:"27.762.328",valido:true});
   assert.equal(interpretarLicenciaDniAlcoholemia("B2, N°27.762.328").tipo,"LICENCIA");
   assert.equal(interpretarLicenciaDniAlcoholemia("A1.3 27762328").clase,"A1.3");
-  assert.equal(interpretarLicenciaDniAlcoholemia("G 27762328").clase,"G");
+  assert.equal(interpretarLicenciaDniAlcoholemia("G1 27762328").clase,"G1");
 });
 
 test("Sólo los ocho dígitos sin clase constituyen un DNI aislado",()=>{
@@ -64,6 +64,7 @@ test("La aplicación envía clase y DNI internamente a Supabase sin pedir nuevos
   });
   assert.equal(resultado.actual.formulario.clase,"B2 27762328");
   assert.equal(resultado.supabasePayload.datos.licencia_clase,"B2");
+  assert.deepEqual(resultado.supabasePayload.datos.licencia_clases,["B2"]);
   assert.equal(resultado.supabasePayload.datos.dni_conductor,"27762328");
   assert.equal(resultado.supabasePayload.datos.licencia_tipo,"FISICA");
 });
