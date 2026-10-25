@@ -32,7 +32,7 @@ export function interpretarLicenciaDniAlcoholemia(valor) {
   }
 
   // Clase al inicio, con posible DNI al final: B2 27762328 / B2, N°27.762.328.
-  const m = normal.match(/^([A-Z]{1,2}\s*\d(?:[.,]\d){0,2})\b(.*)$/);
+  const m = normal.match(/^([A-Z]{1,2}(?:\s*\d(?:[.,]\d){0,2})?)\b(.*)$/);
   if (!m) return { tipo: "INVALIDO", clase: "", dni: "", dniFormateado: "", valido: false };
   const clase = m[1].replace(/\s+/g, "").replace(/,/g, ".");
   const resto = m[2].trim().replace(/^[\s,;:\-]+/, "")
