@@ -1,4 +1,5 @@
 import { extraerCodigosFalta, getNomencladorFalta } from "../finaliza/numerales/nomenclador.js";
+import { interpretarLicenciaDniAlcoholemia } from "./licencia-dni-alcoholemia.js";
 
 export function validarInformeEspecial(informe) {
   const errores = [];
@@ -80,6 +81,12 @@ function validarAlcoholemia(informe, errores) {
   if (!texto(f.modelo_vehiculo)) errores.push("Debe completar modelo.");
   if (!texto(f.conductor)) errores.push("Debe completar conductor.");
   if (!texto(f.clase)) errores.push("Debe completar Licencia Clase / DNI.");
+  else if (!interpretarLicenciaDniAlcoholemia(f.clase).valido) {
+    errores.push("Ingresá una clase de licencia al comienzo (ej. B2 27762328) o un DNI de ocho números.");
+  }
+  if (f.licencia_digital && interpretarLicenciaDniAlcoholemia(f.clase).tipo === "DNI") {
+    errores.push("Una licencia digital requiere indicar su clase al inicio del campo.");
+  }
 
   const resultado = parsearDecimal(f.resultado);
   if (!Number.isFinite(resultado) || resultado <= 0) {
