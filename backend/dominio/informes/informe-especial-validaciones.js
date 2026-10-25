@@ -82,7 +82,7 @@ function validarAlcoholemia(informe, errores) {
   if (!texto(f.conductor)) errores.push("Debe completar conductor.");
   if (!texto(f.clase)) errores.push("Debe completar Licencia Clase / DNI.");
   else if (!interpretarLicenciaDniAlcoholemia(f.clase).valido) {
-    errores.push("Ingresá una clase de licencia al comienzo (ej. B2 27762328) o un DNI de ocho números.");
+    errores.push("Ingresá una o varias clases válidas (ej. A1.3, B2 y G3 27762328) o un DNI de ocho números.");
   }
   if (f.licencia_digital && interpretarLicenciaDniAlcoholemia(f.clase).tipo === "DNI") {
     errores.push("Una licencia digital requiere indicar su clase al inicio del campo.");
