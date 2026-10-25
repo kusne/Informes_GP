@@ -89,6 +89,7 @@ function enriquecerFormularioAlcoholemia(formulario = {}) {
   return {
     ...formulario,
     licencia_clase: interpretado.clase,
+    licencia_clases: [...interpretado.clases],
     dni_conductor: interpretado.dni,
     licencia_tipo: interpretado.tipo === "LICENCIA"
       ? (Boolean(formulario.licencia_digital) ? "DIGITAL" : "FISICA")
