@@ -1,5 +1,6 @@
 import { iniciarModeloInformeEspecial } from "../../compartido/informe-especial-builder.js";
 import { iniciarSelectorJuzgado } from "../../compartido/selector-juzgado.js";
+import { interpretarLicenciaDniAlcoholemia } from "../../../../../backend/dominio/informes/licencia-dni-alcoholemia.js";
 
 export async function iniciarModeloInformeUI({ form } = {}) {
   if (!form) return;
@@ -53,21 +54,19 @@ export async function iniciarModeloInformeUI({ form } = {}) {
   tipoVehiculo?.addEventListener("change", actualizarVisibilidad460);
   actualizarVisibilidad460();
 
-  // Licencia física: si "Lic. digital" está destildada y el campo
-  // Licencia / DNI contiene una clase de licencia (no un DNI), la
-  // medida cautelar Retención aparece tildada por defecto.
+  // El primer código alfabético identifica clase incluso si contiene
+  // un DNI de ocho dígitos: "B2 27762328" sigue siendo licencia física.
+  // Sólo un número aislado de ocho dígitos se interpreta como DNI.
+  // La retención continúa siendo editable y nunca se fuerza tras destildarla.
   // Sigue siendo editable: si el usuario la destilda manualmente,
   // no se vuelve a marcar mientras continúe la misma condición.
   let licenciaFisicaAnterior = false;
   let retencionMarcadaAutomaticamente = false;
 
-  const contieneDni = (valor) => /\d{7,8}/.test(String(valor || ""));
-
   const actualizarRetencionLicenciaFisica = () => {
-    const valorLicencia = String(campoLicenciaDni?.value || "").trim();
-    const licenciaFisica = Boolean(valorLicencia)
-      && !Boolean(checkboxLicenciaDigital?.checked)
-      && !contieneDni(valorLicencia);
+    const dato = interpretarLicenciaDniAlcoholemia(campoLicenciaDni?.value);
+    const licenciaFisica = dato.tipo === "LICENCIA"
+      && !Boolean(checkboxLicenciaDigital?.checked);
 
     if (licenciaFisica && !licenciaFisicaAnterior && checkboxRetencion) {
       if (!checkboxRetencion.checked) {
