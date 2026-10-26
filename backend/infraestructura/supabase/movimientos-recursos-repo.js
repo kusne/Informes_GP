@@ -54,12 +54,25 @@ function redactarObservacionMovimiento(m,hora){
   if(items.length)partes.push('Elementos retirados: '+mostrar(items)+'.');
   partes.push('La dotación restante continúa afectada al operativo.');
  }else{
+  // ACOPLE: describir el hecho como un informe policial, no como una lista de
+  // diferencias del sistema. La dotación completa ya figura arriba y el
+  // detalle exacto de altas permanece en m.incorporados para el historial.
   partes.push("Siendo las "+hora+" hs se procede al acople de recursos al operativo.");
-  if(incorporados.length)partes.push((incorporados.length===1?"Se incorpora el Móvil N° ":"Se incorporan los Móviles N° ")+mostrar(incorporados)+".");
-  if(m.incorporados.personal.length)partes.push("Personal incorporado: "+ordenarPersonal(m.incorporados.personal).join(", ")+".");
-  const incorporadosElementos=Object.values(m.incorporados.elementos||{}).flat();
-  if(incorporadosElementos.length)partes.push("Elementos incorporados: "+mostrar(incorporadosElementos)+".");
-  partes.push("Los recursos anteriores permanecen afectados al operativo.");
+  const ingresantes=ordenarPersonal(m.incorporados.personal||[]);
+  const personalEnFrase=ingresantes.length<2?ingresantes.join(""):
+    ingresantes.slice(0,-1).join(", ")+" y "+ingresantes[ingresantes.length-1];
+  if(incorporados.length){
+   partes.push((incorporados.length===1?"Se incorpora el Móvil N° ":"Se incorporan los Móviles N° ")+mostrar(incorporados)+".");
+   if(ingresantes.length)partes.push("A cargo de "+personalEnFrase+".");
+  }else if(ingresantes.length){
+   partes.push("Se incorpora al operativo el personal policial "+personalEnFrase+".");
+  }
+  // Para acoples sólo de equipamiento es imprescindible describir qué cambió.
+  // En los demás casos los elementos incorporados ya se detallan en el cuerpo.
+  if(!incorporados.length&&!ingresantes.length){
+   const elementos=Object.values(m.incorporados.elementos||{}).flat();
+   if(elementos.length)partes.push("Se incorporan los siguientes elementos: "+mostrar(elementos)+".");
+  }
  }
  return partes.join(" ");
 }
