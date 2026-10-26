@@ -89,6 +89,55 @@ test("ACOPLE conserva franja y títulos institucionales, e informa sólo lo inco
  assert.doesNotMatch(t,/Se retira|sin recursos|Fecha de guardia/);
 });
 
+test("ACOPLE redacta naturalmente el móvil incorporado y su personal a cargo",()=>{
+ const actual={
+  personal:["Suboficial de Policia Ledesma Sofia","Suboficial de Policia Bravo Nicolas"],
+  moviles:["12502"],motos:[],
+  elementos:{pda:["67"],impresoras:["N°64"],alometros:["ARSA-0360"],alcoholimetros:["ARLM-0536"]}
+ };
+ const movimiento=calcularMovimientoRecursos({modo:"ACOPLE",actual,
+  seleccion:{
+   personal:["Suboficial de Policia Vera Matias","Subinspector Rios Ana"],
+   moviles:["10139"],elementos:{pda:["68"]}
+  }});
+ const ejemplo={
+  guardia_fecha:"2026-10-25",tipo_nombre:"OCV Y ALCOHOLEMIA",
+  tipo_operativo:"OCV",hora_inicio:"21:30",hora_fin:"23:00",
+  lugar:"RN168 KM18, TUNEL SUBFLUVIAL",
+  datos:{fecha_operativo:"2026-10-25",ordenes_origen:["O.S. G.P N°2067/26","O. OP G.P N°2121/26"]}
+ };
+ const salida=textoMovimiento(movimiento,ejemplo,"21:59");
+ assert.match(salida,/\\*ACOPLE OCV Y Alcoholemia/);
+ assert.match(salida,/\\*Fecha:\\* 25\\/10\\/2026/);
+ assert.match(salida,/\\*Horario:\\* 21:30 A 23:00 HS/);
+ assert.match(salida,/\\*Móviles:\\* 12502 \\/ 10139/);
+ assert.match(salida,/Pda: 67 \\/ 68/);
+ assert.match(salida,/\\*Observaciones:\\*\\nSiendo las 21:59 hs se procede al acople de recursos al operativo\\. Se incorpora el Móvil N° 10139\\. A cargo de Subinspector Rios Ana y Suboficial de Policia Vera Matias\\./);
+ assert.doesNotMatch(salida,/Personal incorporado:|Elementos incorporados:|Los recursos anteriores permanecen afectados/);
+ assert.deepEqual(movimiento.incorporados.personal,["Suboficial de Policia Vera Matias","Subinspector Rios Ana"]);
+ assert.deepEqual(movimiento.vigente.moviles,["12502","10139"]);
+});
+
+test("ACOPLE sólo de personal informa quién se incorpora sin atribuirle un móvil",()=>{
+ const movimiento=calcularMovimientoRecursos({modo:"ACOPLE",
+  actual:{personal:["Inspector Suarez Ana"],moviles:["12502"],elementos:{}},
+  seleccion:{personal:["Oficial Ledesma Martin","Suboficial Diaz Laura"]}
+ });
+ const salida=textoMovimiento(movimiento,op,"18:42");
+ assert.match(salida,/Se incorpora al operativo el personal policial Oficial Ledesma Martin y Suboficial Diaz Laura\\./);
+ assert.doesNotMatch(salida,/A cargo de|Se incorpora el Móvil N°|Los recursos anteriores permanecen/);
+});
+
+test("ACOPLE sólo de elementos informa los equipos, sin inventar móvil ni personal",()=>{
+ const movimiento=calcularMovimientoRecursos({modo:"ACOPLE",
+  actual:{personal:["Inspector Suarez Ana"],moviles:["12502"],elementos:{pda:["67"]}},
+  seleccion:{elementos:{pda:["68"],ht:["N°06"]}}
+ });
+ const salida=textoMovimiento(movimiento,op,"19:05");
+ assert.match(salida,/Se incorporan los siguientes elementos: 67 \\/ 68|Se incorporan los siguientes elementos: 68 \\/ N°06|Se incorporan los siguientes elementos: N°06 \\/ 68/);
+ assert.doesNotMatch(salida,/A cargo de|Se incorpora el Móvil N°|Personal incorporado:/);
+});
+
 test("la interfaz de movimientos utiliza exclusivamente el vínculo nativo para WhatsApp",()=>{
  const ui=readFileSync(resolve(directorio,"../frontend/pantallas/movimientos/movimientos.js"),"utf8");
  const whatsapp=readFileSync(resolve(directorio,"../frontend/servicios/whatsapp/abrir-whatsapp.js"),"utf8");
