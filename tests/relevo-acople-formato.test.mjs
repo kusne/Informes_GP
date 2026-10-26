@@ -107,12 +107,12 @@ test("ACOPLE redacta naturalmente el móvil incorporado y su personal a cargo",(
   datos:{fecha_operativo:"2026-10-25",ordenes_origen:["O.S. G.P N°2067/26","O. OP G.P N°2121/26"]}
  };
  const salida=textoMovimiento(movimiento,ejemplo,"21:59");
- assert.match(salida,/\\*ACOPLE OCV Y Alcoholemia/);
- assert.match(salida,/\\*Fecha:\\* 25\\/10\\/2026/);
- assert.match(salida,/\\*Horario:\\* 21:30 A 23:00 HS/);
- assert.match(salida,/\\*Móviles:\\* 12502 \\/ 10139/);
- assert.match(salida,/Pda: 67 \\/ 68/);
- assert.match(salida,/\\*Observaciones:\\*\\nSiendo las 21:59 hs se procede al acople de recursos al operativo\\. Se incorpora el Móvil N° 10139\\. A cargo de Subinspector Rios Ana y Suboficial de Policia Vera Matias\\./);
+ assert.match(salida,/\*ACOPLE OCV Y Alcoholemia/);
+ assert.match(salida,/\*Fecha:\* 25\/10\/2026/);
+ assert.match(salida,/\*Horario:\* 21:30 A 23:00 HS/);
+ assert.match(salida,/\*Móviles:\* 12502 \/ 10139/);
+ assert.match(salida,/Pda: 67 \/ 68/);
+ assert.match(salida,/\*Observaciones:\*\nSiendo las 21:59 hs se procede al acople de recursos al operativo\. Se incorpora el Móvil N° 10139\. A cargo de Subinspector Rios Ana y Suboficial de Policia Vera Matias\./);
  assert.doesNotMatch(salida,/Personal incorporado:|Elementos incorporados:|Los recursos anteriores permanecen afectados/);
  assert.deepEqual(movimiento.incorporados.personal,["Suboficial de Policia Vera Matias","Subinspector Rios Ana"]);
  assert.deepEqual(movimiento.vigente.moviles,["12502","10139"]);
@@ -124,7 +124,7 @@ test("ACOPLE sólo de personal informa quién se incorpora sin atribuirle un mó
   seleccion:{personal:["Oficial Ledesma Martin","Suboficial Diaz Laura"]}
  });
  const salida=textoMovimiento(movimiento,op,"18:42");
- assert.match(salida,/Se incorpora al operativo el personal policial Oficial Ledesma Martin y Suboficial Diaz Laura\\./);
+ assert.match(salida,/Se incorpora al operativo el personal policial Oficial Ledesma Martin y Suboficial Diaz Laura\./);
  assert.doesNotMatch(salida,/A cargo de|Se incorpora el Móvil N°|Los recursos anteriores permanecen/);
 });
 
@@ -134,7 +134,7 @@ test("ACOPLE sólo de elementos informa los equipos, sin inventar móvil ni pers
   seleccion:{elementos:{pda:["68"],ht:["N°06"]}}
  });
  const salida=textoMovimiento(movimiento,op,"19:05");
- assert.match(salida,/Se incorporan los siguientes elementos: 67 \\/ 68|Se incorporan los siguientes elementos: 68 \\/ N°06|Se incorporan los siguientes elementos: N°06 \\/ 68/);
+ assert.match(salida,/Se incorporan los siguientes elementos: 67 \/ 68|Se incorporan los siguientes elementos: 68 \/ N°06|Se incorporan los siguientes elementos: N°06 \/ 68/);
  assert.doesNotMatch(salida,/A cargo de|Se incorpora el Móvil N°|Personal incorporado:/);
 });
 
