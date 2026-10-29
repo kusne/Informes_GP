@@ -24,6 +24,28 @@ function ordenarPersonal(personal = []) {
  // Orden estable: el catálogo ya ordena por N.I. dentro de cada jerarquía.
  return [...personal].sort((a,b)=>posicion(a)-posicion(b));
 }
+// Expone sólo los equipos efectivamente retirados, con cantidad, tipo e identificador.
+function describirElementosRetirados(grupos={}) {
+ const nombres={
+  escopetas:['escopeta','escopetas'],
+  ht:['HT','HT'],
+  pda:['PDA','PDA'],
+  impresoras:['impresora','impresoras'],
+  alometros:['alómetro','alómetros'],
+  alcoholimetros:['alcoholímetro','alcoholímetros']
+ };
+ const detalles=[];
+ for(const [grupo,seleccion] of Object.entries(grupos||{})){
+  const elementos=[...new Set((Array.isArray(seleccion)?seleccion:[])
+   .map(valor=>String(valor??'').trim()).filter(Boolean))];
+  if(!elementos.length)continue;
+  const etiquetas=nombres[grupo]||['elemento','elementos'];
+  const cantidad='('+String(elementos.length).padStart(2,'0')+')';
+  detalles.push(cantidad+' '+etiquetas[elementos.length===1?0:1]+' '+mostrar(elementos));
+ }
+ if(detalles.length<=1)return detalles[0]||'';
+ return detalles.slice(0,-1).join(', ')+' y '+detalles[detalles.length-1];
+}
 function redactarObservacionMovimiento(m,hora){
  const partes=[];
  const retirados=movilidad(m.retirados),incorporados=movilidad(m.incorporados);
@@ -48,7 +70,7 @@ function redactarObservacionMovimiento(m,hora){
   partes.push("Acto seguido permanece en el lugar el personal, los móviles y los elementos detallados ut-supra.");
  }else if(m.modo==='RETIRO'){
   const salientes=ordenarPersonal(m.retirados.personal||[]);
-  const elementos=Object.values(m.retirados.elementos||{}).flat();
+  const elementos=describirElementosRetirados(m.retirados.elementos);
   const personas=salientes.length<2?salientes.join(''):
     salientes.slice(0,-1).join(', ')+' y '+salientes[salientes.length-1];
   let accion='';
@@ -67,9 +89,11 @@ function redactarObservacionMovimiento(m,hora){
   }else if(retirados.length>1){
    accion='se retiran los móviles '+mostrar(retirados);
   }
-  if(accion)partes.push('Siendo las '+hora+' hs '+accion+'.');
-  if(elementos.length)partes.push(
-   (accion?'Se retiran además los siguientes elementos: ':'Siendo las '+hora+' hs se retiran los siguientes elementos: ')+mostrar(elementos)+'.');
+  if(accion){
+   partes.push('Siendo las '+hora+' hs '+accion+(elementos?' llevando '+elementos:'')+'.');
+  }else if(elementos){
+   partes.push('Siendo las '+hora+' hs se retiran del operativo '+elementos+'.');
+  }
   partes.push('La dotación restante continúa afectada al operativo.');
  }else{
   // ACOPLE: describir el hecho como un informe policial, no como una lista de
