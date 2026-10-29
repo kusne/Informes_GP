@@ -1,6 +1,7 @@
 import { extraerCodigosFalta, getNomencladorFalta } from "../finaliza/numerales/nomenclador.js";
 import { resolverOrdenesOrigenOperativo, resolverTipoNombreOperativo } from "../compartido/operativo-identidad.js";
 import { interpretarLicenciaDniAlcoholemia } from "./licencia-dni-alcoholemia.js";
+import { formatearTituloOperativo } from "../compartido/texto/formato-titulos-operativos.js";
 import { resolverLugarProcedimiento46022 } from "../compartido/lugares/lugar-procedimiento-460-22.js";
 
 const ENCABEZADO_INFORMES = "*POLICÍA DE LA PROVINCIA DE SANTA FE- DIRECCION GENERAL GUARDIA PROVINCIAL - BRIGADA MOTORIZADA ZONA CENTRO NORTE*";
@@ -222,11 +223,7 @@ function normalizarPersonalInstitucional(valor) {
 }
 
 function tituloDocumento(valor) {
-  return texto(valor)
-    .replaceAll("_", " ")
-    .replace(/\s+/g, " ")
-    .toLowerCase()
-    .replace(/\b\p{L}/gu, (letra) => letra.toUpperCase());
+  return formatearTituloOperativo(valor);
 }
 
 function normalizarOrdenDocumento(valor) {
