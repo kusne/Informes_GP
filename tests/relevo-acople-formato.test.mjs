@@ -227,7 +227,7 @@ test("INICIA respeta palabras acentuadas completas en título y lugar",()=>{
   formulario:{personal:"Suboficial de Policia Aquino Francisco Luis",moviles_motos:"12502"}
  };
  const salida=construirTextoInicioBase(inicio);
- assert.match(salida,/\*Inicia Colaboración En Ordenamiento Por Trabajo De La Empresa Provincial De La Energía O\. OP G\.P N°2127\/26\*/);
+ assert.match(salida,/\*Inicia Colaboración en Ordenamiento por Trabajo de la Empresa Provincial de la Energía O\. OP G\.P N°2127\/26\*/);
  assert.match(salida,/\*Lugar:\* Av\. Circunvalación Oeste Y Calle Mendoza/);
  assert.doesNotMatch(salida,/ColaboraciÓN|CircunvalaciÓN|EnergÍA/);
 });
