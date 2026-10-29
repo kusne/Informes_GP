@@ -15,7 +15,7 @@ export function obtenerQthOperativo(operativo = {}, lugarAlternativo = "") {
     inicio?.lugar, lugarAlternativo
   ]) {
     const qth = String(valor ?? "").trim();
-    if (qth && qth !== "SIN LUGAR" && qth !== "/") return qth;
+    if (qth && !["SIN LUGAR", "NO TRAE LUGAR", "SIN QTH", "QTH A DETERMINAR", "/"].includes(normalizar(qth))) return qth;
   }
   return "";
 }
@@ -28,6 +28,7 @@ export function esQthDeRecorridoOTramo(qth) {
   // dos kilómetros, un tramo o un recorrido requieren ubicación precisa.
   if (/\b(?:PATRULLAJE|RECORRIDO|TRAMO|DIVERSOS SECTORES|VARIOS SECTORES)\b/.test(lugar)) return true;
   if (/\b(?:DESDE|ENTRE)\b[\s\S]*\b(?:HASTA|AL|A|Y)\b/.test(lugar)) return true;
+  if (/\bKM\s*\d+(?:[.,]\d+)?\s+(?:HASTA|AL)\s+(?:TUNEL|PUENTE|ROTONDA|ACCESO|AVENIDA|CALLE|RUTA|RN|RP|AUTOPISTA|ESTACION)\b/.test(lugar)) return true;
   if (/\b(?:KM|KILOMETRO(?:S)?)\s*\d+(?:[.,]\d+)?\s*(?:AL|A|HASTA|Y|[-–—])\s*(?:KM\s*)?\d+(?:[.,]\d+)?\b/.test(lugar)) return true;
   if (/\b(?:KM|KILOMETRO(?:S)?)\s*\d+(?:[.,]\d+)?\s*(?:AL|A|HASTA|Y|[-–—])\s*KM\b/.test(lugar)) return true;
   const kilometros = [...lugar.matchAll(/\bKM\s*\d+(?:[.,]\d+)?\b/g)];
