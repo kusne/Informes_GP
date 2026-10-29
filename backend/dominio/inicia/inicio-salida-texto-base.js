@@ -80,6 +80,12 @@ function resolverTituloOperativo(inicio, operativo) {
   return anexarOrdenesAlTitulo(titulo, resolverOrdenesOrigenOperativo(inicio, operativo));
 }
 
+// Reconoce límites de palabra con letras acentuadas: evita ColaboraciÓN / EnergÍA.
+function capitalizarPalabrasUnicode(valor) {
+  return String(valor || "").replace(/(^|[^\\p{L}\\p{M}])(\\p{L})/gu,
+    (_, separador, letra) => separador + letra.toUpperCase());
+}
+
 function tituloLegible(valor) {
   const limpio = String(valor || "Operativo")
     .replaceAll("_", " ")
@@ -87,7 +93,7 @@ function tituloLegible(valor) {
     .trim()
     .toLowerCase();
 
-  return limpio.replace(/\b\p{L}/gu, (letra) => letra.toUpperCase());
+  return capitalizarPalabrasUnicode(limpio);
 }
 
 function normalizarAcronimosTitulo(valor) {
@@ -102,9 +108,7 @@ function normalizarLugar(valor) {
   const limpio = texto(valor);
   if (!limpio) return "/";
 
-  return limpio
-    .toLowerCase()
-    .replace(/\b\p{L}/gu, (letra) => letra.toUpperCase())
+  return capitalizarPalabrasUnicode(limpio.toLowerCase())
     .replace(/\bRn\b/g, "RN")
     .replace(/\bRp\b/g, "RP")
     .replace(/\bKm\b/g, "KM");
