@@ -1,6 +1,7 @@
 import { extraerCodigosFalta, getNomencladorFalta } from "../finaliza/numerales/nomenclador.js";
 import { resolverOrdenesOrigenOperativo, resolverTipoNombreOperativo } from "../compartido/operativo-identidad.js";
 import { interpretarLicenciaDniAlcoholemia } from "./licencia-dni-alcoholemia.js";
+import { resolverLugarProcedimiento46022 } from "../compartido/lugares/lugar-procedimiento-460-22.js";
 
 const ENCABEZADO_INFORMES = "*POLICÍA DE LA PROVINCIA DE SANTA FE- DIRECCION GENERAL GUARDIA PROVINCIAL - BRIGADA MOTORIZADA ZONA CENTRO NORTE*";
 
@@ -450,7 +451,7 @@ function construirDecreto46022(informe) {
     "",
     "*MOTIVO: REMISIÓN DE MOTOCICLETA POR DECRETO 460/22*",
     "",
-    `*LUGAR:* ${texto(informe.lugar) || "/"}`,
+    `*LUGAR:* ${resolverLugarProcedimiento46022(informe).lugar || "/"}`,
     `*HORA:* ${resolverHoraInforme(informe)} Hs`,
     `*FECHA:* ${resolverFechaInformeDocumento(informe, true)}`,
     "",
