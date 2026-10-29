@@ -1,5 +1,6 @@
 import { extraerCodigosFalta, getNomencladorFalta } from "../finaliza/numerales/nomenclador.js";
 import { interpretarLicenciaDniAlcoholemia } from "./licencia-dni-alcoholemia.js";
+import { resolverLugarProcedimiento46022 } from "../compartido/lugares/lugar-procedimiento-460-22.js";
 
 export function validarInformeEspecial(informe) {
   const errores = [];
@@ -16,7 +17,7 @@ export function validarInformeEspecial(informe) {
     errores.push("No se pudo resolver la guardia_fecha.");
   }
 
-  if (!informe?.lugar) {
+  if (!informe?.lugar && informe?.modelo !== "DECRETO_460_22") {
     errores.push("El operativo seleccionado no tiene lugar.");
   }
 
@@ -116,6 +117,15 @@ function validarAlcoholemia(informe, errores) {
 
 function validarDecreto46022(informe, errores) {
   const f = informe.formulario || {};
+
+  // La ubicación del procedimiento sólo puede heredarse de un QTH puntual.
+  // Si el operativo es patrullaje o cubre un rango, se exige el QTH exacto.
+  const lugar = resolverLugarProcedimiento46022(informe);
+  if (!lugar.lugar) {
+    errores.push(lugar.requiereManual
+      ? "Completá el lugar exacto del procedimiento 460/22."
+      : "El operativo seleccionado no tiene un QTH fijo.");
+  }
 
   // Conductor y DNI son datos opcionales: el formato institucional 460/22 no
   // los imprime como campos independientes. Sí son obligatorios los datos que
