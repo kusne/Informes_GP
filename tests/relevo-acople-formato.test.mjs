@@ -208,6 +208,7 @@ test("RETIRO del 29/10 conserva personal, móvil y elementos vigentes sin anexo"
  assert.match(salida,/Pda: 19 \/ 67 \/ 68/);
  assert.match(salida,/Alcoholímetros: ARUJ-0239/);
  assert.match(salida,/Siendo las 09:18 hs se retira el Inspector Marutti Gaston con móvil 12428\. La dotación restante continúa afectada al operativo\./);
+ assert.doesNotMatch(salida,/llevando|Se retiran además los siguientes elementos:/);
  assert.doesNotMatch(salida,/\*RECURSOS RETIRADOS:\*|Personal retirado:|Móviles retirados:/);
  assert.deepEqual(m.retirados.personal,["Inspector Marutti Gaston"]);
  assert.deepEqual(m.retirados.moviles,["12428"]);
@@ -229,4 +230,45 @@ test("INICIA respeta palabras acentuadas completas en título y lugar",()=>{
  assert.match(salida,/\*Inicia Colaboración En Ordenamiento Por Trabajo De La Empresa Provincial De La Energía O\. OP G\.P N°2127\/26\*/);
  assert.match(salida,/\*Lugar:\* Av\. Circunvalación Oeste Y Calle Mendoza/);
  assert.doesNotMatch(salida,/ColaboraciÓN|CircunvalaciÓN|EnergÍA/);
+});
+
+
+test("RETIRO con elementos expresa cantidades, tipos y números en la misma oración",()=>{
+ const vigente={
+  personal:["Inspector Marutti Gaston","Subinspector Mariaux Alejandra Anahi"],
+  moviles:["12428","10139"],motos:[],
+  elementos:{
+   alometros:["AREC-0127","ARSA-0360"],
+   impresoras:["N°05","N°64"],pda:["67"]
+  }
+ };
+ const movimiento=calcularMovimientoRecursos({modo:"RETIRO",actual:vigente,seleccion:{
+  personal:["Inspector Marutti Gaston"],
+  moviles:["12428"],
+  elementos:{alometros:["AREC-0127"],impresoras:["N°05"]}
+ }});
+ const informe=textoMovimiento(movimiento,op,"09:18");
+ assert.match(informe,/Siendo las 09:18 hs se retira el Inspector Marutti Gaston con móvil 12428 llevando \(01\) alómetro AREC-0127 y \(01\) impresora N°05\./);
+ assert.match(informe,/\*Móviles:\* 10139/);
+ assert.match(informe,/Alómetros: ARSA-0360/);
+ assert.match(informe,/Impresoras: N°64/);
+ assert.doesNotMatch(informe,/Se retiran además los siguientes elementos:|\*RECURSOS RETIRADOS:\*/);
+ assert.deepEqual(movimiento.retirados.elementos.alometros,["AREC-0127"]);
+ assert.deepEqual(movimiento.retirados.elementos.impresoras,["N°05"]);
+});
+
+test("RETIRO describe equipos solamente cuando son retirados y permite cantidades mayores",()=>{
+ const actual={
+  personal:["Subinspector Mariaux Alejandra Anahi"],
+  moviles:["10139"],
+  elementos:{alometros:["AREC-0127","ARSA-0360"],impresoras:["N°05"],pda:["67"]}
+ };
+ const movimiento=calcularMovimientoRecursos({modo:"RETIRO",actual,seleccion:{
+  elementos:{alometros:["AREC-0127","ARSA-0360"],impresoras:["N°05"]}
+ }});
+ const informe=textoMovimiento(movimiento,op,"10:11");
+ assert.match(informe,/Siendo las 10:11 hs se retiran del operativo \(02\) alómetros AREC-0127 \/ ARSA-0360 y \(01\) impresora N°05\./);
+ assert.match(informe,/\*Móviles:\* 10139/);
+ assert.match(informe,/Pda: 67/);
+ assert.doesNotMatch(informe,/llevando|Se retiran además los siguientes elementos:/);
 });
