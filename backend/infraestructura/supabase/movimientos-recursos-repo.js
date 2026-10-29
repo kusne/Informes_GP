@@ -47,11 +47,29 @@ function redactarObservacionMovimiento(m,hora){
   if(retiradosElementos.length)partes.push("Elementos retirados: "+mostrar(retiradosElementos)+".");
   partes.push("Acto seguido permanece en el lugar el personal, los móviles y los elementos detallados ut-supra.");
  }else if(m.modo==='RETIRO'){
-  partes.push('Siendo las '+hora+' hs se procede al RETIRO parcial de recursos del operativo, sin reemplazos.');
-  if(m.retirados.personal.length)partes.push('Personal retirado: '+ordenarPersonal(m.retirados.personal).join(', ')+'.');
-  if(retirados.length)partes.push('Móviles retirados: '+mostrar(retirados)+'.');
-  const items=Object.values(m.retirados.elementos||{}).flat();
-  if(items.length)partes.push('Elementos retirados: '+mostrar(items)+'.');
+  const salientes=ordenarPersonal(m.retirados.personal||[]);
+  const elementos=Object.values(m.retirados.elementos||{}).flat();
+  const personas=salientes.length<2?salientes.join(''):
+    salientes.slice(0,-1).join(', ')+' y '+salientes[salientes.length-1];
+  let accion='';
+  if(salientes.length===1 && retirados.length===1){
+   accion='se retira el '+personas+' con móvil '+retirados[0];
+  }else if(salientes.length && retirados.length===1){
+   accion='se retira el personal policial '+personas+' con móvil '+retirados[0];
+  }else if(salientes.length && retirados.length>1){
+   accion='se retiran los móviles '+mostrar(retirados)+' junto al personal policial '+personas;
+  }else if(salientes.length===1){
+   accion='se retira el '+personas;
+  }else if(salientes.length>1){
+   accion='se retira el personal policial '+personas;
+  }else if(retirados.length===1){
+   accion='se retira el móvil '+retirados[0];
+  }else if(retirados.length>1){
+   accion='se retiran los móviles '+mostrar(retirados);
+  }
+  if(accion)partes.push('Siendo las '+hora+' hs '+accion+'.');
+  if(elementos.length)partes.push(
+   (accion?'Se retiran además los siguientes elementos: ':'Siendo las '+hora+' hs se retiran los siguientes elementos: ')+mostrar(elementos)+'.');
   partes.push('La dotación restante continúa afectada al operativo.');
  }else{
   // ACOPLE: describir el hecho como un informe policial, no como una lista de
@@ -98,15 +116,9 @@ export function textoMovimiento(m,operativo,hora){
   operativo,
   formulario:{...resumen,observaciones:redactarObservacionMovimiento(m,hora)}
  });
- if(m.modo!=='RETIRO')return base;
- // El informe muestra la dotación vigente arriba y el detalle retirado abajo:
- // Desktop puede distinguir RETIRO de RELEVO sin inferir bajas desde el texto libre.
- const e=m.retirados.elementos||{};
- const etiquetas={escopetas:'Escopetas',ht:'Ht',pda:'Pda',impresoras:'Impresoras',alometros:'Alómetros',alcoholimetros:'Alcoholímetros'};
- const lineas=Object.entries(etiquetas).map(([k,n])=>n+': '+mostrar(e[k]||[]));
- return base+'\n\n*RECURSOS RETIRADOS:*\n*Personal Policial:*\n'+ordenarPersonal(m.retirados.personal).join('\n')+
-   '\n*Móviles:* '+mostrar(m.retirados.moviles)+'\n*Motos:* '+mostrar(m.retirados.motos)+
-   '\n*Elementos:*\n'+lineas.join('\n');
+ // El informe muestra únicamente los recursos vigentes; las bajas se conservan
+ // en movimiento.retirados para el historial y la auditoría.
+ return base;
 }
 export async function guardarMovimientoOperativo({modo,operativo_key,guardia_fecha,seleccion}={}){
  if(!supabase)throw Error('No hay conexión con Supabase.');
