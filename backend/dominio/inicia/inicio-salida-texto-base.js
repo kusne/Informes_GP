@@ -82,7 +82,7 @@ function resolverTituloOperativo(inicio, operativo) {
 
 // Reconoce límites de palabra con letras acentuadas: evita ColaboraciÓN / EnergÍA.
 function capitalizarPalabrasUnicode(valor) {
-  return String(valor || "").replace(/(^|[^\\p{L}\\p{M}])(\\p{L})/gu,
+  return String(valor || "").replace(/(^|[^\p{L}\p{M}])(\p{L})/gu,
     (_, separador, letra) => separador + letra.toUpperCase());
 }
 
