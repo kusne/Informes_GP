@@ -146,7 +146,7 @@ test("la interfaz de movimientos utiliza exclusivamente el vínculo nativo para 
  assert.match(whatsapp,/whatsapp:\/\/send\?text=/);
 });
 
-test("RETIRO informa únicamente bajas, mantiene la dotación y publica el detalle estructurado",()=>{
+test("RETIRO conserva la dotación vigente y mantiene las bajas en el movimiento estructurado",()=>{
  const anterior=resolverRecursosInicioParaFinaliza(op).seleccionInicial;
  assert.ok(anterior.personal.length>=2);
  const m=calcularMovimientoRecursos({modo:"RETIRO",actual:anterior,
@@ -154,14 +154,14 @@ test("RETIRO informa únicamente bajas, mantiene la dotación y publica el detal
  assert.equal(m.vigente.personal.length,anterior.personal.length-1);
  assert.deepEqual(m.vigente.moviles,[]);
  assert.deepEqual(m.incorporados.personal,[]);
+ assert.deepEqual(m.retirados.moviles,["10139"]);
  const salida=textoMovimiento(m,op,"15:22");
  assert.match(salida,/\*RETIRO OCV Prueba/);
- assert.match(salida,/Siendo las 15:22 hs se procede al RETIRO parcial/);
- assert.match(salida,/\*RECURSOS RETIRADOS:\*/);
+ assert.match(salida,/Siendo las 15:22 hs se retira el/);
  assert.match(salida,/\*Personal Policial:\*/);
- assert.match(salida,/\*Móviles:\* 10139/);
- assert.match(salida,/Pda: 67/);
- assert.doesNotMatch(salida,/al acople de recursos|efectuar el relevo/);
+ assert.match(salida,/\*Móviles:\* \/(?:\n|$)/);
+ assert.match(salida,/Pda: \/(?:\n|$)/);
+ assert.doesNotMatch(salida,/\*RECURSOS RETIRADOS:\*|al acople de recursos|efectuar el relevo/);
 });
 
 test("RETIRO figura en selector y formulario de Informes GP",()=>{
@@ -171,4 +171,62 @@ test("RETIRO figura en selector y formulario de Informes GP",()=>{
   "../frontend/pantallas/movimientos/movimientos.js"
  ];
  for(const ruta of files)assert.match(readFileSync(resolve(directorio,ruta),"utf8"),/RETIRO/);
+});
+
+test("RETIRO del 29/10 conserva personal, móvil y elementos vigentes sin anexo",()=>{
+ const actual={
+  personal:[
+   "Inspector Marutti Gaston",
+   "Subinspector Mariaux Alejandra Anahi",
+   "Suboficial de Policia Lopez Carlos Daniel",
+   "Suboficial de Policia Benavidez Claudio Uriel"
+  ],
+  moviles:["10139","12428"],motos:[],
+  elementos:{
+   escopetas:[],ht:["N°06"],pda:["19","67","68"],
+   impresoras:["N°39","N°64"],alometros:["AREC-0127","ARSA-0360"],
+   alcoholimetros:["ARUJ-0239"]
+  }
+ };
+ const m=calcularMovimientoRecursos({modo:"RETIRO",actual,seleccion:{
+  personal:["Inspector Marutti Gaston"],moviles:["12428"],elementos:{}
+ }});
+ const operativo={
+  guardia_fecha:"2026-10-29",tipo_nombre:"OCV Y DICEP",tipo_operativo:"OCV",
+  hora_inicio:"09:00",hora_fin:"12:00",lugar:"RN 168 KM7,5 AMBOS SENTIDOS DICEP",
+  datos:{fecha_operativo:"2026-10-29",
+   ordenes_origen:["O.S. G.P N°2105/26","O. OP G.P N°2095/26"]}
+ };
+ const salida=textoMovimiento(m,operativo,"09:18");
+ assert.match(salida,/\*RETIRO OCV Y DICEP O\.S\. G\.P N°2105\/26 - O\. OP G\.P N°2095\/26\*/);
+ assert.match(salida,/\*Horario:\* 09:00 A 12:00 HS/);
+ assert.match(salida,/\*Personal Policial:\*\nSubinspector Mariaux Alejandra Anahi/);
+ assert.match(salida,/Suboficial de Policia Benavidez Claudio Uriel/);
+ assert.doesNotMatch(salida,/\*Personal Policial:\*[^]*Inspector Marutti Gaston[^]*\*Móviles:\*/);
+ assert.match(salida,/\*Móviles:\* 10139/);
+ assert.match(salida,/Ht: N°06/);
+ assert.match(salida,/Pda: 19 \/ 67 \/ 68/);
+ assert.match(salida,/Alcoholímetros: ARUJ-0239/);
+ assert.match(salida,/Siendo las 09:18 hs se retira el Inspector Marutti Gaston con móvil 12428\. La dotación restante continúa afectada al operativo\./);
+ assert.doesNotMatch(salida,/\*RECURSOS RETIRADOS:\*|Personal retirado:|Móviles retirados:/);
+ assert.deepEqual(m.retirados.personal,["Inspector Marutti Gaston"]);
+ assert.deepEqual(m.retirados.moviles,["12428"]);
+ assert.deepEqual(m.vigente.moviles,["10139"]);
+});
+
+test("INICIA respeta palabras acentuadas completas en título y lugar",()=>{
+ const inicio={
+  operativo:{
+   tipo_nombre:"COLABORACIÓN EN ORDENAMIENTO POR TRABAJO DE LA EMPRESA PROVINCIAL DE LA ENERGÍA",
+   hora_inicio:"07:00",hora_fin:"17:00",
+   datos:{ordenes_origen:["O. OP G.P N°2127/26"]}
+  },
+  fecha_operativo:"2026-10-29",hora_inicio:"07:00",hora_fin:"17:00",
+  lugar:"AV. CIRCUNVALACIÓN OESTE Y CALLE MENDOZA",
+  formulario:{personal:"Suboficial de Policia Aquino Francisco Luis",moviles_motos:"12502"}
+ };
+ const salida=construirTextoInicioBase(inicio);
+ assert.match(salida,/\*Inicia Colaboración En Ordenamiento Por Trabajo De La Empresa Provincial De La Energía O\. OP G\.P N°2127\/26\*/);
+ assert.match(salida,/\*Lugar:\* Av\. Circunvalación Oeste Y Calle Mendoza/);
+ assert.doesNotMatch(salida,/ColaboraciÓN|CircunvalaciÓN|EnergÍA/);
 });
