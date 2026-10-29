@@ -24,6 +24,7 @@ function informeDePrueba() {
       dominio: "A150DYY",
       numero_acta: "070022956",
       codigos_infraccion: "9119, 4084",
+      lugar_procedimiento: "RN 168 KM 7,5",
       juzgado: "RINCON"
     }
   };
