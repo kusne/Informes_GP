@@ -74,7 +74,7 @@ export function actualizarOperativoInformeEspecial({
   if (!form) return;
 
   autocompletarDesdeOperativo(form, operativoSeleccionado);
-  form.dispatchEvent(new CustomEvent("informesgp:operativo-informe-actualizado"));
+  form.dispatchEvent(new CustomEvent("informesgp:operativo-informe-actualizado", { detail: { operativoSeleccionado } }));
 }
 
 export function leerDatosFormulario(form) {
