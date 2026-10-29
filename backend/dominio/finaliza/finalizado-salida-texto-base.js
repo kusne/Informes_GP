@@ -3,6 +3,7 @@ import { anexarOrdenesAlTitulo, resolverOrdenesOrigenOperativo } from "../compar
 import { usaControladosOpcionalesFinaliza } from "../compartido/tipos/operativos-elementos-controlados-opcionales.js";
 import { esOperativoPatrullaje } from "../compartido/tipos/patrullaje.js";
 import { usaResultadosAssalControlArmas } from "../compartido/tipos/resultados-especiales-finaliza.js";
+import { formatearTituloOperativo, formatearLugarOperativo } from "../compartido/texto/formato-titulos-operativos.js";
 
 export function construirTextoFinalizadoBase(finalizado) {
   if (!finalizado) return "";
@@ -25,7 +26,7 @@ export function construirTextoFinalizadoBase(finalizado) {
   lineas.push("");
   lineas.push(`${negrita("Fecha:")} ${formatearFecha(finalizado.fecha_operativo || operativo?.fecha_operativo || finalizado.fecha)}`);
   lineas.push(`${negrita("Horario:")} ${formatearHorario(finalizado)}`);
-  lineas.push(`${negrita("Lugar:")} ${normalizarLugar(finalizado.lugar)}`);
+  lineas.push(`${negrita("Lugar:")} ${formatearLugarOperativo(finalizado.lugar)}`);
   lineas.push("");
   lineas.push(negrita("Personal Policial:"));
   lineas.push(normalizarPersonalSalidaFinaliza(f.personal) || "/");
@@ -199,16 +200,8 @@ function array(valor) {
 
 function resolverTituloOperativo(finalizado, operativo) {
   const fuente = operativo?.tipo_nombre || operativo?.titulo || operativo?.tipo_descripcion || finalizado?.tipo_operativo || "Operativo";
-  const limpio = String(fuente || "Operativo").replaceAll("_", " ").replace(/\s+/g, " ").trim().toLowerCase();
-  const titulo = normalizarAcronimosTitulo(limpio.replace(/\b\p{L}/gu, (letra) => letra.toUpperCase()));
+  const titulo = formatearTituloOperativo(fuente);
   return anexarOrdenesAlTitulo(titulo, resolverOrdenesOrigenOperativo(finalizado, operativo));
-}
-function normalizarAcronimosTitulo(valor) {
-  return String(valor || "")
-    .replace(/\bOcv\b/g, "OCV")
-    .replace(/\bDicep\b/g, "DICEP")
-    .replace(/O\.s\./g, "O.S.")
-    .replace(/G\.p\b/g, "G.P");
 }
 function formatearFecha(valor) {
   const limpio = String(valor || "").trim();
@@ -220,10 +213,6 @@ function formatearFecha(valor) {
   return valida.toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 function formatearHorario(finalizado) { return `${texto(finalizado?.hora_inicio) || "--:--"} A ${texto(finalizado?.hora_fin) || "--:--"} HS`; }
-function normalizarLugar(valor) {
-  const limpio = texto(valor); if (!limpio) return "/";
-  return limpio.toLowerCase().replace(/\b\p{L}/gu, (letra) => letra.toUpperCase()).replace(/\bRn\b/g, "RN").replace(/\bRp\b/g, "RP").replace(/\bKm\b/g, "KM");
-}
 function construirElementosVacios() { return ["Escopetas: /", "Ht: /", "Pda: /", "Impresoras: /", "Alómetros: /", "Alcoholímetros: /"] .join("\n"); }
 function cantidad(valor) { return String(Math.max(0, Math.trunc(numero(valor)))).padStart(2, "0"); }
 function numero(valor) { const n = Number(valor || 0); return Number.isFinite(n) ? n : 0; }
