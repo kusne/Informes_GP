@@ -78,6 +78,7 @@ test("460/22: QTH expresado como intervalo exige ubicación manual", () => {
     "RN 168 KM 7,5 A 18",
     "RN 168 KM 7,5 - KM 18",
     "RN 168 KM 7,5 Y RN 168 KM 18",
+    "RN 168 KM 7,5 AL TÚNEL SUBFLUVIAL",
     "Av. Alem ENTRE calle San Martín Y calle Belgrano",
     "DESDE RN 168 KM7,5 HASTA RN168 KM18"
   ];
@@ -107,4 +108,12 @@ test("460/22: el modelo muestra un solo lugar y conserva la validación del nuev
   assert.match(js, /lugar\.readOnly = !requiereManual/);
   assert.match(js, /lugar\.required = true/);
   assert.match(js, /getOperativoSeleccionado/);
+});
+
+test("460/22: NO TRAE LUGAR no se interpreta como un QTH fijo", () => {
+  const operativo = {tipo_nombre:"OCV", lugar:"NO TRAE LUGAR"};
+  assert.equal(requiereLugarManual46022(operativo), true);
+  assert.ok(validarInformeEspecial(informe(operativo)).some(e => e.includes("lugar exacto")));
+  const completado = informe(operativo, "RN 168 KM 12");
+  assert.match(construirTextoInformeEspecial(completado), /\*LUGAR:\* RN 168 KM 12/);
 });
