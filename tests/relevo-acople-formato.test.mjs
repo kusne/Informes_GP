@@ -156,7 +156,7 @@ test("RETIRO conserva la dotación vigente y mantiene las bajas en el movimiento
  assert.deepEqual(m.incorporados.personal,[]);
  assert.deepEqual(m.retirados.moviles,["10139"]);
  const salida=textoMovimiento(m,op,"15:22");
- assert.match(salida,/\*RETIRO OCV Prueba/);
+ assert.match(salida,/\*RETIRO DE OCV Prueba/);
  assert.match(salida,/Siendo las 15:22 hs se retira el/);
  assert.match(salida,/\*Personal Policial:\*/);
  assert.match(salida,/\*Móviles:\* \/(?:\n|$)/);
@@ -198,7 +198,7 @@ test("RETIRO del 29/10 conserva personal, móvil y elementos vigentes sin anexo"
    ordenes_origen:["O.S. G.P N°2105/26","O. OP G.P N°2095/26"]}
  };
  const salida=textoMovimiento(m,operativo,"09:18");
- assert.match(salida,/\*RETIRO OCV Y DICEP O\.S\. G\.P N°2105\/26 - O\. OP G\.P N°2095\/26\*/);
+ assert.match(salida,/\*RETIRO DE OCV Y DICEP O\.S\. G\.P N°2105\/26 - O\. OP G\.P N°2095\/26\*/);
  assert.match(salida,/\*Horario:\* 09:00 A 12:00 HS/);
  assert.match(salida,/\*Personal Policial:\*\nSubinspector Mariaux Alejandra Anahi/);
  assert.match(salida,/Suboficial de Policia Benavidez Claudio Uriel/);
