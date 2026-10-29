@@ -1,5 +1,6 @@
 import { anexarOrdenesAlTitulo, resolverOrdenesOrigenOperativo } from "../compartido/operativo-identidad.js";
 import { presentarPersonalOperativo } from "../compartido/recursos/catalogo-recursos-operativos.js";
+import { formatearTituloOperativo, formatearLugarOperativo } from "../compartido/texto/formato-titulos-operativos.js";
 export function construirTextoInicioBase(inicio) {
   if (!inicio) return "";
 
@@ -20,7 +21,7 @@ export function construirTextoInicioBase(inicio) {
 
   lineas.push(`${negrita("Fecha:")} ${formatearFecha(inicio.fecha_operativo || operativo?.fecha_operativo || inicio.fecha)}`);
   lineas.push(`${negrita("Horario:")} ${texto(inicio.horarioReporte) || formatearHorario(inicio)}`);
-  lineas.push(`${negrita("Lugar:")} ${normalizarLugar(inicio.lugar)}`);
+  lineas.push(`${negrita("Lugar:")} ${formatearLugarOperativo(inicio.lugar)}`);
   lineas.push("");
 
   lineas.push(negrita("Personal Policial:"));
@@ -77,42 +78,8 @@ function resolverTituloOperativo(inicio, operativo) {
     inicio?.tipo_operativo ||
     "Operativo";
 
-  const titulo = normalizarAcronimosTitulo(tituloLegible(fuente));
+  const titulo = formatearTituloOperativo(fuente);
   return anexarOrdenesAlTitulo(titulo, resolverOrdenesOrigenOperativo(inicio, operativo));
-}
-
-// Reconoce límites de palabra con letras acentuadas: evita ColaboraciÓN / EnergÍA.
-function capitalizarPalabrasUnicode(valor) {
-  return String(valor || "").replace(/(^|[^\p{L}\p{M}])(\p{L})/gu,
-    (_, separador, letra) => separador + letra.toUpperCase());
-}
-
-function tituloLegible(valor) {
-  const limpio = String(valor || "Operativo")
-    .replaceAll("_", " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .toLowerCase();
-
-  return capitalizarPalabrasUnicode(limpio);
-}
-
-function normalizarAcronimosTitulo(valor) {
-  return String(valor || "")
-    .replace(/\bOcv\b/g, "OCV")
-    .replace(/\bDicep\b/g, "DICEP")
-    .replace(/O\.s\./g, "O.S.")
-    .replace(/G\.p\b/g, "G.P");
-}
-
-function normalizarLugar(valor) {
-  const limpio = texto(valor);
-  if (!limpio) return "/";
-
-  return capitalizarPalabrasUnicode(limpio.toLowerCase())
-    .replace(/\bRn\b/g, "RN")
-    .replace(/\bRp\b/g, "RP")
-    .replace(/\bKm\b/g, "KM");
 }
 
 function formatearFecha(valor) {
