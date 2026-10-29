@@ -2,6 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { normalizarPersonalSalidaFinaliza } from "../backend/dominio/finaliza/recursos-finaliza.js";
 import { construirTextoInformeEspecial } from "../backend/dominio/informes/informe-especial-salida-texto.js";
+import { construirTextoFinalizadoBase } from "../backend/dominio/finaliza/finalizado-salida-texto-base.js";
+import { construirTextoInicioBase } from "../backend/dominio/inicia/inicio-salida-texto-base.js";
+import { formatearTituloOperativo, formatearLugarOperativo } from "../backend/dominio/compartido/texto/formato-titulos-operativos.js";
 
 test("FINALIZADO ordena por función de supervisión y luego por grado sin cambiar dotación", () => {
   const original = [
@@ -68,4 +71,75 @@ test("CONTROL SUPERIOR informa lugar, hora real y operativo, sin horario program
   assert.match(informe, /\*MÓVIL\/ES:\* 10139 \/ 9088 \/ 9091/);
   assert.doesNotMatch(informe, /HORARIO OPERATIVO/i);
   assert.match(informe, /se acopla al operativo/);
+});
+
+
+test("FINALIZA colaboración EPE: caso real de 29/10 imprime título y QTH con mayúsculas correctas", () => {
+  const operativo = {
+    tipo_nombre: "COLABORACIÓN EN ORDENAMIENTO POR TRABAJO DE LA EMPRESA PROVINCIAL DE LA ENERGÍA",
+    tipo_operativo: "ORDENAMIENTO",
+    lugar: "AV. CIRCUNVALACIÓN OESTE Y CALLE MENDOZA",
+    datos: {ordenes_origen: ["O. OP G.P N°2127/26"]}
+  };
+  const formulario = {
+    personal: "Suboficial de Policia Aquino Francisco Luis\nSuboficial de Policia Delgado Yasmila Ailen",
+    moviles_motos: "12502",
+    elementos: "Escopetas: /\nHt: /\nPda: /\nImpresoras: /\nAlómetros: /\nAlcoholímetros: /",
+    observaciones: "Siendo las 15:45 entrevistamos al señor santiago suarez quien informa que se da por finalizado dicho servicio sin novedad."
+  };
+  const salida = construirTextoFinalizadoBase({
+    operativo, tipo_operativo: "ORDENAMIENTO",
+    fecha_operativo: "2026-10-29",
+    hora_inicio: "07:00", hora_fin: "17:00",
+    lugar: operativo.lugar, formulario
+  });
+  const esperado = [
+    "*Policia de la Provincia de Santa Fe - Direccion General Guardia Provincial*",
+    "*Brigada Motorizada Centro Norte*",
+    "*Tercio Charlie*",
+    "",
+    "*Finaliza Colaboración en Ordenamiento por Trabajo de la Empresa Provincial de la Energía O. OP G.P N°2127/26*",
+    "",
+    "*Fecha:* 29/10/2026",
+    "*Horario:* 07:00 A 17:00 HS",
+    "*Lugar:* Av. Circunvalación Oeste Y Calle Mendoza",
+    "",
+    "*Personal Policial:*",
+    "Suboficial de Policia Aquino Francisco Luis",
+    "Suboficial de Policia Delgado Yasmila Ailen",
+    "",
+    "*Móviles:* 12502",
+    "",
+    "*Elementos:*",
+    "Escopetas: /",
+    "Ht: /",
+    "Pda: /",
+    "Impresoras: /",
+    "Alómetros: /",
+    "Alcoholímetros: /",
+    "",
+    "*Observaciones:*",
+    "Siendo las 15:45 entrevistamos al señor santiago suarez quien informa que se da por finalizado dicho servicio sin novedad."
+  ].join("\n");
+  assert.equal(salida, esperado);
+  assert.doesNotMatch(salida, /ColaboraciÓN|CircunvalaciÓN|EnergÍA/);
+  assert.doesNotMatch(salida, /\*Resultados:\*/);
+});
+
+test("INICIO y FINALIZADO usan una regla común para títulos con tildes y siglas", () => {
+  const nombre = "COLABORACIóN EN ORDENAMIENTO POR TRABAJO DE LA EMPRESA PROVINCIAL DE LA ENERGÍa";
+  const titulo = "Colaboración en Ordenamiento por Trabajo de la Empresa Provincial de la Energía";
+  assert.equal(formatearTituloOperativo(nombre), titulo);
+  assert.equal(formatearTituloOperativo("OCV Y DICEP"), "OCV Y DICEP");
+  assert.equal(formatearTituloOperativo("OCV Y ALCOHOLEMIA"), "OCV Y Alcoholemia");
+  assert.equal(formatearLugarOperativo("AV. CIRCUNVALACIóN OESTE Y CALLE MENDOZA"),
+    "Av. Circunvalación Oeste Y Calle Mendoza");
+  const inicio = construirTextoInicioBase({
+    operativo:{tipo_nombre:nombre, datos:{ordenes_origen:["O. OP G.P N°2127/26"]}},
+    fecha_operativo:"2026-10-29",hora_inicio:"07:00",hora_fin:"17:00",
+    lugar:"AV. CIRCUNVALACIóN OESTE Y CALLE MENDOZA",
+    formulario:{personal:"Suboficial de Policia Aquino Francisco Luis",moviles_motos:"12502"}
+  });
+  assert.match(inicio, /\*Inicia Colaboración en Ordenamiento por Trabajo de la Empresa Provincial de la Energía O\. OP G\.P N°2127\/26\*/);
+  assert.match(inicio, /\*Lugar:\* Av\. Circunvalación Oeste Y Calle Mendoza/);
 });
