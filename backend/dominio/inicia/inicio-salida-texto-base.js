@@ -14,7 +14,8 @@ export function construirTextoInicioBase(inicio) {
 
   // Prefijo configurable únicamente para los movimientos de dotación. INICIA conserva su comportamiento.
   const prefijo = ["RELEVO", "ACOPLE", "RETIRO"].includes(inicio.prefijoTitulo) ? inicio.prefijoTitulo : "Inicia";
-  lineas.push(negrita(`${prefijo} ${resolverTituloOperativo(inicio, operativo)}`.trim()));
+  const encabezado = prefijo === "RETIRO" ? "RETIRO DE" : prefijo;
+  lineas.push(negrita(`${encabezado} ${resolverTituloOperativo(inicio, operativo)}`.trim()));
   lineas.push("");
 
   lineas.push(`${negrita("Fecha:")} ${formatearFecha(inicio.fecha_operativo || operativo?.fecha_operativo || inicio.fecha)}`);
