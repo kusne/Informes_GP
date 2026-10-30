@@ -40,7 +40,7 @@ export async function iniciarFormularioFinaliza({
     }catch(error){
       throw Error("No se pudo verificar la dotación vigente. No se permite FINALIZAR sin comprobar el último RELEVO o RETIRO.",{cause:error});
     }
-    if(!actualizado || actualizado.estado!=="EN_CURSO")
+    if(!actualizado || !["EN_CURSO","EN_PROCEDIMIENTO"].includes(actualizado.estado))
       throw Error("El operativo no está EN CURSO o no se pudo actualizar su estado. Reabrí FINALIZADO.");
     ultimoOperativoFinaliza=actualizado;
   }
