@@ -12,10 +12,10 @@ function cargarPersistirEnvioAislado() {
   assert.ok(inicio>=0 && fin>inicio);
   const funcion=src.slice(inicio,fin).replace("export async function","async function");
   return new Function("modoEnsayoActivo","inicializarPersistenciaNavegador","normalizarModo",
-    funcion+"\\nreturn persistirEnvio;")(
+    funcion+"\nreturn persistirEnvio;")(
       ()=>false,
       ()=>({}),
-      v=>String(v||"").trim().toUpperCase().replaceAll("-","_").replace(/\\s+/g,"_")
+      v=>String(v||"").trim().toUpperCase().replaceAll("-","_").replace(/\s+/g,"_")
     );
 }
 const persistirEnvio=cargarPersistirEnvioAislado();
