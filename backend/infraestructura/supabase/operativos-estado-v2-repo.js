@@ -211,8 +211,8 @@ export async function guardarFinalizadoOperativoV2(payload) {
   if (!existente) {
     throw new Error("No se puede FINALIZAR: primero debe existir un INICIO en curso.");
   }
-  if (existente.estado !== "EN_CURSO") {
-    throw new Error("El operativo ya no está EN CURSO. Revisá su estado antes de FINALIZAR.");
+  if (!["EN_CURSO","EN_PROCEDIMIENTO"].includes(existente.estado)) {
+    throw new Error("El operativo ya no está en curso. Revisá su estado antes de FINALIZAR.");
   }
   validarDotacionFinalizadoContraEstado(existente, limpio);
 
@@ -228,7 +228,7 @@ export async function guardarFinalizadoOperativoV2(payload) {
       updated_at: new Date().toISOString()
     })
     .eq("id", existente.id)
-    .eq("estado", "EN_CURSO");
+    .eq("estado", existente.estado);
   // Cierre optimista: no pisar un RELEVO o RETIRO efectuado
   // mientras se estaba completando el FINALIZADO.
   if (existente.updated_at) query = query.eq("updated_at", existente.updated_at);
