@@ -1,4 +1,5 @@
 import { TABLAS_SUPABASE } from "./supabase-client.js";
+import { validarDotacionFinalizadoContraEstado } from "../../dominio/finaliza/validar-dotacion-finalizado.js";
 
 const TABLA_OPERATIVOS_ESTADO = TABLAS_SUPABASE.operativosEstado;
 
@@ -210,10 +211,14 @@ export async function guardarFinalizadoOperativoV2(payload) {
   if (!existente) {
     throw new Error("No se puede FINALIZAR: primero debe existir un INICIO en curso.");
   }
+  if (existente.estado !== "EN_CURSO") {
+    throw new Error("El operativo ya no está EN CURSO. Revisá su estado antes de FINALIZAR.");
+  }
+  validarDotacionFinalizadoContraEstado(existente, limpio);
 
   const datosFusionados = fusionarDatosJson(existente.datos, limpio.datos);
 
-  const { data, error } = await cliente
+  let query = cliente
     .from(TABLA_OPERATIVOS_ESTADO)
     .update({
       ...limpio,
@@ -223,11 +228,13 @@ export async function guardarFinalizadoOperativoV2(payload) {
       updated_at: new Date().toISOString()
     })
     .eq("id", existente.id)
-    .select()
-    .single();
-
+    .eq("estado", "EN_CURSO");
+  // Cierre optimista: no pisar un RELEVO o RETIRO efectuado
+  // mientras se estaba completando el FINALIZADO.
+  if (existente.updated_at) query = query.eq("updated_at", existente.updated_at);
+  const { data, error } = await query.select().maybeSingle();
   if (error) throw error;
-
+  if (!data) throw Error("La dotación cambió mientras finalizabas el operativo. Reabrí FINALIZADO y verificá el personal vigente.");
   return data;
 }
 
