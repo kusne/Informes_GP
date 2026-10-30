@@ -1,6 +1,24 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { persistirEnvio } from "../api/persistencia-api.js";
+import { readFileSync } from "node:fs";
+
+function cargarPersistirEnvioAislado() {
+  // La aplicación real importa el cliente Supabase mediante URL HTTPS;
+  // Node sin navegador no admite ese import. Ejecutar solo la frontera
+  // de no-guardado con dependencias simuladas, sin conexiones externas.
+  const src=readFileSync(new URL("../api/persistencia-api.js", import.meta.url),"utf8");
+  const inicio=src.indexOf("export async function persistirEnvio(");
+  const fin=src.indexOf("export function iniciarRealtimeInformesGP",inicio);
+  assert.ok(inicio>=0 && fin>inicio);
+  const funcion=src.slice(inicio,fin).replace("export async function","async function");
+  return new Function("modoEnsayoActivo","inicializarPersistenciaNavegador","normalizarModo",
+    funcion+"\\nreturn persistirEnvio;")(
+      ()=>false,
+      ()=>({}),
+      v=>String(v||"").trim().toUpperCase().replaceAll("-","_").replace(/\\s+/g,"_")
+    );
+}
+const persistirEnvio=cargarPersistirEnvioAislado();
 import { construirTextoInformeEspecial } from "../backend/dominio/informes/informe-especial-salida-texto.js";
 import { mapearInformeEspecialParaSupabase } from "../backend/dominio/informes/informe-especial-mapper-supabase.js";
 
