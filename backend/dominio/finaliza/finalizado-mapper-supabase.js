@@ -44,6 +44,9 @@ export function mapearFinalizadoParaSupabase(finalizado) {
         personal: f.personal || "",
         moviles_motos: f.moviles_motos || "",
         elementos: f.elementos || "",
+        // Versión leída al abrir el formulario: protege contra RELEVOS/RETIROS
+        // posteriores y evita cerrar con una dotación desactualizada.
+        estado_dotacion_version: finalizado.operativo?.updated_at || "",
         fuente_personal: f.mismo_personal ? "INICIO" : "FINALIZADO_MANUAL",
         fuente_movilidad: f.mismo_moviles ? "INICIO" : "FINALIZADO_MANUAL",
         fuente_elementos: f.mismos_elementos ? "INICIO" : "FINALIZADO_MANUAL"
