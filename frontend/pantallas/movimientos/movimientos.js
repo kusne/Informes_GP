@@ -112,12 +112,13 @@ export async function iniciarFormularioMovimiento({host,modo,operativoSelecciona
     modo:tipo,operativo_key:operativoSeleccionado.operativo_key,
     guardia_fecha:operativoSeleccionado.guardia_fecha,seleccion
    });
-   textoGuardado=guardado.texto;
+   const texto=guardado.texto;
+   textoGuardado=texto;
    reintentar.hidden=false;
    error.textContent=tipo+' guardado. Si WhatsApp no se abre, tocá «Abrir WhatsApp».';
    window.dispatchEvent(new CustomEvent('informesgp:envio-whatsapp-ok',
-     {detail:{modo:tipo,textoFinal:guardado.texto}}));
-   abrirWhatsappAppDirectamente(guardado.texto);
+     {detail:{modo:tipo,textoFinal:texto}}));
+   abrirWhatsappAppDirectamente(texto);
   }catch(e){
    error.textContent=e?.message||'No se pudo guardar el movimiento.';
    if(!textoGuardado)boton.disabled=false;
