@@ -5,6 +5,7 @@ import { renderElementos, obtenerElementosSeleccionados } from "../inicia/compon
 import { guardarMovimientoOperativo, dotacionVigenteOperativo } from "../../../api/persistencia-api.js";
 import { obtenerEstadoOperativoV2 } from "../../../api/persistencia-api.js";
 import { consultarRecursosGuardiaV2 } from "../../../api/recursos-guardia-api.js";
+import { prepararConfirmacionMovimiento } from "../../../backend/dominio/compartido/recursos/resumen-relevo-confirmacion.js";
 import { abrirWhatsappAppDirectamente } from "../../servicios/whatsapp/abrir-whatsapp.js";
 
 export async function iniciarFormularioMovimiento({host,modo,operativoSeleccionado,onGuardado}={}){
@@ -24,6 +25,7 @@ export async function iniciarFormularioMovimiento({host,modo,operativoSelecciona
   '<h3 style="color:#fff;font-weight:700">A) '+preguntas[0]+'</h3><div data-personal></div>'+
   '<h3 style="color:#fff;font-weight:700">B) '+preguntas[1]+'</h3><div data-movilidad></div>'+
   '<h3 style="color:#fff;font-weight:700">C) '+preguntas[2]+'</h3><div data-elementos></div>'+
+  '<div data-resumen-dotacion role="status" aria-live="polite" style="white-space:pre-wrap;background:#142b4a;padding:10px;border-radius:8px;color:#fff;margin:10px 0"></div>'+
   '<p data-error role="alert" style="color:#fff"></p>'+
   '<button type="button" data-reintentar-whatsapp hidden>Abrir WhatsApp</button>'+
   '<button type="button" data-enviar-movimiento>Enviar '+tipo+' por WhatsApp</button></section>';
@@ -51,38 +53,74 @@ export async function iniciarFormularioMovimiento({host,modo,operativoSelecciona
  renderElementos({host:host.querySelector('[data-elementos]'),grupos:catalogo.elementos,seleccionInicial:{}});
  const boton=host.querySelector('[data-enviar-movimiento]');
  const error=host.querySelector('[data-error]');
+ const resumen=host.querySelector('[data-resumen-dotacion]');
  const reintentar=host.querySelector('[data-reintentar-whatsapp]');
  let textoGuardado='';
  reintentar.addEventListener('click',()=>{
   if(textoGuardado)abrirWhatsappAppDirectamente(textoGuardado);
  });
- boton.addEventListener('click',()=>{
-  const seleccion={
-   personal:obtenerPersonalSeleccionado(host),
-   ...obtenerMovilidadSeleccionada(host),
-   elementos:obtenerElementosSeleccionados(host)
-  };
-  const explicacion=tipo==='RELEVO'
-   ?'Lo que NO seleccionaste se considerará retirado del operativo. ¿Confirmás el RELEVO?'
-   :tipo==='RETIRO'
-   ?'Sólo los recursos seleccionados dejarán el operativo; no habrá reemplazos. ¿Confirmás el RETIRO?'
-   :'Los recursos seleccionados se sumarán a la dotación vigente. ¿Confirmás el ACOPLE?';
-  if(!confirm(explicacion))return;
+ const leerSeleccion=()=>({
+  personal:obtenerPersonalSeleccionado(host),
+  ...obtenerMovilidadSeleccionada(host),
+  elementos:obtenerElementosSeleccionados(host)
+ });
+ function actualizarResumenDotacion(){
+  try{
+   const resultado=prepararConfirmacionMovimiento({
+    modo:tipo,actual:vigentes,seleccion:leerSeleccion()
+   });
+   resumen.textContent=resultado.texto.replace(/\n¿Confirmás que esta es la dotación vigente\?$/, '');
+   resumen.style.border=resultado.advertenciaSinBajas?'2px solid #fbbf24':'1px solid #527ba4';
+  }catch{
+   resumen.textContent=tipo==='RELEVO'
+    ?'Tildá únicamente el personal y los recursos que QUEDAN. El personal anterior que no tildes se retirará.'
+    :tipo==='RETIRO'?'Tildá sólo los recursos que salen del operativo.'
+    :'Tildá sólo los recursos nuevos que ingresan.';
+   resumen.style.border='1px solid #527ba4';
+  }
+ }
+ host.addEventListener('change',actualizarResumenDotacion);
+ actualizarResumenDotacion();
+ boton.addEventListener('click',async()=>{
+  if(boton.disabled)return;
+  error.textContent='';
+  const seleccion=leerSeleccion();
+  let confirmacion;
+  try{
+   confirmacion=prepararConfirmacionMovimiento({modo:tipo,actual:vigentes,seleccion});
+  }catch(e){
+   error.textContent=e?.message||'Revisá la selección antes de guardar.';
+   return;
+  }
+  if(!confirm(confirmacion.texto))return;
   if(modoEnsayoActivo()){error.textContent='Los movimientos no guardan cambios en modo ensayo.';return;}
-  boton.disabled=true;error.textContent='Guardando '+tipo+'...';
-  guardarMovimientoOperativo({
-   modo:tipo,operativo_key:operativoSeleccionado.operativo_key,
-   guardia_fecha:operativoSeleccionado.guardia_fecha,seleccion
-  }).then(({texto})=>{
-   textoGuardado=texto;
+  boton.disabled=true;
+  error.textContent='Verificando recursos vigentes...';
+  try{
+   // Volver a leer antes de guardar: no permitir aplicar una selección a una
+   // dotación que otro dispositivo haya cambiado después de abrir la pantalla.
+   const actualizado=await obtenerEstadoOperativoV2({
+    guardia_fecha:operativoSeleccionado.guardia_fecha,
+    operativo_key:operativoSeleccionado.operativo_key
+   });
+   if(!actualizado||actualizado.estado!=='EN_CURSO'
+    ||(registroActual.updated_at&&actualizado.updated_at!==registroActual.updated_at)){
+    throw Error('La dotación cambió desde que abriste este formulario. Volvé a abrir el operativo y revisá quién queda y quién se retira.');
+   }
+   error.textContent='Guardando '+tipo+'...';
+   const guardado=await guardarMovimientoOperativo({
+    modo:tipo,operativo_key:operativoSeleccionado.operativo_key,
+    guardia_fecha:operativoSeleccionado.guardia_fecha,seleccion
+   });
+   textoGuardado=guardado.texto;
    reintentar.hidden=false;
    error.textContent=tipo+' guardado. Si WhatsApp no se abre, tocá «Abrir WhatsApp».';
-   window.dispatchEvent(new CustomEvent('informesgp:envio-whatsapp-ok',{detail:{modo:tipo,textoFinal:texto}}));
-   // Enlace nativo: no utiliza wa.me ni api.whatsapp.com.
-   abrirWhatsappAppDirectamente(texto);
-  }).catch(e=>{
+   window.dispatchEvent(new CustomEvent('informesgp:envio-whatsapp-ok',
+     {detail:{modo:tipo,textoFinal:guardado.texto}}));
+   abrirWhatsappAppDirectamente(guardado.texto);
+  }catch(e){
    error.textContent=e?.message||'No se pudo guardar el movimiento.';
    if(!textoGuardado)boton.disabled=false;
-  });
+  }
  });
 }
