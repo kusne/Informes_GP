@@ -31,13 +31,18 @@ export async function iniciarFormularioFinaliza({
   // Refrescar el estado ANTES de construir FINALIZADO. Así incorpora
   // CONTROL SUPERIOR + ACOPLE y otros movimientos hechos en otro dispositivo.
   if(ultimoOperativoFinaliza?.operativo_key && !modoEnsayoActivo()){
+    let actualizado;
     try{
-      const actualizado = await obtenerEstadoOperativoV2({
+      actualizado = await obtenerEstadoOperativoV2({
         guardia_fecha:ultimoOperativoFinaliza.guardia_fecha,
         operativo_key:ultimoOperativoFinaliza.operativo_key
       });
-      if(actualizado)ultimoOperativoFinaliza=actualizado;
-    }catch(error){console.warn("No se pudo refrescar dotación antes del FINALIZADO",error);}
+    }catch(error){
+      throw Error("No se pudo verificar la dotación vigente. No se permite FINALIZAR sin comprobar el último RELEVO o RETIRO.",{cause:error});
+    }
+    if(!actualizado || actualizado.estado!=="EN_CURSO")
+      throw Error("El operativo no está EN CURSO o no se pudo actualizar su estado. Reabrí FINALIZADO.");
+    ultimoOperativoFinaliza=actualizado;
   }
   recursosInicioActual = resolverRecursosInicioParaFinaliza(ultimoOperativoFinaliza || {});
 
@@ -229,9 +234,9 @@ function sincronizarRecursosFinaliza(form) {
   asignarCampo(form, "moviles_motos", mismosMoviles ? recursosInicioActual?.moviles_motos : manual.moviles_motos);
   asignarCampo(form, "elementos", mismosElementos ? recursosInicioActual?.elementos : manual.elementos);
 
-  form.dataset.fuentePersonal = mismoPersonal ? "INICIO" : "FINALIZADO_MANUAL";
-  form.dataset.fuenteMovilidad = mismosMoviles ? "INICIO" : "FINALIZADO_MANUAL";
-  form.dataset.fuenteElementos = mismosElementos ? "INICIO" : "FINALIZADO_MANUAL";
+  form.dataset.fuentePersonal = mismoPersonal ? "DOTACION_VIGENTE" : "FINALIZADO_MANUAL";
+  form.dataset.fuenteMovilidad = mismosMoviles ? "DOTACION_VIGENTE" : "FINALIZADO_MANUAL";
+  form.dataset.fuenteElementos = mismosElementos ? "DOTACION_VIGENTE" : "FINALIZADO_MANUAL";
 }
 
 function asignarCampo(form, nombre, valor) {
