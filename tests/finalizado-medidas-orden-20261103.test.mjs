@@ -29,8 +29,8 @@ test("FINALIZADO coloca Medidas Cautelares entre Resultados y Detalles",()=>{
   assert.ok(iMedidas>iResultados,"Medidas debe figurar después de Resultados");
   assert.ok(iDetalles>iMedidas,"Medidas debe figurar antes de Detalles");
   assert.equal((texto.match(/Medidas Cautelares:/g)||[]).length,1);
-  assert.match(texto,/Retención: \(1\)/);
-  assert.match(texto,/Prohibición de Circulación: \(1\)/);
+  assert.match(texto,/Retención: \(01\)/);
+  assert.match(texto,/Prohibición de Circulación: \(01\)/);
 });
 test("Sin medidas cautelares, no imprime un bloque vacío",()=>{
  const texto=construirTextoFinalizadoBase({
