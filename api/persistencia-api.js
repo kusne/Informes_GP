@@ -64,21 +64,9 @@ export async function persistirEnvio({ modo, payload } = {}) {
 
   const modoNormalizado = normalizarModo(modo);
 
-  // Los informes autónomos de licencia retenida se comparten, pero NO se
-  // archivan ni se incorporan a los Word semanales. No aplica a alcoholemias
-  // que incluyan una medida cautelar de retención: esas sí se registran.
-  if (modoNormalizado === "INFORMES" &&
-      normalizarModo(payload?.tipo_informe || payload?.modelo) === "RETENCION_LICENCIA") {
-    return {
-      ok: true,
-      saltado: true,
-      sinGuardado: true,
-      payloadFinal: payload,
-      fotos: [],
-      mensaje: "Informe de licencia retenida listo para compartir; no se guarda en Supabase."
-    };
-  }
-
+  // Toda actuación de INFORMES, incluida RETENCION_LICENCIA, se persiste en
+  // Supabase. BMZCN Desktop excluye la retención autónoma de los Word semanales,
+  // pero debe conservarla para Actuaciones registradas y su elevación.
 
   // Control de móviles usa el Supabase secundario WSP/BMZCN y no depende
   // de la disponibilidad del Supabase principal de Informes GP.
