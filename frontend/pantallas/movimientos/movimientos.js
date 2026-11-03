@@ -25,7 +25,7 @@ export async function iniciarFormularioMovimiento({host,modo,operativoSelecciona
   '<h3 style="color:#fff;font-weight:700">A) '+preguntas[0]+'</h3><div data-personal></div>'+
   '<h3 style="color:#fff;font-weight:700">B) '+preguntas[1]+'</h3><div data-movilidad></div>'+
   '<h3 style="color:#fff;font-weight:700">C) '+preguntas[2]+'</h3><div data-elementos></div>'+
-  '<div data-resumen-dotacion role="status" aria-live="polite" style="white-space:pre-wrap;background:#142b4a;padding:10px;border-radius:8px;color:#fff;margin:10px 0"></div>'+
+
   '<p data-error role="alert" style="color:#fff"></p>'+
   '<button type="button" data-reintentar-whatsapp hidden>Abrir WhatsApp</button>'+
   '<button type="button" data-enviar-movimiento>Enviar '+tipo+' por WhatsApp</button></section>';
@@ -53,7 +53,6 @@ export async function iniciarFormularioMovimiento({host,modo,operativoSelecciona
  renderElementos({host:host.querySelector('[data-elementos]'),grupos:catalogo.elementos,seleccionInicial:{}});
  const boton=host.querySelector('[data-enviar-movimiento]');
  const error=host.querySelector('[data-error]');
- const resumen=host.querySelector('[data-resumen-dotacion]');
  const reintentar=host.querySelector('[data-reintentar-whatsapp]');
  let textoGuardado='';
  reintentar.addEventListener('click',()=>{
@@ -64,23 +63,6 @@ export async function iniciarFormularioMovimiento({host,modo,operativoSelecciona
   ...obtenerMovilidadSeleccionada(host),
   elementos:obtenerElementosSeleccionados(host)
  });
- function actualizarResumenDotacion(){
-  try{
-   const resultado=prepararConfirmacionMovimiento({
-    modo:tipo,actual:vigentes,seleccion:leerSeleccion()
-   });
-   resumen.textContent=resultado.texto.replace(/\n¿Confirmás que esta es la dotación vigente\?$/, '');
-   resumen.style.border=resultado.advertenciaSinBajas?'2px solid #fbbf24':'1px solid #527ba4';
-  }catch{
-   resumen.textContent=tipo==='RELEVO'
-    ?'Tildá únicamente el personal y los recursos que QUEDAN. El personal anterior que no tildes se retirará.'
-    :tipo==='RETIRO'?'Tildá sólo los recursos que salen del operativo.'
-    :'Tildá sólo los recursos nuevos que ingresan.';
-   resumen.style.border='1px solid #527ba4';
-  }
- }
- host.addEventListener('change',actualizarResumenDotacion);
- actualizarResumenDotacion();
  boton.addEventListener('click',async()=>{
   if(boton.disabled)return;
   error.textContent='';
@@ -92,7 +74,12 @@ export async function iniciarFormularioMovimiento({host,modo,operativoSelecciona
    error.textContent=e?.message||'Revisá la selección antes de guardar.';
    return;
   }
-  if(!confirm(confirmacion.texto))return;
+  // El desglose de recursos queda registrado en el movimiento, no como un
+  // resumen redundante debajo del formulario o en el diálogo de confirmación.
+  const mensaje=confirmacion.advertenciaSinBajas
+   ? 'No se retirará ningún policía en este '+tipo+'. ¿Confirmás la selección?'
+   : '¿Confirmás el '+tipo+' de este operativo?';
+  if(!confirm(mensaje))return;
   if(modoEnsayoActivo()){error.textContent='Los movimientos no guardan cambios en modo ensayo.';return;}
   boton.disabled=true;
   error.textContent='Verificando recursos vigentes...';
