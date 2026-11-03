@@ -138,12 +138,12 @@ test("ACOPLE y RETIRO sucesivos utilizan exclusivamente la dotación vigente",()
   assert.match(salida,/\*Móviles:\* 10139 \/ 12533/);
 });
 
-test("el frontend muestra resumen y no cierra con un estado antiguo si falla refresco",()=>{
+test("el frontend omite el resumen redundante, confirma y protege cambios concurrentes",()=>{
   const movimiento=readFileSync(new URL("../frontend/pantallas/movimientos/movimientos.js",import.meta.url),"utf8");
   const finaliza=readFileSync(new URL("../frontend/pantallas/finaliza/finaliza.js",import.meta.url),"utf8");
   const repo=readFileSync(new URL("../backend/infraestructura/supabase/operativos-estado-v2-repo.js",import.meta.url),"utf8");
-  assert.match(movimiento,/data-resumen-dotacion/);
-  assert.match(movimiento,/confirm\(confirmacion\.texto\)/);
+  assert.doesNotMatch(movimiento,/data-resumen-dotacion/);
+  assert.match(movimiento,/confirm\(mensaje\)/);
   assert.match(movimiento,/actualizado\.updated_at!==registroActual\.updated_at/);
   assert.match(finaliza,/No se pudo verificar la dotación vigente/);
   assert.match(repo,/validarDotacionFinalizadoContraEstado\(existente, limpio\)/);

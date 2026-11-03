@@ -50,24 +50,17 @@ function redactarObservacionMovimiento(m,hora){
  const partes=[];
  const retirados=movilidad(m.retirados),incorporados=movilidad(m.incorporados);
  if(m.modo==="RELEVO"){
-  const salientes=ordenarPersonal(m.retirados.personal);
+  const salientes=ordenarPersonal(m.retirados.personal||[]);
+  const elementos=describirElementosRetirados(m.retirados.elementos);
   partes.push("Siendo las "+hora+" hs se procede a efectuar el relevo del operativo.");
-  if(retirados.length && salientes.length){
-   partes.push((retirados.length===1?"Se releva al Móvil N° ":"Se relevan los Móviles N° ")+mostrar(retirados)+
-    ", a cargo del personal saliente: "+salientes.join(", ")+".");
-   partes.push("Dicho personal y móvil/es se retiran del lugar.");
-  }else if(retirados.length){
-   partes.push((retirados.length===1?"Se retira el Móvil N° ":"Se retiran los Móviles N° ")+mostrar(retirados)+".");
-  }else if(salientes.length){
-   partes.push("Personal que se retira: "+salientes.join(", ")+".");
-  }else{
-   // Puede haber relevo sólo de elementos: no atribuir bajas inexistentes
-   // ni volver a contar personal y móviles retirados en informes anteriores.
-   partes.push("En este relevo no se registra retiro de personal ni de móviles.");
-  }
-  const retiradosElementos=Object.values(m.retirados.elementos||{}).flat();
-  if(retiradosElementos.length)partes.push("Elementos retirados: "+mostrar(retiradosElementos)+".");
-  partes.push("Acto seguido permanece en el lugar el personal, los móviles y los elementos detallados ut-supra.");
+  // No atribuir el móvil saliente a un efectivo sin constancia de quién lo condujo.
+  if(salientes.length)partes.push("Personal policial que se retira: "+salientes.join(", ")+".");
+  if(retirados.length)partes.push((retirados.length===1
+   ?"Móvil que se retira: ":"Móviles que se retiran: ")+mostrar(retirados)+".");
+  if(elementos)partes.push("Elementos que se retiran: "+elementos+".");
+  // El cuerpo del informe describe exclusivamente la dotación que permanece.
+  // El movimiento conserva por separado las bajas para auditoría y FINALIZADO.
+  partes.push("Permanece afectada al operativo la dotación indicada precedentemente.");
  }else if(m.modo==='RETIRO'){
   const salientes=ordenarPersonal(m.retirados.personal||[]);
   const elementos=describirElementosRetirados(m.retirados.elementos);
