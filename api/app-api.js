@@ -146,6 +146,9 @@ export {
   presentarPersonalOperativo
 } from "../backend/dominio/compartido/recursos/catalogo-recursos-operativos.js";
 
+// ACOPLE: contrato de asociaciones explícitas entre efectivos y móviles.
+export { validarAsignacionesAcople } from "../backend/dominio/compartido/texto/acople-observaciones.js";
+
 // INFORMES se procesan únicamente mediante procesarInformeEspecialFormulario.
 
 // Fotos: validación pura + adaptador de contexto para nombre

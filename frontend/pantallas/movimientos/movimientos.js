@@ -1,4 +1,4 @@
-import { obtenerCatalogoRecursosOperativos, modoEnsayoActivo } from "../../../api/app-api.js";
+import { obtenerCatalogoRecursosOperativos, modoEnsayoActivo, validarAsignacionesAcople } from "../../../api/app-api.js";
 import { renderPersonalPolicial, obtenerPersonalSeleccionado } from "../inicia/componentes/personal-policial/personal-policial.js";
 import { renderMovilidad, obtenerMovilidadSeleccionada } from "../inicia/componentes/movilidad/movilidad.js";
 import { renderElementos, obtenerElementosSeleccionados } from "../inicia/componentes/elementos/elementos.js";
@@ -25,6 +25,9 @@ export async function iniciarFormularioMovimiento({host,modo,operativoSelecciona
   '<h3 style="color:#fff;font-weight:700">A) '+preguntas[0]+'</h3><div data-personal></div>'+
   '<h3 style="color:#fff;font-weight:700">B) '+preguntas[1]+'</h3><div data-movilidad></div>'+
   '<h3 style="color:#fff;font-weight:700">C) '+preguntas[2]+'</h3><div data-elementos></div>'+
+  (tipo==='ACOPLE'
+   ? '<div data-asignaciones-acople hidden style="margin:12px 0;color:#f8fafc"></div>'
+   : '')+
 
   '<p data-error role="alert" style="color:#fff"></p>'+
   '<button type="button" data-reintentar-whatsapp hidden>Abrir WhatsApp</button>'+
@@ -51,6 +54,58 @@ export async function iniciarFormularioMovimiento({host,modo,operativoSelecciona
  renderPersonalPolicial({host:host.querySelector('[data-personal]'),personal:catalogo.personal,seleccionInicial:[]});
  renderMovilidad({host:host.querySelector('[data-movilidad]'),moviles:catalogo.moviles,motos:catalogo.motos,seleccionInicial:{moviles:[],motos:[]}});
  renderElementos({host:host.querySelector('[data-elementos]'),grupos:catalogo.elementos,seleccionInicial:{}});
+
+ // Sólo ACOPLE: el vínculo de cada efectivo con un móvil es explícito.
+ // La selección de recursos NO implica automáticamente que viajan juntos.
+ const asignacionesPorPersona=new Map();
+ const dibujarAsignacionesAcople=()=>{
+  if(tipo!=='ACOPLE')return;
+  const area=host.querySelector('[data-asignaciones-acople]');
+  if(!area)return;
+  const personal=obtenerPersonalSeleccionado(host)
+   .filter(nombre=>!(vigentes.personal||[]).includes(nombre));
+  const movil=obtenerMovilidadSeleccionada(host);
+  const nuevos=[...(movil.moviles||[]).filter(numero=>!(vigentes.moviles||[]).includes(numero)),
+   ...(movil.motos||[]).filter(numero=>!(vigentes.motos||[]).includes(numero))];
+  area.replaceChildren();
+  area.hidden=!personal.length||!nuevos.length;
+  if(area.hidden)return;
+  const titulo=document.createElement('h3');
+  titulo.textContent='Asignación de personal a móviles del ACOPLE';
+  titulo.style.color='#fff';
+  area.append(titulo);
+  const explicacion=document.createElement('p');
+  explicacion.textContent='Indicá a qué móvil corresponde cada efectivo incorporado. Si no tiene móvil asignado, dejá «Sin asignar». No se supone ninguna asignación.';
+  area.append(explicacion);
+  for(const nombre of personal){
+   const etiqueta=document.createElement('label');
+   etiqueta.textContent=nombre+' — Móvil: ';
+   etiqueta.style.display='block';
+   etiqueta.style.marginBottom='8px';
+   const selector=document.createElement('select');
+   selector.setAttribute('aria-label','Móvil asignado a '+nombre);
+   const ninguna=document.createElement('option');
+   ninguna.value='';ninguna.textContent='Sin asignar';
+   selector.append(ninguna);
+   for(const numero of nuevos){
+    const opcion=document.createElement('option');
+    opcion.value=numero;opcion.textContent='Móvil N° '+numero;
+    selector.append(opcion);
+   }
+   const previo=asignacionesPorPersona.get(nombre)||'';
+   selector.value=nuevos.includes(previo)?previo:'';
+   selector.addEventListener('change',()=>asignacionesPorPersona.set(nombre,selector.value));
+   etiqueta.append(selector);
+   area.append(etiqueta);
+  }
+ };
+ if(tipo==='ACOPLE'){
+  host.addEventListener('change',evento=>{
+   if(evento.target?.matches?.('input[type="checkbox"]'))dibujarAsignacionesAcople();
+  });
+  dibujarAsignacionesAcople();
+ }
+
  const boton=host.querySelector('[data-enviar-movimiento]');
  const error=host.querySelector('[data-error]');
  const reintentar=host.querySelector('[data-reintentar-whatsapp]');
@@ -58,11 +113,22 @@ export async function iniciarFormularioMovimiento({host,modo,operativoSelecciona
  reintentar.addEventListener('click',()=>{
   if(textoGuardado)abrirWhatsappAppDirectamente(textoGuardado);
  });
- const leerSeleccion=()=>({
-  personal:obtenerPersonalSeleccionado(host),
-  ...obtenerMovilidadSeleccionada(host),
-  elementos:obtenerElementosSeleccionados(host)
- });
+ const leerSeleccion=()=>{
+  const seleccion={
+   personal:obtenerPersonalSeleccionado(host),
+   ...obtenerMovilidadSeleccionada(host),
+   elementos:obtenerElementosSeleccionados(host)
+  };
+  if(tipo==='ACOPLE'){
+   const nuevos=seleccion.personal.filter(nombre=>!(vigentes.personal||[]).includes(nombre));
+   const vehiculos=[...(seleccion.moviles||[]).filter(numero=>!(vigentes.moviles||[]).includes(numero)),
+    ...(seleccion.motos||[]).filter(numero=>!(vigentes.motos||[]).includes(numero))];
+   seleccion.asignaciones_moviles=Object.fromEntries(vehiculos.map(numero=>[
+    numero,nuevos.filter(nombre=>asignacionesPorPersona.get(nombre)===numero)
+   ]).filter(([,personal])=>personal.length));
+  }
+  return seleccion;
+ };
  boton.addEventListener('click',async()=>{
   if(boton.disabled)return;
   error.textContent='';
@@ -70,6 +136,7 @@ export async function iniciarFormularioMovimiento({host,modo,operativoSelecciona
   let confirmacion;
   try{
    confirmacion=prepararConfirmacionMovimiento({modo:tipo,actual:vigentes,seleccion});
+   if(tipo==='ACOPLE')validarAsignacionesAcople(confirmacion.movimiento,seleccion.asignaciones_moviles);
   }catch(e){
    error.textContent=e?.message||'Revisá la selección antes de guardar.';
    return;
