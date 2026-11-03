@@ -118,7 +118,7 @@ test("ACOPLE redacta naturalmente el móvil incorporado y su personal a cargo",(
  assert.match(salida,/\*Horario:\* 21:30 A 23:00 HS/);
  assert.match(salida,/\*Móviles:\* 12502 \/ 10139/);
  assert.match(salida,/Pda: 67 \/ 68/);
- assert.match(salida,/\*Observaciones:\*\nSiendo las 21:59 hs se acoplan al operativo el Móvil N° 10139 a cargo de Subinspector Rios Ana y Suboficial de Policia Vera Matias; asimismo, se incorporan los siguientes Elementos: Pda 68\./);
+ assert.match(salida,/\*Observaciones:\*\nSiendo las 21:59 hs se acoplan al operativo el Móvil N° 10139 a cargo de Subinspector Rios Ana y Suboficial de Policia Vera Matias; asimismo, se incorpora el siguiente Elemento: Pda 68\./);
  assert.doesNotMatch(salida,/Personal incorporado:|Elementos incorporados:|Los recursos anteriores permanecen afectados/);
  assert.deepEqual(movimiento.incorporados.personal,["Suboficial de Policia Vera Matias","Subinspector Rios Ana"]);
  assert.deepEqual(movimiento.vigente.moviles,["12502","10139"]);
