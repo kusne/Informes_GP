@@ -154,9 +154,10 @@ function resolverPlaceholder(modo) {
   return "Seleccionar";
 }
 
-function resolverTextoSinItems(modo) {
-  if (modo === "INICIA") return "No hay operativos pendientes para iniciar.";
-  if (modo === "FINALIZA") return "No hay operativos en curso para finalizar.";
+export function resolverTextoSinItems(modo) {
+  if (modo === "INICIA") return "NO HAY OPERATIVOS A INICIAR";
+  if (["ACOPLE", "RELEVO", "RETIRO", "FINALIZA"].includes(modo))
+    return "NO HAY OPERATIVOS EN CURSO";
   if (modo === "INFORMES") return "No hay modelos de informes disponibles.";
 
   return "No hay opciones disponibles.";
