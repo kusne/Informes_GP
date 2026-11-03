@@ -90,22 +90,6 @@ export function construirTextoFinalizadoBase(finalizado) {
     }
   }
 
-mite el encabezado si todos sus numerales están en cero.
-  if ((!resultadosOpcionales || Boolean(f.agregar_controlados)) && (!esPresenciaActiva || tieneMedidas)) {
-    const medidas = [
-      ["Remisión", f.remision],
-      ["Retención", f.retencion],
-      ["Prohibición de Circulación", f.prohibicion_circulacion],
-      ["Cesión de Conducción", f.cesion_conduccion]
-    ].filter(([, valor]) => numero(valor) > 0);
-
-    if (medidas.length) {
-      lineas.push("Medidas Cautelares:");
-      medidas.forEach(([etiqueta, valor]) => lineas.push(`${etiqueta}: (${cantidad(valor)})`));
-    }
-
-  }
-
   lineas.push("");
   lineas.push(negrita("Observaciones:"));
   lineas.push(construirObservacionesFinalizado({
