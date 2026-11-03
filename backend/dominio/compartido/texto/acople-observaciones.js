@@ -80,7 +80,8 @@ export function redactarObservacionAcople(movimiento = {}, hora = "") {
   const asignaciones = validarAsignacionesAcople(movimiento, movimiento.asignaciones_moviles);
   const asociados = new Set(Object.values(asignaciones).flat());
   const sinAsignar = personal.filter(nombre => !asociados.has(nombre));
-  const seAcoplan = (personal.length + moviles.length + elementos.length) === 1
+  const singular = (personal.length + moviles.length + elementos.length) === 1;
+  const seAcoplan = singular
     ? "se acopla" : "se acoplan";
   const comienzo = "Siendo las " + String(hora).trim() + " hs " + seAcoplan + " al operativo ";
 
@@ -97,13 +98,15 @@ export function redactarObservacionAcople(movimiento = {}, hora = "") {
   } else if (personal.length) {
     relato = comienzo + enumerar(personal);
   } else if (elementos.length) {
-    relato = comienzo + "los siguientes Elementos: " + enumerar(elementos);
+    relato = comienzo + (elementos.length===1 ? "el siguiente Elemento: " : "los siguientes Elementos: ") + enumerar(elementos);
   } else {
     throw Error("ACOPLE: no existen recursos nuevos para redactar el informe.");
   }
 
   if (elementos.length && (personal.length || moviles.length)) {
-    relato += "; asimismo, se incorporan los siguientes Elementos: " + enumerar(elementos);
+    relato += elementos.length===1
+      ? "; asimismo, se incorpora el siguiente Elemento: " + elementos[0]
+      : "; asimismo, se incorporan los siguientes Elementos: " + enumerar(elementos);
   }
   return relato + ".";
 }
