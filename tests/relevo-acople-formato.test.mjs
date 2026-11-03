@@ -48,8 +48,8 @@ test("RELEVO recobra el móvil y el personal original aunque el catálogo estát
  assert.match(t,/\*Elementos:\*\nEscopetas: \//);
  assert.match(t,/\*Observaciones:\*/);
  assert.match(t,/Siendo las 13:43 hs/);
- assert.match(t,/Se releva al Móvil N° 10139/);
- assert.match(t,/a cargo del personal saliente:/);
+ assert.match(t,/Móvil que se retira: 10139/);
+ assert.match(t,/Personal policial que se retira:/);
  assert.match(t,/Gonzalez Carlos Nestor/);
  assert.match(t,/Rodriguez Nahuel Nicolas/);
  assert.doesNotMatch(t,/Fecha de guardia|sin recursos|api\.whatsapp\.com/);
@@ -69,8 +69,8 @@ test("RELEVO posterior con mismo personal y móvil no inventa un segundo retiro"
  assert.deepEqual(m.retirados.personal,[]);
  assert.deepEqual(m.retirados.moviles,[]);
  const t=textoMovimiento(m,op,"14:08");
- assert.match(t,/En este relevo no se registra retiro de personal ni de móviles/);
- assert.match(t,/Elementos retirados: ARSA-0360 \/ N°64 \/ ARLM-0652/);
+ assert.doesNotMatch(t,/Personal policial que se retira:|Móvil que se retira:|Móviles que se retiran:/);
+ assert.match(t,/Elementos que se retiran:.*ARSA-0360.*N°64.*ARLM-0652/);
  assert.doesNotMatch(t,/10139|Subinspector Gonzalez|Suboficial de Policia Rodriguez/);
 });
 
