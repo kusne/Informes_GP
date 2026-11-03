@@ -7,12 +7,13 @@ import { construirTextoInicioBase } from "../backend/dominio/inicia/inicio-salid
 import { resolverRecursosInicioParaFinaliza } from "../backend/dominio/finaliza/recursos-finaliza.js";
 import { construirResumenRecursosOperativos } from "../backend/dominio/compartido/recursos/catalogo-recursos-operativos.js";
 import { calcularMovimientoRecursos } from "../backend/dominio/compartido/recursos/movimientos-recursos.js";
+import { redactarObservacionRelevo } from "../backend/dominio/compartido/texto/relevo-observaciones.js";
 
 const directorio=dirname(fileURLToPath(import.meta.url));
 const repoTexto=readFileSync(resolve(directorio,"../backend/infraestructura/supabase/movimientos-recursos-repo.js"),"utf8");
 const bloque=repoTexto.slice(repoTexto.indexOf("const movilidad ="),repoTexto.indexOf("export async function guardarMovimientoOperativo"));
 assert.ok(bloque.startsWith("const movilidad ="),"El formateador de movimientos debe poder localizarse");
-const { textoMovimiento }=new Function("construirTextoInicioBase","construirResumenRecursosOperativos",bloque.replace("export function textoMovimiento","function textoMovimiento")+";return {textoMovimiento};")(construirTextoInicioBase,construirResumenRecursosOperativos);
+const { textoMovimiento }=new Function("construirTextoInicioBase","construirResumenRecursosOperativos","redactarObservacionRelevo",bloque.replace("export function textoMovimiento","function textoMovimiento")+";return {textoMovimiento};")(construirTextoInicioBase,construirResumenRecursosOperativos,redactarObservacionRelevo);
 
 const op={
  guardia_fecha:"2026-10-15",
@@ -48,8 +49,8 @@ test("RELEVO recobra el móvil y el personal original aunque el catálogo estát
  assert.match(t,/\*Elementos:\*\nEscopetas: \//);
  assert.match(t,/\*Observaciones:\*/);
  assert.match(t,/Siendo las 13:43 hs/);
- assert.match(t,/Móvil que se retira: 10139/);
- assert.match(t,/Personal policial que se retira:/);
+ assert.match(t,/con Móvil N° 10139/);
+ assert.match(t,/retirándose del mismo personal policial: /);
  assert.match(t,/Gonzalez Carlos Nestor/);
  assert.match(t,/Rodriguez Nahuel Nicolas/);
  assert.doesNotMatch(t,/Fecha de guardia|sin recursos|api\.whatsapp\.com/);
@@ -70,7 +71,10 @@ test("RELEVO posterior con mismo personal y móvil no inventa un segundo retiro"
  assert.deepEqual(m.retirados.moviles,[]);
  const t=textoMovimiento(m,op,"14:08");
  assert.doesNotMatch(t,/Personal policial que se retira:|Móvil que se retira:|Móviles que se retiran:/);
- assert.match(t,/Elementos que se retiran:.*ARSA-0360.*N°64.*ARLM-0652/);
+ assert.match(t,/los siguientes Elementos: /);
+ assert.match(t,/Impresora N°64/);
+ assert.match(t,/Alómetro ARSA-0360/);
+ assert.match(t,/Alcoholímetro ARLM-0652/);
  assert.doesNotMatch(t,/10139|Subinspector Gonzalez|Suboficial de Policia Rodriguez/);
 });
 

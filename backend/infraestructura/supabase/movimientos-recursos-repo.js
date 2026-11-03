@@ -1,3 +1,4 @@
+import { redactarObservacionRelevo } from "../../dominio/compartido/texto/relevo-observaciones.js";
 import { obtenerEstadoOperativoV2 } from "./operativos-estado-v2-repo.js";
 import { supabase, TABLAS_SUPABASE } from "./supabase-client.js";
 import { resolverRecursosInicioParaFinaliza } from "../../dominio/finaliza/recursos-finaliza.js";
@@ -46,22 +47,14 @@ function describirElementosRetirados(grupos={}) {
  if(detalles.length<=1)return detalles[0]||'';
  return detalles.slice(0,-1).join(', ')+' y '+detalles[detalles.length-1];
 }
-function redactarObservacionMovimiento(m,hora){
+function redactarObservacionMovimiento(m,hora,operativo){
  const partes=[];
  const retirados=movilidad(m.retirados),incorporados=movilidad(m.incorporados);
  if(m.modo==="RELEVO"){
-  const salientes=ordenarPersonal(m.retirados.personal||[]);
-  const elementos=describirElementosRetirados(m.retirados.elementos);
-  partes.push("Siendo las "+hora+" hs se procede a efectuar el relevo del operativo.");
-  // No atribuir el móvil saliente a un efectivo sin constancia de quién lo condujo.
-  if(salientes.length)partes.push("Personal policial que se retira: "+salientes.join(", ")+".");
-  if(retirados.length)partes.push((retirados.length===1
-   ?"Móvil que se retira: ":"Móviles que se retiran: ")+mostrar(retirados)+".");
-  if(elementos)partes.push("Elementos que se retiran: "+elementos+".");
-  // El cuerpo del informe describe exclusivamente la dotación que permanece.
-  // El movimiento conserva por separado las bajas para auditoría y FINALIZADO.
-  partes.push("Permanece afectada al operativo la dotación indicada precedentemente.");
- }else if(m.modo==='RETIRO'){
+  // Única puerta de entrada al contrato institucional encapsulado de RELEVO.
+  return redactarObservacionRelevo(m,hora,{
+   tratamientosPersonal:operativo?.datos?.tratamientos_personal
+  }); }else if(m.modo==='RETIRO'){
   const salientes=ordenarPersonal(m.retirados.personal||[]);
   const elementos=describirElementosRetirados(m.retirados.elementos);
   const personas=salientes.length<2?salientes.join(''):
@@ -131,7 +124,7 @@ export function textoMovimiento(m,operativo,hora){
   lugar:operativo.lugar,
   tipo_operativo:operativo.tipo_operativo,
   operativo,
-  formulario:{...resumen,observaciones:redactarObservacionMovimiento(m,hora)}
+  formulario:{...resumen,observaciones:redactarObservacionMovimiento(m,hora,operativo)}
  });
  // El informe muestra únicamente los recursos vigentes; las bajas se conservan
  // en movimiento.retirados para el historial y la auditoría.
