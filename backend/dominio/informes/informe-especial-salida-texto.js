@@ -353,7 +353,20 @@ function construirObservacionAlcoholemia(informe, f = {}, c = {}) {
     partes.push("También se realizó el procedimiento correspondiente conforme Decreto 460/22.");
   }
 
+  const juzgado = resolverJuzgadoAlcoholemia(f);
+  if (juzgado) partes.push(`Juzgado interviniente: ${juzgado}.`);
+
   return partes.join(" ");
+}
+
+function resolverJuzgadoAlcoholemia(f = {}) {
+  const codigos = {
+    "SANTA FE": "SANTA FE", RINCON: "RINCÓN", RECREO: "RECREO",
+    "SAUCE VIEJO": "SAUCE VIEJO", "SANTO TOME": "SANTO TOMÉ"
+  };
+  const elegido = texto(f.juzgado).toLocaleUpperCase("es-AR");
+  if (elegido === "OTRO") return texto(f.juzgado_otro).toLocaleUpperCase("es-AR");
+  return codigos[elegido] || "";
 }
 
 function construirLicenciaObservacionAlcoholemia(f = {}) {
@@ -411,6 +424,7 @@ function formatearTipoVehiculoAlcoholemia(valor) {
     SEDAN: "SEDÁN",
     PICK_UP: "PICK UP",
     CAMIONETA: "CAMIONETA",
+    RURAL: "RURAL",
     FURGON: "FURGÓN",
     FURGONETA: "FURGONETA",
     OTROS: "OTROS"

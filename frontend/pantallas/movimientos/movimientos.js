@@ -1,4 +1,4 @@
-import { obtenerCatalogoRecursosOperativos, modoEnsayoActivo, validarAsignacionesAcople } from "../../../api/app-api.js";
+import { obtenerCatalogoRecursosOperativos, filtrarCatalogoRecursosAcople, modoEnsayoActivo, validarAsignacionesAcople } from "../../../api/app-api.js";
 import { renderPersonalPolicial, obtenerPersonalSeleccionado } from "../inicia/componentes/personal-policial/personal-policial.js";
 import { renderMovilidad, obtenerMovilidadSeleccionada } from "../inicia/componentes/movilidad/movilidad.js";
 import { renderElementos, obtenerElementosSeleccionados } from "../inicia/componentes/elementos/elementos.js";
@@ -50,10 +50,13 @@ export async function iniciarFormularioMovimiento({host,modo,operativoSelecciona
  for(const grupo of catalogo.elementos){
   grupo.items=tipo==='RETIRO'?(vigentes.elementos?.[grupo.clave]||[]):unir(grupo.items,vigentes.elementos?.[grupo.clave]);
  }
+ // ACOPLE: ofrecer únicamente altas no presentes en el INICIO ni en
+ // movimientos posteriores. La dotación vigente se toma de Supabase V2.
+ const opciones=tipo==='ACOPLE'?filtrarCatalogoRecursosAcople(catalogo,vigentes):catalogo;
 
- renderPersonalPolicial({host:host.querySelector('[data-personal]'),personal:catalogo.personal,seleccionInicial:[]});
- renderMovilidad({host:host.querySelector('[data-movilidad]'),moviles:catalogo.moviles,motos:catalogo.motos,seleccionInicial:{moviles:[],motos:[]}});
- renderElementos({host:host.querySelector('[data-elementos]'),grupos:catalogo.elementos,seleccionInicial:{}});
+ renderPersonalPolicial({host:host.querySelector('[data-personal]'),personal:opciones.personal,seleccionInicial:[]});
+ renderMovilidad({host:host.querySelector('[data-movilidad]'),moviles:opciones.moviles,motos:opciones.motos,seleccionInicial:{moviles:[],motos:[]}});
+ renderElementos({host:host.querySelector('[data-elementos]'),grupos:opciones.elementos,seleccionInicial:{}});
 
  // Sólo ACOPLE: el vínculo de cada efectivo con un móvil es explícito.
  // La selección de recursos NO implica automáticamente que viajan juntos.

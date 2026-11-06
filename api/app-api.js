@@ -146,6 +146,9 @@ export {
   presentarPersonalOperativo
 } from "../backend/dominio/compartido/recursos/catalogo-recursos-operativos.js";
 
+// ACOPLE: selección diferencial sobre recursos realmente vigentes.
+export { filtrarCatalogoRecursosAcople } from "../backend/dominio/compartido/recursos/recursos-acople-disponibles.js";
+
 // ACOPLE: contrato de asociaciones explícitas entre efectivos y móviles.
 export { validarAsignacionesAcople } from "../backend/dominio/compartido/texto/acople-observaciones.js";
 
