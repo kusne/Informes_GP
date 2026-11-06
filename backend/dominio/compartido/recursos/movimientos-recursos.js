@@ -10,6 +10,7 @@ export function calcularMovimientoRecursos({modo,actual={},seleccion={}}={}){
   antiguo[grupo]=normalizar(actual[grupo]);
   const escogidos=normalizar(seleccion[grupo]);
   if(tipo==='RETIRO' && escogidos.some(x=>!antiguo[grupo].includes(x)))throw Error('RETIRO: se seleccionó un recurso que no pertenece a la dotación vigente ('+grupo+').');
+  if(tipo==='ACOPLE' && escogidos.some(x=>antiguo[grupo].includes(x)))throw Error('ACOPLE: el recurso ya está incorporado al operativo ('+grupo+'). Volvé a abrir el formulario.');
   nuevo[grupo]=tipo==='RELEVO'?escogidos:tipo==='RETIRO'?antiguo[grupo].filter(x=>!escogidos.includes(x)):normalizar([...antiguo[grupo],...escogidos]);
   retirados[grupo]=antiguo[grupo].filter(x=>!nuevo[grupo].includes(x));
   incorporados[grupo]=nuevo[grupo].filter(x=>!antiguo[grupo].includes(x));
@@ -19,6 +20,7 @@ export function calcularMovimientoRecursos({modo,actual={},seleccion={}}={}){
  for(const grupo of new Set([...Object.keys(actual.elementos||{}),...Object.keys(seleccion.elementos||{})])){
   const previo=normalizar(actual.elementos?.[grupo]),elegido=normalizar(seleccion.elementos?.[grupo]);
   if(tipo==='RETIRO' && elegido.some(x=>!previo.includes(x)))throw Error('RETIRO: se seleccionó un elemento que no pertenece a la dotación vigente ('+grupo+').');
+  if(tipo==='ACOPLE' && elegido.some(x=>previo.includes(x)))throw Error('ACOPLE: el elemento ya está incorporado al operativo ('+grupo+'). Volvé a abrir el formulario.');
   const despues=tipo==='RELEVO'?elegido:tipo==='RETIRO'?previo.filter(x=>!elegido.includes(x)):normalizar([...previo,...elegido]);
   antiguo.elementos[grupo]=previo;
   nuevo.elementos[grupo]=despues;

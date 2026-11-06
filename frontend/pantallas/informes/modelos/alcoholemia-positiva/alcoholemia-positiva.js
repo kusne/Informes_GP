@@ -90,7 +90,9 @@ export async function iniciarModeloInformeUI({ form } = {}) {
   campoLicenciaDni?.addEventListener("change", actualizarRetencionLicenciaFisica);
   checkboxLicenciaDigital?.addEventListener("change", actualizarRetencionLicenciaFisica);
   actualizarRetencionLicenciaFisica();
-  actualizarJuzgado = iniciarSelectorJuzgado(form, { selectorRetencion: '[name="medida_retencion"]' });
+  // En ALCOHOLEMIA el juzgado se elige también cuando no hay retención.
+  // No modificar el selector compartido usado por otros modelos.
+  actualizarJuzgado = iniciarSelectorJuzgado(form);
 }
 
 export async function iniciarAlcoholemiaPositiva({

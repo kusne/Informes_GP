@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { construirTextoInformeEspecial } from "../backend/dominio/informes/informe-especial-salida-texto.js";
 import { mapearInformeEspecialParaSupabase } from "../backend/dominio/informes/informe-especial-mapper-supabase.js";
 
-test("ALCOHOLEMIA positiva con licencia retenida no imprime JUZGADO al final", () => {
+test("ALCOHOLEMIA positiva imprime juzgado elegido dentro de OBSERVACIÓN", () => {
   const informe = {
     modelo:"ALCOHOLEMIA_POSITIVA",
     lugar:"RN 168 KM7,5",
@@ -20,8 +20,8 @@ test("ALCOHOLEMIA positiva con licencia retenida no imprime JUZGADO al final", (
   const salida = construirTextoInformeEspecial(informe);
   assert.match(salida,/RETENCIÓN DE LICENCIA DE CONDUCIR/);
   assert.match(salida,/\*OBSERVACIÓN:\*/);
-  assert.doesNotMatch(salida,/JUZGADO|RINC[OÓ]N/i);
-  assert.ok(salida.trim().endsWith("RETENCIÓN DE LICENCIA DE CONDUCIR."));
+  assert.match(salida,/\*OBSERVACIÓN:\*[^]*Juzgado interviniente: RINCÓN\./);
+  assert.ok(salida.trim().endsWith("Juzgado interviniente: RINCÓN."));
   assert.equal(informe.formulario.juzgado,"RINCON");
 });
 
