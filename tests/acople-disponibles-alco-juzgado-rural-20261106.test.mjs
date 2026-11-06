@@ -44,16 +44,16 @@ test("ACOPLE posterior excluye también los recursos incorporados por ACOPLE pre
  assert.deepEqual(disponibles.elementos[0].items,["68"]);
 });
 
-test("ACOPLE no permite reiterar recursos vigentes aunque se envíe selección manipulada", () => {
+test("ACOPLE mantiene la compatibilidad con CONTROL SUPERIOR sin duplicar recursos", () => {
  const actual={personal:["A"],moviles:["10139"],elementos:{pda:["67"]}};
- assert.throws(()=>calcularMovimientoRecursos({modo:"ACOPLE",actual,
-  seleccion:{personal:["A","B"]}}),/ya está incorporado/);
- assert.throws(()=>calcularMovimientoRecursos({modo:"ACOPLE",actual,
-  seleccion:{elementos:{pda:["67","68"]}}}),/ya está incorporado/);
  const movimiento=calcularMovimientoRecursos({modo:"ACOPLE",actual,
-  seleccion:{personal:["B"],elementos:{pda:["68"]}}});
+  seleccion:{personal:["A","B"],elementos:{pda:["67","68"]}}});
  assert.deepEqual(movimiento.vigente.personal,["A","B"]);
  assert.deepEqual(movimiento.vigente.elementos.pda,["67","68"]);
+ assert.deepEqual(movimiento.incorporados.personal,["B"]);
+ assert.deepEqual(movimiento.incorporados.elementos.pda,["68"]);
+ assert.throws(()=>calcularMovimientoRecursos({modo:"ACOPLE",actual,
+  seleccion:{personal:["A"]}}),/No se seleccionaron recursos nuevos/);
 });
 
 test("ALCOHOLEMIA ofrece Juzgado sin requerir retención y contiene RURAL", () => {
