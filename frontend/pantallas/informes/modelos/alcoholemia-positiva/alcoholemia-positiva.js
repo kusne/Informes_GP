@@ -1,6 +1,6 @@
 import { iniciarModeloInformeEspecial } from "../../compartido/informe-especial-builder.js";
 import { iniciarSelectorJuzgado } from "../../compartido/selector-juzgado.js";
-import { interpretarLicenciaDniAlcoholemia } from "../../../../../backend/dominio/informes/licencia-dni-alcoholemia.js";
+import { resolverRetencionPorLicenciaDni } from "../../../../../backend/dominio/informes/licencia-dni-alcoholemia.js";
 
 export async function iniciarModeloInformeUI({ form } = {}) {
   if (!form) return;
@@ -54,36 +54,30 @@ export async function iniciarModeloInformeUI({ form } = {}) {
   tipoVehiculo?.addEventListener("change", actualizarVisibilidad460);
   actualizarVisibilidad460();
 
-  // El primer código alfabético identifica clase incluso si contiene
-  // un DNI de ocho dígitos: "B2 27762328" sigue siendo licencia física.
-  // Sólo un número aislado de ocho dígitos se interpreta como DNI.
-  // La retención continúa siendo editable y nunca se fuerza tras destildarla.
-  // Sigue siendo editable: si el usuario la destilda manualmente,
-  // no se vuelve a marcar mientras continúe la misma condición.
-  let licenciaFisicaAnterior = false;
+  // ACOTADO AL INFORME DE ALCOHOLEMIA:
+  // clase física (B2, A1.3, F...) => Retención sugerida tildada;
+  // DNI aislado de 8 cifras (30787085) => Retención destildada.
+  // Conservar edición manual mientras siga siendo la misma clase física.
+  let tipoLicenciaAnterior = "SIN_DATO";
   let retencionMarcadaAutomaticamente = false;
 
   const actualizarRetencionLicenciaFisica = () => {
-    const dato = interpretarLicenciaDniAlcoholemia(campoLicenciaDni?.value);
-    const licenciaFisica = dato.tipo === "LICENCIA"
-      && !Boolean(checkboxLicenciaDigital?.checked);
-
-    if (licenciaFisica && !licenciaFisicaAnterior && checkboxRetencion) {
-      if (!checkboxRetencion.checked) {
-        checkboxRetencion.checked = true;
-        retencionMarcadaAutomaticamente = true;
-      }
-    } else if (!licenciaFisica && retencionMarcadaAutomaticamente && checkboxRetencion) {
-      checkboxRetencion.checked = false;
-      retencionMarcadaAutomaticamente = false;
-    }
-
-    licenciaFisicaAnterior = licenciaFisica;
+    if (!checkboxRetencion) return;
+    const siguiente = resolverRetencionPorLicenciaDni({
+      valor: campoLicenciaDni?.value,
+      licenciaDigital: Boolean(checkboxLicenciaDigital?.checked),
+      tipoAnterior: tipoLicenciaAnterior,
+      retencionMarcada: checkboxRetencion.checked,
+      marcadaAutomaticamente: retencionMarcadaAutomaticamente
+    });
+    checkboxRetencion.checked = siguiente.marcada;
+    retencionMarcadaAutomaticamente = siguiente.automatica;
+    tipoLicenciaAnterior = siguiente.tipo;
     actualizarJuzgado();
   };
 
   checkboxRetencion?.addEventListener("change", () => {
-    // Desde este momento prevalece la elección manual del usuario.
+    // La medida sigue siendo editable; un DNI nuevo la desmarca por seguridad.
     retencionMarcadaAutomaticamente = false;
   });
   campoLicenciaDni?.addEventListener("input", actualizarRetencionLicenciaFisica);

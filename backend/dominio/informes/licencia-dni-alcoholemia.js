@@ -1,5 +1,5 @@
 /**
- * Intérprete del único campo visible «Licencia / DNI».
+ * Intérprete del único campo visible «CLASE LIC./DNI».
  * Catálogo de clases suministrado por la Brigada Motorizada.
  *
  * Ejemplos:
@@ -69,4 +69,45 @@ export function interpretarLicenciaDniAlcoholemia(valor) {
   // Deduplicar y conservar orden de ingreso sin perder clases informadas.
   const clases = [...new Set(tokens)];
   return resultado("LICENCIA", clases, dni, true);
+}
+
+
+/**
+ * Retención sugerida exclusivamente por el campo CLASE LIC./DNI en ALCOHOLEMIA.
+ *
+ * Una clase física válida la marca por defecto. Un DNI aislado de ocho cifras
+ * la destilda SIEMPRE, incluso si estaba marcada manualmente. Cuando el
+ * usuario destilda una licencia física, se respeta su elección hasta cambiar
+ * el tipo del dato. Una licencia digital no genera retención automática.
+ *
+ * Función pura: la interfaz decide cuándo aplicar el estado al checkbox.
+ */
+export function resolverRetencionPorLicenciaDni({
+  valor = "",
+  licenciaDigital = false,
+  tipoAnterior = "SIN_DATO",
+  retencionMarcada = false,
+  marcadaAutomaticamente = false
+} = {}) {
+  const lectura = interpretarLicenciaDniAlcoholemia(valor);
+  const tipo = lectura.tipo === "DNI"
+    ? "DNI"
+    : lectura.tipo === "LICENCIA" && !licenciaDigital
+      ? "LICENCIA_FISICA"
+      : "SIN_DATO";
+
+  if (tipo === "DNI") {
+    return { tipo, marcada: false, automatica: false };
+  }
+  if (tipo === "LICENCIA_FISICA" && tipoAnterior !== "LICENCIA_FISICA") {
+    return { tipo, marcada: true, automatica: true };
+  }
+  if (tipo !== "LICENCIA_FISICA" && marcadaAutomaticamente) {
+    return { tipo, marcada: false, automatica: false };
+  }
+  return {
+    tipo,
+    marcada: Boolean(retencionMarcada),
+    automatica: Boolean(marcadaAutomaticamente)
+  };
 }
