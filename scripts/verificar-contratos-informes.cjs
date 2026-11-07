@@ -10,6 +10,7 @@ function gitSha(blob){return crypto.createHash("sha1").update(Buffer.from("blob 
 function esModelo(r){
   return /^frontend\/pantallas\/informes\/modelos\/[^/]+\//.test(r)
     || /^backend\/dominio\/informes\/modelos\/[^/]+\//.test(r)
+    || /^backend\/dominio\/movimientos\//.test(r)
     || /^frontend\/pantallas\/(inicia|finaliza|movimientos)\//.test(r)
     || /^frontend\/pantallas\/informes\/(compartido|componentes)\//.test(r)
     || /^backend\/dominio\/(inicia|finaliza|compartido|informes)\//.test(r)

@@ -426,6 +426,56 @@
         "presencia-activa"
       ]
     },
+    "backend/dominio/movimientos/acople/informe.js": {
+      "sha": "ad8c12c28dc0f6ecabe76438338514fb06703d07",
+      "alcance": [
+        "acople"
+      ]
+    },
+    "backend/dominio/movimientos/acople/plantilla.js": {
+      "sha": "52e82cb005b758ba3d7d7210978c195b49c3cb5f",
+      "alcance": [
+        "acople"
+      ]
+    },
+    "backend/dominio/movimientos/relevo/informe.js": {
+      "sha": "1fba215dd32c88253a8ae40abef3cd3436d50936",
+      "alcance": [
+        "relevo"
+      ]
+    },
+    "backend/dominio/movimientos/relevo/plantilla.js": {
+      "sha": "69cb667bb2c01bc47ec3aaf65c32c454a03e376e",
+      "alcance": [
+        "relevo"
+      ]
+    },
+    "backend/dominio/movimientos/retiro/informe.js": {
+      "sha": "0afb7b9e0e5e13dc5e1f28d75efa29e41e012b6c",
+      "alcance": [
+        "retiro"
+      ]
+    },
+    "backend/dominio/movimientos/retiro/observaciones.js": {
+      "sha": "92a9f1641afb04c22af3616a0ebe630a6d0c276a",
+      "alcance": [
+        "retiro"
+      ]
+    },
+    "backend/dominio/movimientos/retiro/plantilla.js": {
+      "sha": "b88f9474007b9d7fac133ef3ac5577f857c7a04a",
+      "alcance": [
+        "retiro"
+      ]
+    },
+    "backend/dominio/movimientos/texto-movimiento.js": {
+      "sha": "c26e8d452880b263b33e108f7cb57a408bf3bc90",
+      "alcance": [
+        "relevo",
+        "acople",
+        "retiro"
+      ]
+    },
     "backend/infraestructura/supabase/informes-especiales-v2-repo.js": {
       "sha": "6d2fec237c89a1a09a91dfa0baae57011a8b24c9",
       "alcance": [
@@ -445,7 +495,7 @@
       ]
     },
     "backend/infraestructura/supabase/movimientos-recursos-repo.js": {
-      "sha": "621732fce2eabe2cfc62ed8419769465adb92643",
+      "sha": "7d1fbf6301993483f7e76baf205f9634dcc6e2fe",
       "alcance": [
         "relevo",
         "acople",
