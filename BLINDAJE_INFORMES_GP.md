@@ -15,3 +15,10 @@ Los siete informes especiales tienen frontend exclusivo y backend separado por m
 
 Los hashes impiden cambios accidentales, no sustituyen los permisos GitHub ni impiden que un usuario con escritura altere el manifiesto. Los módulos genéricos siguen requiriendo pruebas de compatibilidad. No se alteran tablas ni datos de producción.
 
+
+## Aislamiento de movimientos (2026-11-07)
+- RELEVO, ACOPLE y RETIRO ahora usan tres carpetas backend/dominio/movimientos/{relevo,acople,retiro}, con su plantilla y generador documental particulares.
+- RETIRO tiene un generador de observaciones propio; RELEVO y ACOPLE conservan sus narradores aprobados. El registro Supabase es una fachada y no compone los informes.
+- Las plantillas se copiaron de la versión aprobada de INICIO para que futuras modificaciones a INICIO no cambien la salida de movimientos.
+- Las transiciones de dotación, el bloqueo por estado, concurrencia e histórico de eventos mantienen el backend común; cambiar ese contrato requiere autorización transversal y tests.
+- Los módulos separados están protegidos por hashes y controles de alcance.

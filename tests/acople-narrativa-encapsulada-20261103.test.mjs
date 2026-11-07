@@ -90,10 +90,11 @@ test("no admite asignación a móvil existente, efectivos no incorporados ni dob
 });
 
 test("el formateador permanece aislado; UI solicita la asignación y el evento la conserva",()=>{
- const repo=readFileSync(new URL("../backend/infraestructura/supabase/movimientos-recursos-repo.js",import.meta.url),"utf8");
+ const repo=readFileSync(new URL("../backend/dominio/movimientos/acople/informe.js",import.meta.url),"utf8");
+ const persistencia=readFileSync(new URL("../backend/infraestructura/supabase/movimientos-recursos-repo.js",import.meta.url),"utf8");
  const frontend=readFileSync(new URL("../frontend/pantallas/movimientos/movimientos.js",import.meta.url),"utf8");
- assert.match(repo,/return redactarObservacionAcople\(m,hora\)/);
- assert.match(repo,/movimiento\.asignaciones_moviles=validarAsignacionesAcople/);
+ assert.match(repo,/redactarObservacionAcople\(m,hora\)/);
+ assert.match(persistencia,/movimiento\.asignaciones_moviles=validarAsignacionesAcople/);
  assert.match(frontend,/Sin asignar/);
  assert.match(frontend,/validarAsignacionesAcople\(confirmacion\.movimiento/);
  assert.doesNotMatch(frontend,/asignacionesPorPersona\.set\(nombre,nuevos\[0\]\)/);

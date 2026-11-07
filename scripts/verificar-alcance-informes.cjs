@@ -12,6 +12,9 @@ function alcance(r){
  if(contratos.archivos[r])return contratos.archivos[r].alcance;
  const m=r.match(/^frontend\/pantallas\/informes\/modelos\/([^/]+)\//)||r.match(/^backend\/dominio\/informes\/modelos\/([^/]+)\//);
  if(m)return [m[1]];
+ const m2=r.match(/^backend\/dominio\/movimientos\/(relevo|acople|retiro)\//);
+ if(m2)return [m2[1]];
+ if(r==="backend/dominio/movimientos/texto-movimiento.js")return ["relevo","acople","retiro"];
  if(/^frontend\/pantallas\/inicia\//.test(r)||/^backend\/dominio\/inicia\//.test(r))return ["inicio","presencia-activa"];
  if(/^frontend\/pantallas\/finaliza\//.test(r)||/^backend\/dominio\/finaliza\//.test(r))return ["finalizado","presencia-activa"];
  if(/^frontend\/pantallas\/movimientos\//.test(r))return ["relevo","acople","retiro"];

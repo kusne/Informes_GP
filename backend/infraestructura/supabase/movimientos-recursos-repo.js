@@ -1,117 +1,17 @@
-import { redactarObservacionAcople, validarAsignacionesAcople } from "../../dominio/compartido/texto/acople-observaciones.js";
-import { redactarObservacionRelevo } from "../../dominio/compartido/texto/relevo-observaciones.js";
+import { textoMovimiento } from "../../dominio/movimientos/texto-movimiento.js";
+import { validarAsignacionesAcople } from "../../dominio/compartido/texto/acople-observaciones.js";
 import { obtenerEstadoOperativoV2 } from "./operativos-estado-v2-repo.js";
 import { supabase, TABLAS_SUPABASE } from "./supabase-client.js";
 import { resolverRecursosInicioParaFinaliza } from "../../dominio/finaliza/recursos-finaliza.js";
 import { calcularMovimientoRecursos } from "../../dominio/compartido/recursos/movimientos-recursos.js";
-import { construirTextoInicioBase } from "../../dominio/inicia/inicio-salida-texto-base.js";
-import { construirResumenRecursosOperativos } from "../../dominio/compartido/recursos/catalogo-recursos-operativos.js";
 
 export function dotacionVigenteOperativo(operativo={}){
  const datos=typeof operativo.datos==='object'&&operativo.datos?operativo.datos:{};
  if(datos.recursos_vigentes)return datos.recursos_vigentes;
  return resolverRecursosInicioParaFinaliza(operativo).seleccionInicial;
 }
-const movilidad = r => [...(r?.moviles || []), ...(r?.motos || [])];
-const mostrar = valores => (valores || []).filter(Boolean).join(" / ");
-const RANGOS = ["COMISARIO GENERAL","COMISARIO MAYOR","COMISARIO SUPERVISOR","COMISARIO",
-  "SUBCOMISARIO","INSPECTOR","SUBINSPECTOR","OFICIAL PRINCIPAL","OFICIAL",
-  "SUBOFICIAL MAYOR","SUBOFICIAL PRINCIPAL","SUBOFICIAL","SARGENTO","CABO","AGENTE"];
-function ordenarPersonal(personal = []) {
- const posicion = nombre => {
-  const n=String(nombre).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase();
-  const i=RANGOS.findIndex(r=>n===r||n.startsWith(r+" ")||n.startsWith(r+" DE POLICIA "));
-  return i<0?RANGOS.length:i;
- };
- // Orden estable: el catálogo ya ordena por N.I. dentro de cada jerarquía.
- return [...personal].sort((a,b)=>posicion(a)-posicion(b));
-}
-// Expone sólo los equipos efectivamente retirados, con cantidad, tipo e identificador.
-function describirElementosRetirados(grupos={}) {
- const nombres={
-  escopetas:['escopeta','escopetas'],
-  ht:['HT','HT'],
-  pda:['PDA','PDA'],
-  impresoras:['impresora','impresoras'],
-  alometros:['alómetro','alómetros'],
-  alcoholimetros:['alcoholímetro','alcoholímetros']
- };
- const detalles=[];
- for(const [grupo,seleccion] of Object.entries(grupos||{})){
-  const elementos=[...new Set((Array.isArray(seleccion)?seleccion:[])
-   .map(valor=>String(valor??'').trim()).filter(Boolean))];
-  if(!elementos.length)continue;
-  const etiquetas=nombres[grupo]||['elemento','elementos'];
-  const cantidad='('+String(elementos.length).padStart(2,'0')+')';
-  detalles.push(cantidad+' '+etiquetas[elementos.length===1?0:1]+' '+mostrar(elementos));
- }
- if(detalles.length<=1)return detalles[0]||'';
- return detalles.slice(0,-1).join(', ')+' y '+detalles[detalles.length-1];
-}
-function redactarObservacionMovimiento(m,hora,operativo){
- const partes=[];
- const retirados=movilidad(m.retirados),incorporados=movilidad(m.incorporados);
- if(m.modo==="RELEVO"){
-  // Única puerta de entrada al contrato institucional encapsulado de RELEVO.
-  return redactarObservacionRelevo(m,hora,{
-   tratamientosPersonal:operativo?.datos?.tratamientos_personal
-  }); }else if(m.modo==='RETIRO'){
-  const salientes=ordenarPersonal(m.retirados.personal||[]);
-  const elementos=describirElementosRetirados(m.retirados.elementos);
-  const personas=salientes.length<2?salientes.join(''):
-    salientes.slice(0,-1).join(', ')+' y '+salientes[salientes.length-1];
-  let accion='';
-  if(salientes.length===1 && retirados.length===1){
-   accion='se retira el '+personas+' con móvil '+retirados[0];
-  }else if(salientes.length && retirados.length===1){
-   accion='se retira el personal policial '+personas+' con móvil '+retirados[0];
-  }else if(salientes.length && retirados.length>1){
-   accion='se retiran los móviles '+mostrar(retirados)+' junto al personal policial '+personas;
-  }else if(salientes.length===1){
-   accion='se retira el '+personas;
-  }else if(salientes.length>1){
-   accion='se retira el personal policial '+personas;
-  }else if(retirados.length===1){
-   accion='se retira el móvil '+retirados[0];
-  }else if(retirados.length>1){
-   accion='se retiran los móviles '+mostrar(retirados);
-  }
-  if(accion){
-   partes.push('Siendo las '+hora+' hs '+accion+(elementos?' llevando '+elementos:'')+'.');
-  }else if(elementos){
-   partes.push('Siendo las '+hora+' hs se retiran del operativo '+elementos+'.');
-  }
-  partes.push('La dotación restante continúa afectada al operativo.');
- }else if(m.modo==='ACOPLE'){
-  return redactarObservacionAcople(m,hora); }
- return partes.join(" ");
-}
-export function textoMovimiento(m,operativo,hora){
- const actual=m.vigente;
- const resumen=construirResumenRecursosOperativos({
-  personal:ordenarPersonal(actual.personal),
-  moviles:actual.moviles,
-  motos:actual.motos,
-  elementos:actual.elementos
- });
- const datos=operativo.datos||{};
- const inicio=datos.inicio_snapshot||{};
- const base=construirTextoInicioBase({
-  prefijoTitulo:m.modo,
-  // Horario institucional: conservar la franja del INICIO; la hora exacta del movimiento va en Observaciones.
-  horarioReporte:(!operativo.hora_inicio && !operativo.hora_fin) ? hora+" HS" : "",
-  fecha_operativo:datos.fecha_operativo||inicio.fecha_operativo||operativo.guardia_fecha,
-  hora_inicio:operativo.hora_inicio,
-  hora_fin:operativo.hora_fin,
-  lugar:operativo.lugar,
-  tipo_operativo:operativo.tipo_operativo,
-  operativo,
-  formulario:{...resumen,observaciones:redactarObservacionMovimiento(m,hora,operativo)}
- });
- // El informe muestra únicamente los recursos vigentes; las bajas se conservan
- // en movimiento.retirados para el historial y la auditoría.
- return base;
-}
+
+export { textoMovimiento };
 export async function guardarMovimientoOperativo({modo,operativo_key,guardia_fecha,seleccion}={}){
  if(!supabase)throw Error('No hay conexión con Supabase.');
  const row=await obtenerEstadoOperativoV2({operativo_key,guardia_fecha});
