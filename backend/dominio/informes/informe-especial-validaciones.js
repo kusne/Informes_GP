@@ -1,222 +1,29 @@
-import { extraerCodigosFalta, getNomencladorFalta } from "../finaliza/numerales/nomenclador.js";
-import { interpretarLicenciaDniAlcoholemia } from "./licencia-dni-alcoholemia.js";
-import { resolverLugarProcedimiento46022 } from "../compartido/lugares/lugar-procedimiento-460-22.js";
+// Fachada pública estable. Las reglas específicas pertenecen al propio modelo.
+import { validarModelo as validar_PROCEDIMIENTO } from "./modelos/procedimiento/validaciones.js";
+import { validarModelo as validar_CONTROL_SUPERIOR } from "./modelos/control-superior/validaciones.js";
+import { validarModelo as validar_ALCOHOLEMIA_POSITIVA } from "./modelos/alcoholemia-positiva/validaciones.js";
+import { validarModelo as validar_DECRETO_460_22 } from "./modelos/decreto-460-22/validaciones.js";
+import { validarModelo as validar_CONTROL_ARMAS } from "./modelos/control-armas/validaciones.js";
+import { validarModelo as validar_RETENCION_LICENCIA } from "./modelos/retencion-licencia/validaciones.js";
+import { validarModelo as validar_REQUISA_VEHICULAR } from "./modelos/requisa-vehicular/validaciones.js";
+
+const VALIDACIONES = Object.freeze({
+  PROCEDIMIENTO: validar_PROCEDIMIENTO,
+  CONTROL_SUPERIOR: validar_CONTROL_SUPERIOR,
+  ALCOHOLEMIA_POSITIVA: validar_ALCOHOLEMIA_POSITIVA,
+  DECRETO_460_22: validar_DECRETO_460_22,
+  CONTROL_ARMAS: validar_CONTROL_ARMAS,
+  RETENCION_LICENCIA: validar_RETENCION_LICENCIA,
+  REQUISA_VEHICULAR: validar_REQUISA_VEHICULAR
+});
 
 export function validarInformeEspecial(informe) {
   const errores = [];
-
-  if (!informe?.modelo) {
-    errores.push("Debe seleccionar un tipo de informe especial.");
-  }
-
-  if (!informe?.operativo_key) {
-    errores.push("Debe seleccionar uno de los últimos operativos iniciados.");
-  }
-
-  if (!informe?.guardia_fecha) {
-    errores.push("No se pudo resolver la guardia_fecha.");
-  }
-
-  if (!informe?.lugar && informe?.modelo !== "DECRETO_460_22") {
-    errores.push("El operativo seleccionado no tiene lugar.");
-  }
-
-  if (informe?.modelo === "PROCEDIMIENTO") {
-    const f=informe.formulario||{};
-    if(!/^PROCEDIMIENTO\b/i.test(texto(f.hecho))) errores.push("HECHO debe comenzar con PROCEDIMIENTO.");
-    if(texto(f.hecho).replace(/^PROCEDIMIENTO\s*(?:POR\s*)?/i,'').length<4) errores.push("Completá el motivo del procedimiento.");
-    if(!texto(f.lugar_hecho)) errores.push("Ingresá el lugar donde ocurre el procedimiento.");
-    if(!/^\d{4}-\d{2}-\d{2}$/.test(texto(f.fecha_hecho))) errores.push("Fecha del procedimiento inválida.");
-    if(!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(texto(f.hora_hecho))) errores.push("Hora real del procedimiento inválida.");
-    if(!texto(f.personal)) errores.push("Completá el personal policial interviniente.");
-    if(!texto(f.moviles)) errores.push("Completá los móviles.");
-    if(!texto(f.observaciones)) errores.push("Completá el relato de observaciones.");
-  }
-
-  if (informe?.modelo === "CONTROL_SUPERIOR") {
-    validarControlSuperior(informe, errores);
-  }
-
-  if (informe?.modelo === "ALCOHOLEMIA_POSITIVA") {
-    validarAlcoholemia(informe, errores);
-  }
-
-  if (informe?.modelo === "DECRETO_460_22") {
-    validarDecreto46022(informe, errores);
-  }
-
-  if (informe?.modelo === "CONTROL_ARMAS") {
-    validarControlArmas(informe, errores);
-  }
-
-  if (informe?.modelo === "RETENCION_LICENCIA") {
-    validarRetencionLicencia(informe, errores);
-  }
-
-  if (informe?.modelo === "REQUISA_VEHICULAR") {
-    validarRequisaVehicular(informe, errores);
-  }
-
+  if (!informe?.modelo) errores.push("Debe seleccionar un tipo de informe especial.");
+  if (!informe?.operativo_key) errores.push("Debe seleccionar uno de los últimos operativos iniciados.");
+  if (!informe?.guardia_fecha) errores.push("No se pudo resolver la guardia_fecha.");
+  if (!informe?.lugar && informe?.modelo !== "DECRETO_460_22") errores.push("El operativo seleccionado no tiene lugar.");
+  const validar = Object.prototype.hasOwnProperty.call(VALIDACIONES, informe?.modelo) ? VALIDACIONES[informe.modelo] : null;
+  if (validar) validar(informe, errores);
   return errores;
-}
-
-function validarControlSuperior(informe, errores) {
-  const f = informe.formulario || {};
-  const hayAutoridad = Boolean(f.autoridad_jefe || f.autoridad_subjefe || f.autoridad_otros);
-
-  if (!hayAutoridad) errores.push("Debe tildar al menos una autoridad de Control Superior.");
-  if (Boolean(f.autoridad_otros) && !texto(f.nombre_autoridad)) {
-    errores.push("Si selecciona Otros, debe completar nombre/cargo de la autoridad.");
-  }
-  if (Boolean(f.movil_otro) && !texto(f.moviles_otros)) {
-    errores.push("Si selecciona Otro móvil, debe completar el/los número/s.");
-  }
-}
-
-function validarAlcoholemia(informe, errores) {
-  const f = informe.formulario || {};
-  const c = informe.calculos || {};
-
-  if (!texto(f.tipo_vehiculo)) errores.push("Debe seleccionar tipo de vehículo.");
-  if (!texto(f.marca)) errores.push("Debe completar marca.");
-  if (!texto(f.modelo_vehiculo)) errores.push("Debe completar modelo.");
-  if (!texto(f.conductor)) errores.push("Debe completar conductor.");
-  if (!texto(f.clase)) errores.push("Debe completar Licencia Clase / DNI.");
-  else if (!interpretarLicenciaDniAlcoholemia(f.clase).valido) {
-    errores.push("Ingresá una o varias clases válidas (ej. A1.3, B2 y G3 27762328) o un DNI de ocho números.");
-  }
-  if (f.licencia_digital && interpretarLicenciaDniAlcoholemia(f.clase).tipo === "DNI") {
-    errores.push("Una licencia digital requiere indicar su clase al inicio del campo.");
-  }
-
-  const resultado = parsearDecimal(f.resultado);
-  if (!Number.isFinite(resultado) || resultado <= 0) {
-    errores.push("Debe completar graduación de alcoholemia mayor a 0.");
-  }
-
-  // Para una alcoholemia sancionable el formato institucional necesita acta.
-  if (Boolean(c.sancionable) && !texto(f.numero_acta)) {
-    errores.push("Debe completar N° de acta para una alcoholemia sancionable.");
-  }
-
-  validarJuzgadoRetencion(f, errores, Boolean(f.medida_retencion));
-
-  const otrosCodigosTexto = texto(f.otros_codigos);
-  if (otrosCodigosTexto) {
-    const codigos = extraerCodigosFalta(otrosCodigosTexto);
-    if (!codigos.length) {
-      errores.push("Otros códigos debe contener códigos numéricos válidos.");
-    } else {
-      const invalidos = codigos.filter((codigo) => !getNomencladorFalta(codigo));
-      if (invalidos.length) {
-        errores.push(`Código/s no encontrado/s en nomenclador: ${invalidos.join(", ")}.`);
-      }
-    }
-  }
-}
-
-function validarDecreto46022(informe, errores) {
-  const f = informe.formulario || {};
-
-  // La ubicación del procedimiento sólo puede heredarse de un QTH puntual.
-  // Si el operativo es patrullaje o cubre un rango, se exige el QTH exacto.
-  const lugar = resolverLugarProcedimiento46022(informe);
-  if (!lugar.lugar) {
-    errores.push(lugar.requiereManual
-      ? "Completá el lugar exacto del procedimiento 460/22."
-      : "El operativo seleccionado no tiene un QTH fijo.");
-  }
-
-  // Conductor y DNI son datos opcionales: el formato institucional 460/22 no
-  // los imprime como campos independientes. Sí son obligatorios los datos que
-  // integran el relato del procedimiento.
-  if (!texto(f.marca)) errores.push("Debe completar la marca de la motocicleta.");
-  if (!texto(f.modelo_vehiculo)) errores.push("Debe completar el modelo de la motocicleta.");
-  if (!texto(f.dominio)) errores.push("Debe completar dominio.");
-  if (!texto(f.numero_acta)) errores.push("Debe completar el N.º de acta de infracción.");
-  validarJuzgadoRetencion(f, errores, true);
-
-  const codigos = extraerCodigosFalta(f.codigos_infraccion);
-  if (!codigos.length) {
-    errores.push("Debe ingresar al menos un código de infracción del nomenclador.");
-    return;
-  }
-
-  const invalidos = codigos.filter((codigo) => !getNomencladorFalta(codigo));
-  if (invalidos.length) {
-    errores.push(`Código/s no encontrado/s en nomenclador: ${invalidos.join(", ")}.`);
-  }
-}
-
-
-function validarControlArmas(informe, errores) {
-  const f = informe.formulario || {};
-  if (!texto(f.fecha_hecho)) errores.push("Debe completar fecha del hecho.");
-  if (!texto(f.hora_hecho)) errores.push("Debe completar hora del hecho.");
-  if (!texto(f.tipo_vehiculo)) errores.push("Debe seleccionar tipo de vehículo.");
-  if (!texto(f.conductor)) errores.push("Debe completar conductor.");
-  const cantidad = Number(f.cantidad_armas || 0);
-  if (!Number.isFinite(cantidad) || cantidad <= 0) errores.push("Debe indicar una cantidad de armas mayor a 0.");
-  if (!texto(f.tipo_arma)) errores.push("Debe seleccionar tipo de arma.");
-  if (!texto(f.documentacion_armas)) errores.push("Debe indicar el estado de la documentación del armamento.");
-}
-
-function validarRetencionLicencia(informe, errores) {
-  const f = informe.formulario || {};
-  const motivo = texto(f.motivo_licencia);
-  if (!motivo) errores.push("Debe seleccionar el motivo de retención de licencia.");
-  if (!texto(f.fecha_hecho)) errores.push("Debe completar fecha del procedimiento.");
-  if (!texto(f.hora_hecho)) errores.push("Debe completar hora del procedimiento.");
-  if (!texto(f.conductor)) errores.push("Debe completar conductor.");
-  if (!texto(f.tipo_vehiculo)) errores.push("Debe seleccionar tipo de vehículo.");
-  if (!texto(f.dominio)) errores.push("Debe completar dominio.");
-  if (!texto(f.marca)) errores.push("Debe completar marca.");
-  if (!texto(f.modelo_vehiculo)) errores.push("Debe completar modelo del vehículo.");
-  if (!texto(f.clase_licencia)) errores.push("Debe completar clase de licencia.");
-  if (!texto(f.numero_acta)) errores.push("Debe completar N° de Acta / Cédula de notificación.");
-  if (texto(f.codigo) && !getNomencladorFalta(f.codigo)) errores.push("El código de licencia no existe en nomenclador.js.");
-  validarJuzgadoRetencion(f, errores, Boolean(f.retencion_licencia));
-
-  if (["VENCIDA_MAS_6_MESES", "VENCIDA_MENOS_6_MESES", "CADUCA_CAMBIO_DATOS"].includes(motivo) && !texto(f.fecha_vencimiento)) {
-    errores.push("Debe completar fecha de vencimiento / VTO de la licencia.");
-  }
-
-}
-
-function validarJuzgadoRetencion(f, errores, habilitado) {
-  if (!habilitado) return;
-  const elegido = texto(f.juzgado || "SANTA FE").toLocaleUpperCase("es-AR");
-  const opciones = ["SANTA FE", "RINCON", "RECREO", "SAUCE VIEJO", "SANTO TOME", "OTRO"];
-  if (!opciones.includes(elegido)) {
-    errores.push("Seleccione un juzgado válido.");
-  } else if (elegido === "OTRO" && !texto(f.juzgado_otro)) {
-    errores.push("Complete el nombre del juzgado al seleccionar OTRO.");
-  }
-}
-
-function validarRequisaVehicular(informe, errores) {
-  const f = informe.formulario || {};
-
-  if (!texto(f.fecha_hecho)) errores.push("No se pudo resolver la fecha de la requisa.");
-  if (!texto(f.hora_hecho)) errores.push("No se pudo resolver el horario de la requisa.");
-  if (!texto(f.tipo_vehiculo)) errores.push("Debe seleccionar tipo de vehículo.");
-  if (!texto(f.dominio)) errores.push("Debe completar dominio.");
-  if (!["MASCULINO", "FEMENINO"].includes(texto(f.genero).toUpperCase())) {
-    errores.push("Debe seleccionar género masculino o femenino.");
-  }
-}
-
-function parsearDecimal(valor) {
-  const limpio = String(valor ?? "")
-    .trim()
-    .replace(/\s+/g, "")
-    .replace(",", ".");
-
-  if (!limpio) return NaN;
-  const numero = Number(limpio);
-  return Number.isFinite(numero) ? numero : NaN;
-}
-
-function texto(valor) {
-  return String(valor || "").trim();
 }
