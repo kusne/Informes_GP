@@ -32,6 +32,72 @@
         "todos"
       ]
     },
+    "backend/dominio/compartido/fechas/guardia-0600.js": {
+      "sha": "154ad90a190c1a3d10fc49a1555ff0b669a9c652",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "backend/dominio/compartido/fechas/horas.js": {
+      "sha": "61fe9bc2da4c53acd87722649ec02c13503b6b64",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "backend/dominio/compartido/fechas/rangos-operativos.js": {
+      "sha": "7df507fa14f34adc204ca1be3dd63763a4f24d9c",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "backend/dominio/compartido/fotos/normalizar-nombre-foto.js": {
+      "sha": "13f5b0eb39be20f4e49df9f042855ce55e0a61f3",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "backend/dominio/compartido/fotos/validar-foto.js": {
+      "sha": "fb2ebf1a72226da58c665030675f8fc160de3f5e",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "backend/dominio/compartido/lugares/lugar-procedimiento-460-22.js": {
+      "sha": "12c05a3592264794e650922ed7ce1850761d8980",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "backend/dominio/compartido/operativo-identidad.js": {
+      "sha": "342460938a5b632d43546216ff229d58b44c3644",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "backend/dominio/compartido/recursos/catalogo-recursos-operativos.js": {
+      "sha": "155c20dce14215f27e132ef6e83f826501e35f4e",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "backend/dominio/compartido/recursos/movimientos-recursos.js": {
+      "sha": "b9d2d74f72ed95d813afa34821d21cadaf2346d0",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "backend/dominio/compartido/recursos/recursos-acople-disponibles.js": {
+      "sha": "39732c43fd8ccd0b49a0b74bc30cfcd09879b3cf",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "backend/dominio/compartido/recursos/recursos-guardia-dominio.js": {
+      "sha": "64177fdf04ae5f0e53a4822b405b24c8344fb202",
+      "alcance": [
+        "todos"
+      ]
+    },
     "backend/dominio/compartido/recursos/resumen-relevo-confirmacion.js": {
       "sha": "b0ce1a1f1bcb797118039c21b15d2b6b515c02e0",
       "alcance": [
@@ -44,10 +110,88 @@
         "acople"
       ]
     },
+    "backend/dominio/compartido/texto/construir-texto-base.js": {
+      "sha": "c2b55e9316b135c940d38585e5c0e77f471b75b3",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "backend/dominio/compartido/texto/formatear-lineas.js": {
+      "sha": "3a657daf3b54134f08a2b724a804de419620cc5c",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "backend/dominio/compartido/texto/formato-titulos-operativos.js": {
+      "sha": "69eb710b18c73fe2f3d0fe820504b02cd6e40e40",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "backend/dominio/compartido/texto/limpiar-observaciones.js": {
+      "sha": "2f38a21d9f628b7dcd43842303a7eb13281b24f1",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "backend/dominio/compartido/texto/normalizar-texto.js": {
+      "sha": "10f0d59201f258c543d2f714ebfeaac0df1c3419",
+      "alcance": [
+        "todos"
+      ]
+    },
     "backend/dominio/compartido/texto/relevo-observaciones.js": {
       "sha": "2a834cd363b0783ca00856b603e489a13dd8e5b0",
       "alcance": [
         "relevo"
+      ]
+    },
+    "backend/dominio/compartido/tipos/operativos-elementos-controlados-opcionales.js": {
+      "sha": "95e1b055877b7726edb0320cb40a45be92e22fd4",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "backend/dominio/compartido/tipos/patrullaje.js": {
+      "sha": "4e3847ac994f401bc53e00814e965eb4bec2e440",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "backend/dominio/compartido/tipos/presencia-activa-puente.js": {
+      "sha": "fa2251e8903591eaf6a4a6f005ae5cbdda21413f",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "backend/dominio/compartido/tipos/resultados-especiales-finaliza.js": {
+      "sha": "c7dbc5b4e75c730129ffc16d167df62c1d4cb06d",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "backend/dominio/compartido/validaciones/validar-campos-obligatorios.js": {
+      "sha": "2483fddde907967e1bbe640f3d0e4927f506490c",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "backend/dominio/compartido/validaciones/validar-horarios.js": {
+      "sha": "af8ce0fbd65984e0efd2a7ee57abf8540c918c82",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "backend/dominio/compartido/validaciones/validar-operativo-seleccionado.js": {
+      "sha": "735ddac4b188382c0787c116671a3947fa01b72b",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "backend/dominio/compartido/validaciones/validar-recursos.js": {
+      "sha": "6540c02ebf44484e435a2d7d7dc9611d1b211481",
+      "alcance": [
+        "todos"
       ]
     },
     "backend/dominio/finaliza/finalizado-mapper-supabase.js": {
@@ -158,6 +302,12 @@
         "todos"
       ]
     },
+    "backend/dominio/informes/licencia-dni-alcoholemia.js": {
+      "sha": "416521e36d9e42a5ae250a22bcbb6827942abb55",
+      "alcance": [
+        "todos"
+      ]
+    },
     "backend/dominio/informes/modelos/alcoholemia-positiva/salida-texto.js": {
       "sha": "99242a23130d2d2cc8f168a8da46b808cffed724",
       "alcance": [
@@ -242,6 +392,12 @@
         "retencion-licencia"
       ]
     },
+    "backend/dominio/informes/procedimiento-transicion.js": {
+      "sha": "510b34a6f1f158d03d7866fd5f748d745fb2e917",
+      "alcance": [
+        "todos"
+      ]
+    },
     "backend/dominio/inicia/inicio-mapper-supabase.js": {
       "sha": "96744b967cfd0380618065ac9bf7508b444e2976",
       "alcance": [
@@ -272,6 +428,18 @@
     },
     "backend/infraestructura/supabase/informes-especiales-v2-repo.js": {
       "sha": "6d2fec237c89a1a09a91dfa0baae57011a8b24c9",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "backend/infraestructura/supabase/informes-intradiarios-items-v2-repo.js": {
+      "sha": "ace49f021c2fd2bee9467af109bb8bea5188f4b1",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "backend/infraestructura/supabase/informes-intradiarios-v2-repo.js": {
+      "sha": "7899dc5af78d30cb8dde7c666a53ed177e6fdc53",
       "alcance": [
         "todos"
       ]
@@ -716,6 +884,72 @@
       "alcance": [
         "finalizado",
         "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/informes/compartido/informe-especial-builder.js": {
+      "sha": "201fd69ebaefc05e14d268a0181538b807c6873e",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "frontend/pantallas/informes/compartido/selector-juzgado.js": {
+      "sha": "38e0def62382f87455c89664b50a4d0577f89414",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "frontend/pantallas/informes/componentes/aviso-vinculo-operativo/aviso-vinculo-operativo.css": {
+      "sha": "4bd96605e84effac17c679dc1acd00662dad74f9",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "frontend/pantallas/informes/componentes/aviso-vinculo-operativo/aviso-vinculo-operativo.html": {
+      "sha": "1370c3d51dbdba6ad88a210c537024c89bfb3040",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "frontend/pantallas/informes/componentes/aviso-vinculo-operativo/aviso-vinculo-operativo.js": {
+      "sha": "46b620b3e37e34cedd21404451d5fdb08b4320a3",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "frontend/pantallas/informes/componentes/contenedor-informe-especial/contenedor-informe-especial.css": {
+      "sha": "c13b297a01bdd7fddb713d3170117da9e0aec414",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "frontend/pantallas/informes/componentes/contenedor-informe-especial/contenedor-informe-especial.html": {
+      "sha": "46a23e5b9551e91f62fccb3c277f77bd63442fca",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "frontend/pantallas/informes/componentes/contenedor-informe-especial/contenedor-informe-especial.js": {
+      "sha": "94d1afcc5d6f635b365d4a2da322310d3e532373",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "frontend/pantallas/informes/componentes/selector-informe-especial/selector-informe-especial.css": {
+      "sha": "1eeba12739adf376096413ed8f5ac5e27b12dcb5",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "frontend/pantallas/informes/componentes/selector-informe-especial/selector-informe-especial.html": {
+      "sha": "c4cc088bb1863dcd5c9a282fd580cc8cabadeb94",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "frontend/pantallas/informes/componentes/selector-informe-especial/selector-informe-especial.js": {
+      "sha": "2de93f114b019dd764b025b98c10340104c8fdd5",
+      "alcance": [
+        "todos"
       ]
     },
     "frontend/pantallas/informes/informes.js": {
@@ -1299,6 +1533,14 @@
       "alcance": [
         "inicio",
         "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/movimientos/movimientos.js": {
+      "sha": "5bcb79aa8a25df6d3fbb72af6b024ab43007ba32",
+      "alcance": [
+        "relevo",
+        "acople",
+        "retiro"
       ]
     }
   }
