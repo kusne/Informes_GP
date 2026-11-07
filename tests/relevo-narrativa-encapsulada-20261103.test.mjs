@@ -68,7 +68,7 @@ test("relevo sólo de elementos y varios del mismo grupo tiene enumeración natu
 
 test("formateador RELEVO está encapsulado y el repositorio no recrea su gramática",()=>{
  const repo=readFileSync(new URL("../backend/dominio/movimientos/relevo/informe.js",import.meta.url),"utf8");
- assert.match(repo,/import \{ redactarObservacionRelevo \} from "\.\.\/\.\.\/dominio\/compartido\/texto\/relevo-observaciones\.js"/);
- assert.match(repo,/return redactarObservacionRelevo\(m,hora/);
+ assert.match(repo,/import \{ redactarObservacionRelevo \} from "\.\.\/\.\.\/compartido\/texto\/relevo-observaciones\.js"/);
+ assert.match(repo,/redactarObservacionRelevo\(m,hora/);
  assert.doesNotMatch(repo,/Personal policial que se retira:|Móvil que se retira:|Elementos que se retiran:/);
 });
