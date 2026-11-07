@@ -56,7 +56,9 @@ function construirObservacionesInicio(formulario = {}) {
 
 function resolverMotivoPresenciaActiva(formulario = {}) {
   const motivo = texto(formulario.presencia_activa_motivo).toUpperCase();
-  if (motivo === "LLUVIA") return "Lluvia";
+  // La marca de lluvia cambia sólo la observación, nunca el tipo, las órdenes
+  // ni los recursos del operativo de INICIO.
+  if (motivo === "LLUVIA") return "Se realiza con presencia activa debido a inclemencias del tiempo (lloviznas).";
   if (motivo === "OTROS") return texto(formulario.presencia_activa_otro);
   return "";
 }
