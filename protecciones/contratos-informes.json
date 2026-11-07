@@ -1,0 +1,1305 @@
+{
+  "version": 1,
+  "descripcion": "Huellas Git de archivos institucionales blindados; actualizar sólo bajo petición expresa.",
+  "archivos": {
+    "api/app-api.js": {
+      "sha": "788e41de3ae8f6e6445b18f4dd747560a16ed612",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "api/persistencia-api.js": {
+      "sha": "3117dde6efd134b832856f5ac3f8c9fef5015e69",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "backend/aplicacion/procesamiento/procesar-finalizado.js": {
+      "sha": "e8440f663f64cc812944b1b19b4b2c1e76557faa",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "backend/aplicacion/procesamiento/procesar-informe-especial.js": {
+      "sha": "ccff4b454584ab21d11e3d0495ca0ae227de1682",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "backend/aplicacion/procesamiento/procesar-inicio.js": {
+      "sha": "950a8ee68ff489a3d7f1263acfa3e550a3074ae4",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "backend/dominio/compartido/recursos/resumen-relevo-confirmacion.js": {
+      "sha": "b0ce1a1f1bcb797118039c21b15d2b6b515c02e0",
+      "alcance": [
+        "relevo"
+      ]
+    },
+    "backend/dominio/compartido/texto/acople-observaciones.js": {
+      "sha": "ca5d3c45f97569fe905ab83bcebffdfbde8ced38",
+      "alcance": [
+        "acople"
+      ]
+    },
+    "backend/dominio/compartido/texto/relevo-observaciones.js": {
+      "sha": "2a834cd363b0783ca00856b603e489a13dd8e5b0",
+      "alcance": [
+        "relevo"
+      ]
+    },
+    "backend/dominio/finaliza/finalizado-mapper-supabase.js": {
+      "sha": "d1f813362569ee884a11183e81bf644fdf454b09",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "backend/dominio/finaliza/finalizado-salida-texto-base.js": {
+      "sha": "da3fe1ea3993a2e905ace4066d2fde83fa8952c4",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "backend/dominio/finaliza/finalizado-validaciones-base.js": {
+      "sha": "e93e5a6bd0986c7e9a1124df200f74920748ba35",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "backend/dominio/finaliza/numerales/clasificador-numerales.js": {
+      "sha": "553e0f98c77ca5a6884390aca7e3f4af180f6d3d",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "backend/dominio/finaliza/numerales/contador-numerales.js": {
+      "sha": "cbb2168674ac90e3d9051dcac43e5c5a1daabc35",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "backend/dominio/finaliza/numerales/mapper-items-supabase.js": {
+      "sha": "2810058cf28ca445e3ace58ff9c7b3020037c3e1",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "backend/dominio/finaliza/numerales/nomenclador.js": {
+      "sha": "3739790ae5a5ee70eaa26be231559eb345dc02f9",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "backend/dominio/finaliza/numerales/normalizador-numerales.js": {
+      "sha": "e129f5cc9c896ac09fbf2d46b7f30c602e0588ed",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "backend/dominio/finaliza/numerales/numerales-finaliza-data.js": {
+      "sha": "46c9b4f49a3f6060f4b921bd19239f437a9e5b97",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "backend/dominio/finaliza/recursos-finaliza.js": {
+      "sha": "f85c9ff0fa0bb20a5d4a77df6a412419162b145a",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "backend/dominio/finaliza/validar-dotacion-finalizado.js": {
+      "sha": "7b6404ab9f4c93c92d108562be4da01c53c3c533",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "backend/dominio/informes/control-superior-acople.js": {
+      "sha": "efc73c34d845655cc8b82b38a1f235be2f4ebcd6",
+      "alcance": [
+        "acople",
+        "control-superior"
+      ]
+    },
+    "backend/dominio/informes/informe-especial-mapper-supabase.js": {
+      "sha": "f7dca41f3e87bcc190a10d001591a1027e8cf1bd",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "backend/dominio/informes/informe-especial-reglas-numerales.js": {
+      "sha": "1e13d589f0a506da99939286fb63122d389138e1",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "backend/dominio/informes/informe-especial-salida-texto.js": {
+      "sha": "fd5791763d8b4cb70bf81878f88869d389db8e39",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "backend/dominio/informes/informe-especial-validaciones.js": {
+      "sha": "b1b18ae7045f1aa47ec3ad1bd12a3355454edecd",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "backend/dominio/informes/modelos/alcoholemia-positiva/salida-texto.js": {
+      "sha": "99242a23130d2d2cc8f168a8da46b808cffed724",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "backend/dominio/informes/modelos/alcoholemia-positiva/validaciones.js": {
+      "sha": "3337b9f6bfb60872b63632871dab46ad472854da",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "backend/dominio/informes/modelos/control-armas/salida-texto.js": {
+      "sha": "821f7eb518af8b4c563b5aa29a86106f8edb39fe",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "backend/dominio/informes/modelos/control-armas/validaciones.js": {
+      "sha": "db1fd79850c22c2fe2384692601c49bfccaf820b",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "backend/dominio/informes/modelos/control-superior/salida-texto.js": {
+      "sha": "5912704d740e4f16e48d141d8f460d87c8b0c5e2",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "backend/dominio/informes/modelos/control-superior/validaciones.js": {
+      "sha": "6f5d1dd3cfa17d2a1847144137bc376df35177a5",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "backend/dominio/informes/modelos/decreto-460-22/salida-texto.js": {
+      "sha": "c03bff210f61e4e3f073aeae0fed14876e717dbf",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "backend/dominio/informes/modelos/decreto-460-22/validaciones.js": {
+      "sha": "153f44f8e0f5cee37ebabe2082160eead9b8e4bc",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "backend/dominio/informes/modelos/procedimiento/salida-texto.js": {
+      "sha": "2c6029b4874c2d6b9d999ae192131b3247b958c3",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "backend/dominio/informes/modelos/procedimiento/validaciones.js": {
+      "sha": "fded11f67b21b174b17dfe1f88bdfea2b4e94ff5",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "backend/dominio/informes/modelos/requisa-vehicular/salida-texto.js": {
+      "sha": "e875821fbefa49bafc4ff29bdf5eda4880557d66",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "backend/dominio/informes/modelos/requisa-vehicular/validaciones.js": {
+      "sha": "2c69c56f5b34872a49d7c7022690969a900868e8",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "backend/dominio/informes/modelos/retencion-licencia/salida-texto.js": {
+      "sha": "970e560be99cd043f3ade243bbe8a4895ae42e6f",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "backend/dominio/informes/modelos/retencion-licencia/validaciones.js": {
+      "sha": "f561ada763b2cad44c7246543e4557f97a21f5c1",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "backend/dominio/inicia/inicio-mapper-supabase.js": {
+      "sha": "96744b967cfd0380618065ac9bf7508b444e2976",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "backend/dominio/inicia/inicio-salida-texto-base.js": {
+      "sha": "6c2d9bd4a232ee0f7a06be875b01a1e80693a5c7",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "backend/dominio/inicia/inicio-validaciones-base.js": {
+      "sha": "63202452e61b1f040060483db22a06e1caead289",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "backend/dominio/inicia/recursos-inicio.js": {
+      "sha": "5cc7c29b0683a9dcdd7c0d221a025edcdf87ce73",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "backend/infraestructura/supabase/informes-especiales-v2-repo.js": {
+      "sha": "6d2fec237c89a1a09a91dfa0baae57011a8b24c9",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "backend/infraestructura/supabase/movimientos-recursos-repo.js": {
+      "sha": "621732fce2eabe2cfc62ed8419769465adb92643",
+      "alcance": [
+        "relevo",
+        "acople",
+        "retiro"
+      ]
+    },
+    "frontend/pantallas/finaliza/compartido/finalizado-base.js": {
+      "sha": "f37211aece73428dddf82ebd3d72daecf14a1508",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/compartido/finalizado-builder.js": {
+      "sha": "7243c970c4f71d1b4e583eb566cb1b7d2979f75d",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/componentes/agregar-controlados-presencia-activa/agregar-controlados-presencia-activa.css": {
+      "sha": "45a89b9d56a162fcdcd7946ccd0fa5b6bb0282fd",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/componentes/agregar-controlados-presencia-activa/agregar-controlados-presencia-activa.html": {
+      "sha": "2cc01c35bcf5ac0d867417f90f8a26dcc00dde77",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/componentes/agregar-controlados-presencia-activa/agregar-controlados-presencia-activa.js": {
+      "sha": "adc723e548903fa6d15da4aefafb167aff01cc19",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/componentes/detalles/detalles.js": {
+      "sha": "08dcff56ca66fec0ebb4dbcfdb3367898ac0cdbc",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/componentes/elementos/elementos.css": {
+      "sha": "a02f0899d68a272b52dca49f63e19f16f3d2d663",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/componentes/elementos/elementos.js": {
+      "sha": "211ff6d5eaf13843694b51cc685bc84e92d65270",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/componentes/fotos-finalizado/fotos-finalizado.css": {
+      "sha": "1f167141dadbbf8914e579e5a81d9cf2e866cf44",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/componentes/fotos-finalizado/fotos-finalizado.html": {
+      "sha": "345d8a1cfa9864eac4198513bc1327f9f797a7f0",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/componentes/fotos-finalizado/fotos-finalizado.js": {
+      "sha": "90d700425b2cdccd224179f347b4679354246b88",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/componentes/movilidad/movilidad.css": {
+      "sha": "210dbd49fe3d2c11d8cfe455c66d42cbbd53f6c6",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/componentes/movilidad/movilidad.js": {
+      "sha": "7ca71558ba0e3352813380c4df12fa24a8c5a42b",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/componentes/personal-policial/personal-policial.css": {
+      "sha": "0faeb19ac85e723192d0238a57da0c6a75d31db5",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/componentes/personal-policial/personal-policial.js": {
+      "sha": "15df28936498eb12c1ba390d59e59c28f74ab610",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/componentes/resultados-dinamicos/resultados-dinamicos.css": {
+      "sha": "c868fd74c53733cdc4bfb3252b0b1d18b744421b",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/componentes/resultados-dinamicos/resultados-dinamicos.js": {
+      "sha": "c63cabbfc3fd216495be7d1eb7232018579e2ed2",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/finaliza.css": {
+      "sha": "62920dd5fe033f57b145af5dbb91e82a0ba39dbd",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/finaliza.html": {
+      "sha": "b1e0943cd7fc43258eff40680c98482a2301d6c3",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/finaliza.js": {
+      "sha": "84771ac2397791c711414fddfe42a7cc30a77ce6",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/numerales/archivos-numerales.css": {
+      "sha": "396c41916bdcfa9adaad26732211ab772c9c10d8",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/numerales/archivos-numerales.html": {
+      "sha": "1fd6efce2dea1ca33284fe6587b190784447a730",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/numerales/archivos-numerales.js": {
+      "sha": "497ad6dfa1117beb224a7abb2b680c8f3b009018",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/numerales/numerales-finaliza.css": {
+      "sha": "f17f4aa9cae250098f97aac3ebc2d899c3d78c66",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/numerales/numerales-finaliza.html": {
+      "sha": "3cc040dd7f8209d5ca6f1cc88bf93e9c21150c15",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/numerales/numerales-finaliza.js": {
+      "sha": "097b832097461eeb4a46f588980bc8365283d308",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/tipos/control-peso/finaliza-control-peso.css": {
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/tipos/control-peso/finaliza-control-peso.html": {
+      "sha": "f7b49fc190490808127daceafe711cf90c51c92a",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/tipos/control-peso/finaliza-control-peso.js": {
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/tipos/control-peso/fotos/fotos-finaliza-control-peso.css": {
+      "sha": "83051b98185d8b81a950c09cfa94464ede60531c",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/tipos/control-peso/fotos/fotos-finaliza-control-peso.html": {
+      "sha": "e6f69a26e872096c34bf5c26e02a246051246f62",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/tipos/control-peso/fotos/fotos-finaliza-control-peso.js": {
+      "sha": "b1aa8f0f9eeee16f0c59e8425ae77fe79081116f",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/tipos/generico/finaliza-generico.css": {
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/tipos/generico/finaliza-generico.html": {
+      "sha": "557a0b470cd87613a1daac48ad4b410831d94218",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/tipos/generico/finaliza-generico.js": {
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/tipos/generico/fotos/fotos-finaliza-generico.css": {
+      "sha": "83051b98185d8b81a950c09cfa94464ede60531c",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/tipos/generico/fotos/fotos-finaliza-generico.html": {
+      "sha": "a202917da9aad907ef3da94291b097df7ede4525",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/tipos/generico/fotos/fotos-finaliza-generico.js": {
+      "sha": "d061f14a52193038d17fcb86040bc29670ac69d5",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/tipos/ocv-dicep/finaliza-ocv-dicep.css": {
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/tipos/ocv-dicep/finaliza-ocv-dicep.html": {
+      "sha": "1c0c14c636368d5028daddc51f84e5784eea2da9",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/tipos/ocv-dicep/finaliza-ocv-dicep.js": {
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/tipos/ocv-dicep/fotos/fotos-finaliza-ocv-dicep.css": {
+      "sha": "83051b98185d8b81a950c09cfa94464ede60531c",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/tipos/ocv-dicep/fotos/fotos-finaliza-ocv-dicep.html": {
+      "sha": "a64ef4c0f00ed61424bd15de4b1e1b53800612ea",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/tipos/ocv-dicep/fotos/fotos-finaliza-ocv-dicep.js": {
+      "sha": "67498172941c68e3fa7884aab457264e4eccd111",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/tipos/ocv/finaliza-ocv.css": {
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/tipos/ocv/finaliza-ocv.html": {
+      "sha": "d16a3ffd72b2765feff33d8ba60acc89526484c6",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/tipos/ocv/finaliza-ocv.js": {
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/tipos/ocv/fotos/fotos-finaliza-ocv.css": {
+      "sha": "83051b98185d8b81a950c09cfa94464ede60531c",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/tipos/ocv/fotos/fotos-finaliza-ocv.html": {
+      "sha": "c6d9c81048382892ca1b0ba12d3686cbb4199d95",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/tipos/ocv/fotos/fotos-finaliza-ocv.js": {
+      "sha": "5024bfe2d6dc7dbf29a85d47323d051fc673822d",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/tipos/patrullaje/finaliza-patrullaje.css": {
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/tipos/patrullaje/finaliza-patrullaje.html": {
+      "sha": "0211e66ed18a29db00df9637eec51ee070d17c42",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/tipos/patrullaje/finaliza-patrullaje.js": {
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/tipos/patrullaje/fotos/fotos-finaliza-patrullaje.css": {
+      "sha": "83051b98185d8b81a950c09cfa94464ede60531c",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/tipos/patrullaje/fotos/fotos-finaliza-patrullaje.html": {
+      "sha": "4a371fdeb502344ce05d0468f2b0eca36443b6d2",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/tipos/patrullaje/fotos/fotos-finaliza-patrullaje.js": {
+      "sha": "60dbca41fb00439580669be2885455deacd26d5e",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/tipos/presencia-activa/finaliza-presencia-activa.css": {
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/tipos/presencia-activa/finaliza-presencia-activa.html": {
+      "sha": "f5f5d31ccdb0c15c07c81fc76448928740be0250",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/tipos/presencia-activa/finaliza-presencia-activa.js": {
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/tipos/presencia-activa/fotos/fotos-finaliza-presencia-activa.css": {
+      "sha": "83051b98185d8b81a950c09cfa94464ede60531c",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/tipos/presencia-activa/fotos/fotos-finaliza-presencia-activa.html": {
+      "sha": "d31b63386f630a83e889968e1d731afd00f42371",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/finaliza/tipos/presencia-activa/fotos/fotos-finaliza-presencia-activa.js": {
+      "sha": "a17a4f53bf6fd876243b97fa90e702eb2ea0c510",
+      "alcance": [
+        "finalizado",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/informes/informes.js": {
+      "sha": "cbec23a1e4c85daace949f1a19bde366d20a1ee0",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "frontend/pantallas/informes/modelos-informes.js": {
+      "sha": "56105f37a8674c681ed62acf299400f8c5eef783",
+      "alcance": [
+        "todos"
+      ]
+    },
+    "frontend/pantallas/informes/modelos/alcoholemia-positiva/alcoholemia-positiva.css": {
+      "sha": "8b137891791fe96927ad78e64b0aad7bded08bdc",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "frontend/pantallas/informes/modelos/alcoholemia-positiva/alcoholemia-positiva.html": {
+      "sha": "9ae15d243cebbbb756b0a31705fa549a8df8829f",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "frontend/pantallas/informes/modelos/alcoholemia-positiva/alcoholemia-positiva.js": {
+      "sha": "cd4b4c59fc8e5e9e0bcb2d52380cddde70c67666",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "frontend/pantallas/informes/modelos/alcoholemia-positiva/fotos/fotos-alcoholemia-positiva.css": {
+      "sha": "83051b98185d8b81a950c09cfa94464ede60531c",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "frontend/pantallas/informes/modelos/alcoholemia-positiva/fotos/fotos-alcoholemia-positiva.html": {
+      "sha": "979b13e455c1d59d39de40e3be6dcbf39999824e",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "frontend/pantallas/informes/modelos/alcoholemia-positiva/fotos/fotos-alcoholemia-positiva.js": {
+      "sha": "8a46e46cf57418e2b7f4c6379675ed5cbfa3de4d",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "frontend/pantallas/informes/modelos/control-armas/control-armas.css": {
+      "sha": "e8ed0e4bc0e80757059a5e708a1d8ef80056f7e2",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "frontend/pantallas/informes/modelos/control-armas/control-armas.html": {
+      "sha": "6be60887399118427c53f8bacdf8ae1b73099568",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "frontend/pantallas/informes/modelos/control-armas/control-armas.js": {
+      "sha": "c75715d654c5c920bcff2e7a2082ccdf7a440dc6",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "frontend/pantallas/informes/modelos/control-armas/fotos/fotos-control-armas.css": {
+      "sha": "08198f02f27e77f0eec7093c511aa7ac645e7423",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "frontend/pantallas/informes/modelos/control-armas/fotos/fotos-control-armas.html": {
+      "sha": "b6051c7d664fa2954923c6460a359236106554f9",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "frontend/pantallas/informes/modelos/control-armas/fotos/fotos-control-armas.js": {
+      "sha": "aecacd538874aee1e52d1a576287b8796c4cf6d3",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "frontend/pantallas/informes/modelos/control-superior/control-superior.css": {
+      "sha": "8b137891791fe96927ad78e64b0aad7bded08bdc",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "frontend/pantallas/informes/modelos/control-superior/control-superior.html": {
+      "sha": "9b95fef3e1a6aaf4459c9051268b17fc542cc814",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "frontend/pantallas/informes/modelos/control-superior/control-superior.js": {
+      "sha": "9f47ed3bccfbdf3d84aeec1b46390c79be88ebc1",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "frontend/pantallas/informes/modelos/decreto-460-22/decreto-460-22.css": {
+      "sha": "8b137891791fe96927ad78e64b0aad7bded08bdc",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "frontend/pantallas/informes/modelos/decreto-460-22/decreto-460-22.html": {
+      "sha": "49f8642791031a01955ac4bf8e37ca72f970f512",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "frontend/pantallas/informes/modelos/decreto-460-22/decreto-460-22.js": {
+      "sha": "14f51a2fe2042ba2033552daae71989d52dc727c",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "frontend/pantallas/informes/modelos/decreto-460-22/fotos/fotos-decreto-460-22.css": {
+      "sha": "83051b98185d8b81a950c09cfa94464ede60531c",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "frontend/pantallas/informes/modelos/decreto-460-22/fotos/fotos-decreto-460-22.html": {
+      "sha": "e6beffa82317271e73d9cc7085be0698d9a27877",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "frontend/pantallas/informes/modelos/decreto-460-22/fotos/fotos-decreto-460-22.js": {
+      "sha": "9b9a7c754312d92fe15120b5d64d8c1dcabcf1c6",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "frontend/pantallas/informes/modelos/procedimiento/procedimiento.html": {
+      "sha": "a0e88c6e5e35d8ea3928687ac1ec2dc1a7838fd7",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "frontend/pantallas/informes/modelos/procedimiento/procedimiento.js": {
+      "sha": "be0ccfdfd547c9ae9d72b835527960ee524115f0",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "frontend/pantallas/informes/modelos/requisa-vehicular/requisa-vehicular.html": {
+      "sha": "cd9013da2d953820c3d92d8f9ab51547a7e461f0",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "frontend/pantallas/informes/modelos/requisa-vehicular/requisa-vehicular.js": {
+      "sha": "63a4c937d65ccde580937b7c78e51af577862eed",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "frontend/pantallas/informes/modelos/retencion-licencia/fotos/fotos-retencion-licencia.css": {
+      "sha": "20a4ec0021bd2dd6d4251edfcb57e2dd5faa470a",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "frontend/pantallas/informes/modelos/retencion-licencia/fotos/fotos-retencion-licencia.html": {
+      "sha": "bfc54072e59a4e048d3c079d4e4286915be82375",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "frontend/pantallas/informes/modelos/retencion-licencia/fotos/fotos-retencion-licencia.js": {
+      "sha": "5afb7a8349adbea91a953bf0850d41e6587aacbe",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "frontend/pantallas/informes/modelos/retencion-licencia/retencion-licencia.css": {
+      "sha": "e98aeff67b863d78a9b221c14abf8298b11e76e2",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "frontend/pantallas/informes/modelos/retencion-licencia/retencion-licencia.html": {
+      "sha": "9bc28ac13a3b3777f230a4632e67b1d8e6f30970",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "frontend/pantallas/informes/modelos/retencion-licencia/retencion-licencia.js": {
+      "sha": "fd7d76a82fec24fa0693e887238b8274848d6a32",
+      "alcance": [
+        "modelos"
+      ]
+    },
+    "frontend/pantallas/inicia/compartido/inicio-base.js": {
+      "sha": "08e2c47aa8da5292c24215bb8f1eb8f3422b75f8",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/compartido/inicio-builder.js": {
+      "sha": "a11949fbcf3c5b8cada381d977a9ed91d06474d8",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/componentes/agregar-elementos-presencia-activa/agregar-elementos-presencia-activa.css": {
+      "sha": "a498dca2e673c6a045669da7af8679e52e0fcfe0",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/componentes/agregar-elementos-presencia-activa/agregar-elementos-presencia-activa.html": {
+      "sha": "1d6ab86b8c3a7253ea6ebaa7ce2e5d14271db30a",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/componentes/agregar-elementos-presencia-activa/agregar-elementos-presencia-activa.js": {
+      "sha": "6884bf4176f9b0ce5d50b77ee4cc90719b98d951",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/componentes/elementos/elementos.css": {
+      "sha": "190c1d9ef1555e7324aa10e9b736644a1120eb60",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/componentes/elementos/elementos.js": {
+      "sha": "5edc064d50f6ee92fb71c756fff33810423e5b5a",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/componentes/fotos-inicio/fotos-inicio.css": {
+      "sha": "9b63140da106aa3eb4695bd02b3d9daab0ed0ca4",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/componentes/fotos-inicio/fotos-inicio.html": {
+      "sha": "84377595f026c8773517faa45e762c081335952d",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/componentes/fotos-inicio/fotos-inicio.js": {
+      "sha": "9962267daf86ad8b5368650b783b9233e166db39",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/componentes/movilidad/movilidad.css": {
+      "sha": "b9b855bafd4c4397208d558b8be5fce559d7291d",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/componentes/movilidad/movilidad.js": {
+      "sha": "a428b549dfca5f49dedc3b8def35a8d1f9bbbd30",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/componentes/observaciones/observaciones.css": {
+      "sha": "ac9ada5e4bfbbdfbff29560aaeed370bfef27722",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/componentes/observaciones/observaciones.js": {
+      "sha": "cbcf6946deb4f89ceedd85fb64a89d50d35d14df",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/componentes/personal-policial/personal-policial.css": {
+      "sha": "b14ba51eb5440f04a3d5bdf943dea2db4ee1ed0d",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/componentes/personal-policial/personal-policial.js": {
+      "sha": "6ab73416d0179727a65f3e74b7330104d45619e5",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/inicia.css": {
+      "sha": "4d7bac2db8e344a6825c175c0f353605efc84df8",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/inicia.html": {
+      "sha": "9a28baf92df344477222e4f5322bec4112c4f22e",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/inicia.js": {
+      "sha": "95a4c6458a1705d01e879dfd35b5b5d718a6392a",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/tipos/control-peso/fotos/fotos-inicio-control-peso.css": {
+      "sha": "83051b98185d8b81a950c09cfa94464ede60531c",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/tipos/control-peso/fotos/fotos-inicio-control-peso.html": {
+      "sha": "6cafae31003365d6077553d6d16353c98dc83bb7",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/tipos/control-peso/fotos/fotos-inicio-control-peso.js": {
+      "sha": "cff5e8d0deeaec316a4bec9757f0906d0fd80635",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/tipos/control-peso/inicio-control-peso.css": {
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/tipos/control-peso/inicio-control-peso.html": {
+      "sha": "d23359d9618bfded830dc749fd2bda69d20a4b02",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/tipos/control-peso/inicio-control-peso.js": {
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/tipos/generico/fotos/fotos-inicio-generico.css": {
+      "sha": "83051b98185d8b81a950c09cfa94464ede60531c",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/tipos/generico/fotos/fotos-inicio-generico.html": {
+      "sha": "e60e9cad9c5e84e9ce03e9d2a3b49ecb47f786d2",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/tipos/generico/fotos/fotos-inicio-generico.js": {
+      "sha": "199a21487eb11a95ed95ac2c9c90b170e9e3bd0c",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/tipos/generico/inicio-generico.css": {
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/tipos/generico/inicio-generico.html": {
+      "sha": "1d1b2a9a78d2cd7fc192064e581e4b3f089830e2",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/tipos/generico/inicio-generico.js": {
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/tipos/ocv-dicep/fotos/fotos-inicio-ocv-dicep.css": {
+      "sha": "83051b98185d8b81a950c09cfa94464ede60531c",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/tipos/ocv-dicep/fotos/fotos-inicio-ocv-dicep.html": {
+      "sha": "5ec09e6691cb7f89cec6af9e4ff9f2978d50f3e1",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/tipos/ocv-dicep/fotos/fotos-inicio-ocv-dicep.js": {
+      "sha": "74ddaf4b7e416924bf5c0d17d81afde39823f2b9",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/tipos/ocv-dicep/inicio-ocv-dicep.css": {
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/tipos/ocv-dicep/inicio-ocv-dicep.html": {
+      "sha": "a6de21ec91202796a14ee54466bd443a8d4aeb92",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/tipos/ocv-dicep/inicio-ocv-dicep.js": {
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/tipos/ocv/fotos/fotos-inicio-ocv.css": {
+      "sha": "83051b98185d8b81a950c09cfa94464ede60531c",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/tipos/ocv/fotos/fotos-inicio-ocv.html": {
+      "sha": "9052df4f1fbb45c4111ffe1597af328e527cb6b5",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/tipos/ocv/fotos/fotos-inicio-ocv.js": {
+      "sha": "ea6f014893a8f38cc07ec8d3ea4b09120abe3c4c",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/tipos/ocv/inicio-ocv.css": {
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/tipos/ocv/inicio-ocv.html": {
+      "sha": "5049c8addfcbe91bfe05570c2980b05acc24926f",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/tipos/ocv/inicio-ocv.js": {
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/tipos/patrullaje/fotos/fotos-inicio-patrullaje.css": {
+      "sha": "83051b98185d8b81a950c09cfa94464ede60531c",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/tipos/patrullaje/fotos/fotos-inicio-patrullaje.html": {
+      "sha": "b9a85885470dbe45dfd1f47e40ca0d54b21179e2",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/tipos/patrullaje/fotos/fotos-inicio-patrullaje.js": {
+      "sha": "88684ed681b1654938aba021b1f66ff7e6c9fc2b",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/tipos/patrullaje/inicio-patrullaje.css": {
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/tipos/patrullaje/inicio-patrullaje.html": {
+      "sha": "ce99a8218f6edd92628e90b9d5cbfb4fca795bb0",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/tipos/patrullaje/inicio-patrullaje.js": {
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/tipos/presencia-activa/fotos/fotos-inicio-presencia-activa.css": {
+      "sha": "83051b98185d8b81a950c09cfa94464ede60531c",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/tipos/presencia-activa/fotos/fotos-inicio-presencia-activa.html": {
+      "sha": "10c403f1e61fc4d6478e615d97cc749b87470fae",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/tipos/presencia-activa/fotos/fotos-inicio-presencia-activa.js": {
+      "sha": "cef4178bfc4e98f9a4b57bac9f1e0516fd29875b",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/tipos/presencia-activa/inicio-presencia-activa.css": {
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/tipos/presencia-activa/inicio-presencia-activa.html": {
+      "sha": "cd35ceddcff315ecbc4dd1ed10fe2d319382c5d6",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
+    "frontend/pantallas/inicia/tipos/presencia-activa/inicio-presencia-activa.js": {
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    }
+  }
+}
