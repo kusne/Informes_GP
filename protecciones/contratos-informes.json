@@ -161,85 +161,85 @@
     "backend/dominio/informes/modelos/alcoholemia-positiva/salida-texto.js": {
       "sha": "99242a23130d2d2cc8f168a8da46b808cffed724",
       "alcance": [
-        "modelos"
+        "alcoholemia-positiva"
       ]
     },
     "backend/dominio/informes/modelos/alcoholemia-positiva/validaciones.js": {
       "sha": "3337b9f6bfb60872b63632871dab46ad472854da",
       "alcance": [
-        "modelos"
+        "alcoholemia-positiva"
       ]
     },
     "backend/dominio/informes/modelos/control-armas/salida-texto.js": {
       "sha": "821f7eb518af8b4c563b5aa29a86106f8edb39fe",
       "alcance": [
-        "modelos"
+        "control-armas"
       ]
     },
     "backend/dominio/informes/modelos/control-armas/validaciones.js": {
       "sha": "db1fd79850c22c2fe2384692601c49bfccaf820b",
       "alcance": [
-        "modelos"
+        "control-armas"
       ]
     },
     "backend/dominio/informes/modelos/control-superior/salida-texto.js": {
       "sha": "5912704d740e4f16e48d141d8f460d87c8b0c5e2",
       "alcance": [
-        "modelos"
+        "control-superior"
       ]
     },
     "backend/dominio/informes/modelos/control-superior/validaciones.js": {
       "sha": "6f5d1dd3cfa17d2a1847144137bc376df35177a5",
       "alcance": [
-        "modelos"
+        "control-superior"
       ]
     },
     "backend/dominio/informes/modelos/decreto-460-22/salida-texto.js": {
       "sha": "c03bff210f61e4e3f073aeae0fed14876e717dbf",
       "alcance": [
-        "modelos"
+        "decreto-460-22"
       ]
     },
     "backend/dominio/informes/modelos/decreto-460-22/validaciones.js": {
       "sha": "153f44f8e0f5cee37ebabe2082160eead9b8e4bc",
       "alcance": [
-        "modelos"
+        "decreto-460-22"
       ]
     },
     "backend/dominio/informes/modelos/procedimiento/salida-texto.js": {
       "sha": "2c6029b4874c2d6b9d999ae192131b3247b958c3",
       "alcance": [
-        "modelos"
+        "procedimiento"
       ]
     },
     "backend/dominio/informes/modelos/procedimiento/validaciones.js": {
       "sha": "fded11f67b21b174b17dfe1f88bdfea2b4e94ff5",
       "alcance": [
-        "modelos"
+        "procedimiento"
       ]
     },
     "backend/dominio/informes/modelos/requisa-vehicular/salida-texto.js": {
       "sha": "e875821fbefa49bafc4ff29bdf5eda4880557d66",
       "alcance": [
-        "modelos"
+        "requisa-vehicular"
       ]
     },
     "backend/dominio/informes/modelos/requisa-vehicular/validaciones.js": {
       "sha": "2c69c56f5b34872a49d7c7022690969a900868e8",
       "alcance": [
-        "modelos"
+        "requisa-vehicular"
       ]
     },
     "backend/dominio/informes/modelos/retencion-licencia/salida-texto.js": {
       "sha": "970e560be99cd043f3ade243bbe8a4895ae42e6f",
       "alcance": [
-        "modelos"
+        "retencion-licencia"
       ]
     },
     "backend/dominio/informes/modelos/retencion-licencia/validaciones.js": {
       "sha": "f561ada763b2cad44c7246543e4557f97a21f5c1",
       "alcance": [
-        "modelos"
+        "retencion-licencia"
       ]
     },
     "backend/dominio/inicia/inicio-mapper-supabase.js": {
@@ -733,187 +733,187 @@
     "frontend/pantallas/informes/modelos/alcoholemia-positiva/alcoholemia-positiva.css": {
       "sha": "8b137891791fe96927ad78e64b0aad7bded08bdc",
       "alcance": [
-        "modelos"
+        "alcoholemia-positiva"
       ]
     },
     "frontend/pantallas/informes/modelos/alcoholemia-positiva/alcoholemia-positiva.html": {
       "sha": "9ae15d243cebbbb756b0a31705fa549a8df8829f",
       "alcance": [
-        "modelos"
+        "alcoholemia-positiva"
       ]
     },
     "frontend/pantallas/informes/modelos/alcoholemia-positiva/alcoholemia-positiva.js": {
       "sha": "cd4b4c59fc8e5e9e0bcb2d52380cddde70c67666",
       "alcance": [
-        "modelos"
+        "alcoholemia-positiva"
       ]
     },
     "frontend/pantallas/informes/modelos/alcoholemia-positiva/fotos/fotos-alcoholemia-positiva.css": {
       "sha": "83051b98185d8b81a950c09cfa94464ede60531c",
       "alcance": [
-        "modelos"
+        "alcoholemia-positiva"
       ]
     },
     "frontend/pantallas/informes/modelos/alcoholemia-positiva/fotos/fotos-alcoholemia-positiva.html": {
       "sha": "979b13e455c1d59d39de40e3be6dcbf39999824e",
       "alcance": [
-        "modelos"
+        "alcoholemia-positiva"
       ]
     },
     "frontend/pantallas/informes/modelos/alcoholemia-positiva/fotos/fotos-alcoholemia-positiva.js": {
       "sha": "8a46e46cf57418e2b7f4c6379675ed5cbfa3de4d",
       "alcance": [
-        "modelos"
+        "alcoholemia-positiva"
       ]
     },
     "frontend/pantallas/informes/modelos/control-armas/control-armas.css": {
       "sha": "e8ed0e4bc0e80757059a5e708a1d8ef80056f7e2",
       "alcance": [
-        "modelos"
+        "control-armas"
       ]
     },
     "frontend/pantallas/informes/modelos/control-armas/control-armas.html": {
       "sha": "6be60887399118427c53f8bacdf8ae1b73099568",
       "alcance": [
-        "modelos"
+        "control-armas"
       ]
     },
     "frontend/pantallas/informes/modelos/control-armas/control-armas.js": {
       "sha": "c75715d654c5c920bcff2e7a2082ccdf7a440dc6",
       "alcance": [
-        "modelos"
+        "control-armas"
       ]
     },
     "frontend/pantallas/informes/modelos/control-armas/fotos/fotos-control-armas.css": {
       "sha": "08198f02f27e77f0eec7093c511aa7ac645e7423",
       "alcance": [
-        "modelos"
+        "control-armas"
       ]
     },
     "frontend/pantallas/informes/modelos/control-armas/fotos/fotos-control-armas.html": {
       "sha": "b6051c7d664fa2954923c6460a359236106554f9",
       "alcance": [
-        "modelos"
+        "control-armas"
       ]
     },
     "frontend/pantallas/informes/modelos/control-armas/fotos/fotos-control-armas.js": {
       "sha": "aecacd538874aee1e52d1a576287b8796c4cf6d3",
       "alcance": [
-        "modelos"
+        "control-armas"
       ]
     },
     "frontend/pantallas/informes/modelos/control-superior/control-superior.css": {
       "sha": "8b137891791fe96927ad78e64b0aad7bded08bdc",
       "alcance": [
-        "modelos"
+        "control-superior"
       ]
     },
     "frontend/pantallas/informes/modelos/control-superior/control-superior.html": {
       "sha": "9b95fef3e1a6aaf4459c9051268b17fc542cc814",
       "alcance": [
-        "modelos"
+        "control-superior"
       ]
     },
     "frontend/pantallas/informes/modelos/control-superior/control-superior.js": {
       "sha": "9f47ed3bccfbdf3d84aeec1b46390c79be88ebc1",
       "alcance": [
-        "modelos"
+        "control-superior"
       ]
     },
     "frontend/pantallas/informes/modelos/decreto-460-22/decreto-460-22.css": {
       "sha": "8b137891791fe96927ad78e64b0aad7bded08bdc",
       "alcance": [
-        "modelos"
+        "decreto-460-22"
       ]
     },
     "frontend/pantallas/informes/modelos/decreto-460-22/decreto-460-22.html": {
       "sha": "49f8642791031a01955ac4bf8e37ca72f970f512",
       "alcance": [
-        "modelos"
+        "decreto-460-22"
       ]
     },
     "frontend/pantallas/informes/modelos/decreto-460-22/decreto-460-22.js": {
       "sha": "14f51a2fe2042ba2033552daae71989d52dc727c",
       "alcance": [
-        "modelos"
+        "decreto-460-22"
       ]
     },
     "frontend/pantallas/informes/modelos/decreto-460-22/fotos/fotos-decreto-460-22.css": {
       "sha": "83051b98185d8b81a950c09cfa94464ede60531c",
       "alcance": [
-        "modelos"
+        "decreto-460-22"
       ]
     },
     "frontend/pantallas/informes/modelos/decreto-460-22/fotos/fotos-decreto-460-22.html": {
       "sha": "e6beffa82317271e73d9cc7085be0698d9a27877",
       "alcance": [
-        "modelos"
+        "decreto-460-22"
       ]
     },
     "frontend/pantallas/informes/modelos/decreto-460-22/fotos/fotos-decreto-460-22.js": {
       "sha": "9b9a7c754312d92fe15120b5d64d8c1dcabcf1c6",
       "alcance": [
-        "modelos"
+        "decreto-460-22"
       ]
     },
     "frontend/pantallas/informes/modelos/procedimiento/procedimiento.html": {
       "sha": "a0e88c6e5e35d8ea3928687ac1ec2dc1a7838fd7",
       "alcance": [
-        "modelos"
+        "procedimiento"
       ]
     },
     "frontend/pantallas/informes/modelos/procedimiento/procedimiento.js": {
       "sha": "be0ccfdfd547c9ae9d72b835527960ee524115f0",
       "alcance": [
-        "modelos"
+        "procedimiento"
       ]
     },
     "frontend/pantallas/informes/modelos/requisa-vehicular/requisa-vehicular.html": {
       "sha": "cd9013da2d953820c3d92d8f9ab51547a7e461f0",
       "alcance": [
-        "modelos"
+        "requisa-vehicular"
       ]
     },
     "frontend/pantallas/informes/modelos/requisa-vehicular/requisa-vehicular.js": {
       "sha": "63a4c937d65ccde580937b7c78e51af577862eed",
       "alcance": [
-        "modelos"
+        "requisa-vehicular"
       ]
     },
     "frontend/pantallas/informes/modelos/retencion-licencia/fotos/fotos-retencion-licencia.css": {
       "sha": "20a4ec0021bd2dd6d4251edfcb57e2dd5faa470a",
       "alcance": [
-        "modelos"
+        "retencion-licencia"
       ]
     },
     "frontend/pantallas/informes/modelos/retencion-licencia/fotos/fotos-retencion-licencia.html": {
       "sha": "bfc54072e59a4e048d3c079d4e4286915be82375",
       "alcance": [
-        "modelos"
+        "retencion-licencia"
       ]
     },
     "frontend/pantallas/informes/modelos/retencion-licencia/fotos/fotos-retencion-licencia.js": {
       "sha": "5afb7a8349adbea91a953bf0850d41e6587aacbe",
       "alcance": [
-        "modelos"
+        "retencion-licencia"
       ]
     },
     "frontend/pantallas/informes/modelos/retencion-licencia/retencion-licencia.css": {
       "sha": "e98aeff67b863d78a9b221c14abf8298b11e76e2",
       "alcance": [
-        "modelos"
+        "retencion-licencia"
       ]
     },
     "frontend/pantallas/informes/modelos/retencion-licencia/retencion-licencia.html": {
       "sha": "9bc28ac13a3b3777f230a4632e67b1d8e6f30970",
       "alcance": [
-        "modelos"
+        "retencion-licencia"
       ]
     },
     "frontend/pantallas/informes/modelos/retencion-licencia/retencion-licencia.js": {
       "sha": "fd7d76a82fec24fa0693e887238b8274848d6a32",
       "alcance": [
-        "modelos"
+        "retencion-licencia"
       ]
     },
     "frontend/pantallas/inicia/compartido/inicio-base.js": {
