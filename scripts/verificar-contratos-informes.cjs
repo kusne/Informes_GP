@@ -7,7 +7,15 @@ const root = path.resolve(__dirname, "..");
 const contratos = JSON.parse(fs.readFileSync(path.join(root,"protecciones/contratos-informes.json"),"utf8"));
 const errores=[];
 function gitSha(blob){return crypto.createHash("sha1").update(Buffer.from("blob "+blob.length+"\0")).update(blob).digest("hex");}
-function esModelo(r){return /^frontend\/pantallas\/informes\/modelos\/[^/]+\//.test(r)||/^backend\/dominio\/informes\/modelos\/[^/]+\//.test(r)||/^frontend\/pantallas\/(inicia|finaliza)\//.test(r)||/^backend\/dominio\/(inicia|finaliza)\//.test(r);}
+function esModelo(r){
+  return /^frontend\/pantallas\/informes\/modelos\/[^/]+\//.test(r)
+    || /^backend\/dominio\/informes\/modelos\/[^/]+\//.test(r)
+    || /^frontend\/pantallas\/(inicia|finaliza|movimientos)\//.test(r)
+    || /^frontend\/pantallas\/informes\/(compartido|componentes)\//.test(r)
+    || /^backend\/dominio\/(inicia|finaliza|compartido|informes)\//.test(r)
+    || /^backend\/aplicacion\/procesamiento\//.test(r)
+    || /^backend\/infraestructura\/supabase\/informes-/.test(r);
+}
 for(const [r,info] of Object.entries(contratos.archivos)){
  const f=path.join(root,r);
  if(!fs.existsSync(f)){errores.push("Archivo protegido eliminado: "+r);continue;}
