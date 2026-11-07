@@ -41,5 +41,31 @@ export function redactarObservacionRetiro(m,hora){
  const partes=[];
  const retirados=movilidad(m.retirados);
 
- return partes.join(" ");
+  const salientes=ordenarPersonal(m.retirados.personal||[]);
+  const elementos=describirElementosRetirados(m.retirados.elementos);
+  const personas=salientes.length<2?salientes.join(''):
+    salientes.slice(0,-1).join(', ')+' y '+salientes[salientes.length-1];
+  let accion='';
+  if(salientes.length===1 && retirados.length===1){
+   accion='se retira el '+personas+' con móvil '+retirados[0];
+  }else if(salientes.length && retirados.length===1){
+   accion='se retira el personal policial '+personas+' con móvil '+retirados[0];
+  }else if(salientes.length && retirados.length>1){
+   accion='se retiran los móviles '+mostrar(retirados)+' junto al personal policial '+personas;
+  }else if(salientes.length===1){
+   accion='se retira el '+personas;
+  }else if(salientes.length>1){
+   accion='se retira el personal policial '+personas;
+  }else if(retirados.length===1){
+   accion='se retira el móvil '+retirados[0];
+  }else if(retirados.length>1){
+   accion='se retiran los móviles '+mostrar(retirados);
+  }
+  if(accion){
+   partes.push('Siendo las '+hora+' hs '+accion+(elementos?' llevando '+elementos:'')+'.');
+  }else if(elementos){
+   partes.push('Siendo las '+hora+' hs se retiran del operativo '+elementos+'.');
+  }
+  partes.push('La dotación restante continúa afectada al operativo.');
+  return partes.join(" ");
 }
