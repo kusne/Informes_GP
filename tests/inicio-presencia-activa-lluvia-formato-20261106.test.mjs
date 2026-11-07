@@ -20,13 +20,13 @@ const generar = (cambios = {}) => {
     "Suboficial de Policia Aquino Francisco Luis",
     "Suboficial de Policia Benavidez Claudio Uriel",
     "Suboficial de Policia Delgado Yasmila Ailen"
-   ].join("\\n"),
+   ].join("\n"),
    moviles_motos: "10139",
    elementos: [
     "Escopetas: /","Ht: /","Pda: 05 / 19 / 67 / 68",
     "Impresoras: N°39","Alómetros: ARSA-0360",
     "Alcoholímetros: ARUJ-0239"
-   ].join("\\n"),
+   ].join("\n"),
    presencia_activa:true,presencia_activa_motivo:"LLUVIA",
    presencia_activa_otro:"",observaciones:""
   }
