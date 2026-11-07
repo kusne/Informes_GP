@@ -13,13 +13,15 @@ function alcance(r){
  const m=r.match(/^frontend\/pantallas\/informes\/modelos\/([^/]+)\//)||r.match(/^backend\/dominio\/informes\/modelos\/([^/]+)\//);
  if(m)return [m[1]];
  if(/^frontend\/pantallas\/inicia\//.test(r)||/^backend\/dominio\/inicia\//.test(r))return ["inicio","presencia-activa"];
- if(/^frontend\/pantallas\/finaliza\//.test(r)||/^backend\/dominio\/finaliza\//.test(r))return ["finalizado"];
+ if(/^frontend\/pantallas\/finaliza\//.test(r)||/^backend\/dominio\/finaliza\//.test(r))return ["finalizado","presencia-activa"];
+ if(/^frontend\/pantallas\/movimientos\//.test(r))return ["relevo","acople","retiro"];
+ if(/^backend\/dominio\/(compartido|informes)\//.test(r)||/^backend\/aplicacion\/procesamiento\//.test(r)||/^frontend\/pantallas\/informes\/(compartido|componentes)\//.test(r)||/^backend\/infraestructura\/supabase\/informes-/.test(r))return ["todos"];
  return [];
 }
 const errores=[];
 for(const r of rutas){
  const a=alcance(r);
- if(a.length&&!permitidos.includes("todos")&&!a.some(x=>permitidos.includes(x)))errores.push(r+" (requiere: "+a.join(" o ")+")");
+ if(a.length&&!permitidos.includes("todos")&&!a.every(x=>permitidos.includes(x)))errores.push(r+" (requiere: "+a.join(" o ")+")");
 }
 if(errores.length){console.error("Cambios protegidos sin autorización de alcance:\n"+errores.join("\n")+"\nDeclarar INFORMES_AUTORIZADOS: <tipo>, sólo con autorización expresa del propietario.");process.exit(1);}
 console.log("Alcance correcto:",permitidos.join(", ")||"sin modelos modificados");
