@@ -1,0 +1,112 @@
+// Plantilla institucional de RELEVO, copiada literalmente de la versión aprobada de INICIO.
+// Este informe no depende del formateador de INICIO. Cambios de INICIO no alteran RELEVO.
+import { anexarOrdenesAlTitulo, resolverOrdenesOrigenOperativo } from "../../compartido/operativo-identidad.js";
+import { presentarPersonalOperativo } from "../../compartido/recursos/catalogo-recursos-operativos.js";
+import { formatearTituloOperativo, formatearLugarOperativo } from "../../compartido/texto/formato-titulos-operativos.js";
+export function construirTextoInicioBase(inicio) {
+  if (!inicio) return "";
+
+  const formulario = inicio.formulario || {};
+  const operativo = inicio.operativo || {};
+  const lineas = [];
+
+  lineas.push(negrita("Policia de la Provincia de Santa Fe - Direccion General Guardia Provincial"));
+  lineas.push(negrita("Brigada Motorizada Centro Norte"));
+  lineas.push(negrita("Tercio Charlie"));
+  lineas.push("");
+
+  // Prefijo configurable únicamente para los movimientos de dotación. INICIA conserva su comportamiento.
+  const prefijo = ["RELEVO", "ACOPLE", "RETIRO"].includes(inicio.prefijoTitulo) ? inicio.prefijoTitulo : "Inicia";
+  const encabezado = prefijo === "RETIRO" ? "RETIRO DE" : prefijo;
+  lineas.push(negrita(`${encabezado} ${resolverTituloOperativo(inicio, operativo)}`.trim()));
+  lineas.push("");
+
+  lineas.push(`${negrita("Fecha:")} ${formatearFecha(inicio.fecha_operativo || operativo?.fecha_operativo || inicio.fecha)}`);
+  lineas.push(`${negrita("Horario:")} ${texto(inicio.horarioReporte) || formatearHorario(inicio)}`);
+  lineas.push(`${negrita("Lugar:")} ${formatearLugarOperativo(inicio.lugar)}`);
+  lineas.push("");
+
+  lineas.push(negrita("Personal Policial:"));
+  lineas.push(formatearPersonalSalida(formulario.personal) || "/");
+  lineas.push("");
+
+  lineas.push(`${negrita("Móviles:")} ${texto(formulario.moviles_motos) || "/"}`);
+  lineas.push("");
+
+  lineas.push(negrita("Elementos:"));
+  lineas.push(texto(formulario.elementos) || construirElementosVacios());
+  lineas.push("");
+
+  lineas.push(negrita("Observaciones:"));
+  lineas.push(construirObservacionesInicio(formulario));
+
+  return compactarSaltos(lineas.join("\n"));
+}
+
+function construirObservacionesInicio(formulario = {}) {
+  const partes = [];
+  const manual = texto(formulario.observaciones);
+  const motivoPresenciaActiva = formulario.presencia_activa
+    ? resolverMotivoPresenciaActiva(formulario)
+    : "";
+
+  if (manual) partes.push(manual);
+  if (motivoPresenciaActiva) partes.push(motivoPresenciaActiva);
+
+  return partes.length ? partes.join("\n") : "Sin novedad";
+}
+
+function resolverMotivoPresenciaActiva(formulario = {}) {
+  const motivo = texto(formulario.presencia_activa_motivo).toUpperCase();
+  // La marca de lluvia cambia sólo la observación, nunca el tipo, las órdenes
+  // ni los recursos del operativo de INICIO.
+  if (motivo === "LLUVIA") return "Se realiza con presencia activa debido a inclemencias del tiempo (lloviznas).";
+  if (motivo === "OTROS") return texto(formulario.presencia_activa_otro);
+  return "";
+}
+
+function formatearPersonalSalida(valor) {
+  return texto(valor)
+    .split(/\r?\n/)
+    .map((linea) => linea.trim())
+    .filter(Boolean)
+    .map((linea) => presentarPersonalOperativo(linea).valor)
+    .join("\n");
+}
+
+function resolverTituloOperativo(inicio, operativo) {
+  const fuente =
+    operativo?.tipo_nombre ||
+    operativo?.titulo ||
+    operativo?.tipo_descripcion ||
+    inicio?.tipo_operativo ||
+    "Operativo";
+
+  const titulo = formatearTituloOperativo(fuente);
+  return anexarOrdenesAlTitulo(titulo, resolverOrdenesOrigenOperativo(inicio, operativo));
+}
+
+function formatearFecha(valor) {
+  const limpio = String(valor || "").trim();
+  const fechaISO = limpio.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (fechaISO) return `${fechaISO[3]}/${fechaISO[2]}/${fechaISO[1]}`;
+
+  const fecha = limpio ? new Date(limpio) : new Date();
+  const valida = Number.isFinite(fecha.getTime()) ? fecha : new Date();
+  return valida.toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" });
+}
+
+function formatearHorario(inicio) {
+  const horaInicio = texto(inicio?.hora_inicio);
+  const horaFin = texto(inicio?.hora_fin);
+  if (!horaInicio && !horaFin) return "/";
+  return `${horaInicio || "--:--"} A ${horaFin || "--:--"} HS`;
+}
+
+function construirElementosVacios() {
+  return ["Escopetas: /", "Ht: /", "Pda: /", "Impresoras: /", "Alómetros: /", "Alcoholímetros: /"].join("\n");
+}
+
+function negrita(valor) { return `*${texto(valor)}*`; }
+function texto(valor) { return String(valor || "").trim(); }
+function compactarSaltos(valor) { return String(valor || "").replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim(); }

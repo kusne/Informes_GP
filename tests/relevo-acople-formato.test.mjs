@@ -12,9 +12,8 @@ import { redactarObservacionAcople } from "../backend/dominio/compartido/texto/a
 
 const directorio=dirname(fileURLToPath(import.meta.url));
 const repoTexto=readFileSync(resolve(directorio,"../backend/infraestructura/supabase/movimientos-recursos-repo.js"),"utf8");
-const bloque=repoTexto.slice(repoTexto.indexOf("const movilidad ="),repoTexto.indexOf("export async function guardarMovimientoOperativo"));
-assert.ok(bloque.startsWith("const movilidad ="),"El formateador de movimientos debe poder localizarse");
-const { textoMovimiento }=new Function("construirTextoInicioBase","construirResumenRecursosOperativos","redactarObservacionRelevo","redactarObservacionAcople",bloque.replace("export function textoMovimiento","function textoMovimiento")+";return {textoMovimiento};")(construirTextoInicioBase,construirResumenRecursosOperativos,redactarObservacionRelevo,redactarObservacionAcople);
+// Formateador puro: prueba real del mismo módulo que consume la persistencia.
+import { textoMovimiento } from "../backend/dominio/movimientos/texto-movimiento.js";
 
 const op={
  guardia_fecha:"2026-10-15",
