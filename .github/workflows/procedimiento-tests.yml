@@ -1,23 +1,27 @@
-name: Validar PROCEDIMIENTO y cierre de operativos
+name: Blindaje de todos los informes GP
 on:
   pull_request:
     branches: [main]
   push:
-    branches: [main, feat/evento-procedimiento-20261017]
+    branches: [main]
+permissions:
+  contents: read
+  pull-requests: read
 jobs:
   regression:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Validar sintaxis e integridad de módulos
-        run: |
-          node --check backend/aplicacion/procesamiento/procesar-informe-especial.js
-          node --check backend/infraestructura/supabase/informes-especiales-v2-repo.js
-          node --check frontend/pantallas/informes/modelos/procedimiento/procedimiento.js
-          node --check frontend/pantallas/pantalla-principal/pantalla-principal.js
-      - name: Ejecutar regresiones de informes y procedimientos
-        run: |
-          node --test tests/*.test.mjs
+      - name: Contratos, arquitectura, módulos y regresiones completas
+        run: npm run check:todo
+      - name: Bloquear cambios a modelos no autorizados
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: origin/main
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: node scripts/verificar-alcance-informes.cjs
