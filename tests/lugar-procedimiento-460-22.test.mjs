@@ -114,7 +114,7 @@ test("460/22: QTH fijo editable imprime exclusivamente el lugar confirmado", () 
   const operativo = {tipo_nombre: "OCV", lugar: "RN 168 KM 18"};
   const caso = informe(operativo, "RN 168 KM 18, acceso norte");
   assert.equal(resolverLugarProcedimiento46022(caso).lugar, "RN 168 KM 18, acceso norte");
-  assert.match(construirTextoInformeEspecial(caso), /\\*LUGAR:\\* RN 168 KM 18, acceso norte/);
+  assert.match(construirTextoInformeEspecial(caso), /\*LUGAR:\* RN 168 KM 18, acceso norte/);
   assert.ok(!validarInformeEspecial(caso).some(e => e.includes("lugar")));
 });
 
