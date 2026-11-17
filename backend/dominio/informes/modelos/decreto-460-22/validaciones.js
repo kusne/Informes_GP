@@ -10,9 +10,7 @@ function validarDecreto46022(informe, errores) {
   // Si el operativo es patrullaje o cubre un rango, se exige el QTH exacto.
   const lugar = resolverLugarProcedimiento46022(informe);
   if (!lugar.lugar) {
-    errores.push(lugar.requiereManual
-      ? "Completá el lugar exacto del procedimiento 460/22."
-      : "El operativo seleccionado no tiene un QTH fijo.");
+    errores.push("Completá el lugar exacto del procedimiento 460/22.");
   }
 
   // Conductor y DNI son datos opcionales: el formato institucional 460/22 no
