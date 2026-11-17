@@ -135,6 +135,8 @@ function renderSelectorOperativoInterno({
       await refrescarOperativos46022(host);
     }
     estadoInforme.operativoSeleccionado = estadoInforme.operativos.find((op) => String(op.operativo_key) === claveElegida) || null;
+    const selectorVigente = host.querySelector("#selectorOperativoDentroInforme");
+    if (selectorVigente) selectorVigente.value = estadoInforme.operativoSeleccionado?.operativo_key || "";
 
     // No reconstruir el formulario: elegir/cambiar el operativo nunca debe borrar
     // lo que el usuario ya escribió ni las fotos que ya seleccionó.
