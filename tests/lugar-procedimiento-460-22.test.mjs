@@ -37,7 +37,7 @@ test("460/22: QTH fijo OCV se autocompleta sin exigir escritura manual", () => {
     lugar: "RN 168 Km7,5 Ambos Sentidos Dicep"
   };
   assert.equal(requiereLugarManual46022(operativo), false);
-  const caso = informe(operativo);
+  const caso = informe(operativo, operativo.lugar);
   assert.equal(resolverLugarProcedimiento46022(caso).lugar, operativo.lugar);
   assert.match(construirTextoInformeEspecial(caso), /\*LUGAR:\* RN 168 Km7,5 Ambos Sentidos Dicep/);
   assert.ok(!validarInformeEspecial(caso).some(e => e.includes("lugar exacto")));
@@ -105,9 +105,23 @@ test("460/22: el modelo muestra un solo lugar y conserva la validación del nuev
   const js = readFileSync(new URL("../frontend/pantallas/informes/modelos/decreto-460-22/decreto-460-22.js", import.meta.url), "utf8");
   assert.match(html, /name="lugar_procedimiento"/);
   assert.match(js, /lugar\.value = requiereManual \? "" : qth/);
-  assert.match(js, /lugar\.readOnly = !requiereManual/);
+  assert.match(js, /lugar\.readOnly = false/);
   assert.match(js, /lugar\.required = true/);
   assert.match(js, /getOperativoSeleccionado/);
+});
+
+test("460/22: QTH fijo editable imprime exclusivamente el lugar confirmado", () => {
+  const operativo = {tipo_nombre: "OCV", lugar: "RN 168 KM 18"};
+  const caso = informe(operativo, "RN 168 KM 18, acceso norte");
+  assert.equal(resolverLugarProcedimiento46022(caso).lugar, "RN 168 KM 18, acceso norte");
+  assert.match(construirTextoInformeEspecial(caso), /\*LUGAR:\* RN 168 KM 18, acceso norte/);
+  assert.ok(!validarInformeEspecial(caso).some(e => e.includes("lugar")));
+});
+
+test("460/22: lugar vacío no se sustituye silenciosamente por el programado", () => {
+  const caso = informe({tipo_nombre: "OCV", lugar: "RN 168 KM 18"});
+  assert.equal(resolverLugarProcedimiento46022(caso).lugar, "");
+  assert.ok(validarInformeEspecial(caso).some(e => e.includes("lugar")));
 });
 
 test("460/22: NO TRAE LUGAR no se interpreta como un QTH fijo", () => {

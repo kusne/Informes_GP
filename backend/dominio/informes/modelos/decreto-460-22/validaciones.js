@@ -10,9 +10,7 @@ function validarDecreto46022(informe, errores) {
   // Si el operativo es patrullaje o cubre un rango, se exige el QTH exacto.
   const lugar = resolverLugarProcedimiento46022(informe);
   if (!lugar.lugar) {
-    errores.push(lugar.requiereManual
-      ? "Completá el lugar exacto del procedimiento 460/22."
-      : "El operativo seleccionado no tiene un QTH fijo.");
+    errores.push("Completá el lugar exacto del procedimiento 460/22.");
   }
 
   // Conductor y DNI son datos opcionales: el formato institucional 460/22 no
@@ -38,7 +36,7 @@ function validarDecreto46022(informe, errores) {
 
 function validarJuzgadoRetencion(f, errores, habilitado) {
   if (!habilitado) return;
-  const elegido = texto(f.juzgado || "SANTA FE").toLocaleUpperCase("es-AR");
+  const elegido = texto(f.juzgado || "RINCON").toLocaleUpperCase("es-AR");
   const opciones = ["SANTA FE", "RINCON", "RECREO", "SAUCE VIEJO", "SANTO TOME", "OTRO"];
   if (!opciones.includes(elegido)) {
     errores.push("Seleccione un juzgado válido.");

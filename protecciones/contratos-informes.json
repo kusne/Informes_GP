@@ -63,7 +63,7 @@
       ]
     },
     "backend/dominio/compartido/lugares/lugar-procedimiento-460-22.js": {
-      "sha": "12c05a3592264794e650922ed7ce1850761d8980",
+      "sha": "d68205452e8edc1267bb90676fe1158d79da565d",
       "alcance": [
         "todos"
       ]
@@ -351,7 +351,7 @@
       ]
     },
     "backend/dominio/informes/modelos/decreto-460-22/validaciones.js": {
-      "sha": "153f44f8e0f5cee37ebabe2082160eead9b8e4bc",
+      "sha": "bbae9c34695c47fa6bcd15f273d6a802178248b5",
       "alcance": [
         "decreto-460-22"
       ]
@@ -1003,7 +1003,7 @@
       ]
     },
     "frontend/pantallas/informes/informes.js": {
-      "sha": "cbec23a1e4c85daace949f1a19bde366d20a1ee0",
+      "sha": "2eb7d5a4a0fc64f233ad8f9070291fdb37cf1bea",
       "alcance": [
         "todos"
       ]
@@ -1111,13 +1111,13 @@
       ]
     },
     "frontend/pantallas/informes/modelos/decreto-460-22/decreto-460-22.html": {
-      "sha": "49f8642791031a01955ac4bf8e37ca72f970f512",
+      "sha": "167682f2eafb40bf1a7ab7fd0813b6293b9a1791",
       "alcance": [
         "decreto-460-22"
       ]
     },
     "frontend/pantallas/informes/modelos/decreto-460-22/decreto-460-22.js": {
-      "sha": "14f51a2fe2042ba2033552daae71989d52dc727c",
+      "sha": "f284850a1ddfe94f53563ae9e467a3b5e6e3a0bd",
       "alcance": [
         "decreto-460-22"
       ]

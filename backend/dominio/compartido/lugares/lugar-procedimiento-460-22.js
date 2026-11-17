@@ -52,6 +52,7 @@ export function resolverLugarProcedimiento46022(informe = {}) {
   return {
     requiereManual: manual,
     qth,
-    lugar: manual ? indicado : qth
+    // Siempre respetar el lugar confirmado en el input, incluso con QTH fijo.
+    lugar: indicado
   };
 }

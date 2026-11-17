@@ -1,6 +1,7 @@
 import { cargarComponenteHtml } from "../../servicios/ui/cargar-componente-html.js";
 import { resolverRutaApp } from "../../servicios/rutas/rutas-app.js";
 import { obtenerOperativosPorModo } from "../../../api/app-api.js";
+import { obtenerOperativosDisponibles46022 } from "../../../api/decreto-460-22-api.js";
 import {
   obtenerModeloInformeGP,
   normalizarModeloInforme
@@ -13,8 +14,10 @@ import {
 let estadoInforme = {
   modelo: null,
   operativoSeleccionado: null,
-  operativos: []
+  operativos: [],
+  estadoGuardia46022: "SIN_GUARDIA"
 };
+let detenerVigilancia46022 = null;
 
 export async function iniciarModuloInformes({
   hostSelector = "#informesModuloHost",
@@ -25,6 +28,8 @@ export async function iniciarModuloInformes({
   const host = document.querySelector(hostSelector);
 
   if (!host) return;
+  detenerVigilancia46022?.();
+  detenerVigilancia46022 = null;
 
   const modeloKey = normalizarModeloInforme(
     modeloInformeSeleccionado?.modelo_key ||
@@ -37,7 +42,8 @@ export async function iniciarModuloInformes({
   estadoInforme = {
     modelo,
     operativoSeleccionado: null,
-    operativos: []
+    operativos: [],
+    estadoGuardia46022: "SIN_GUARDIA"
   };
 
   if (!modelo) {
@@ -64,12 +70,20 @@ export async function iniciarModuloInformes({
     host,
     getContexto
   });
+
+  if (esDecreto46022()) iniciarVigilancia46022(host);
 }
 
 export const iniciarInformes = iniciarModuloInformes;
 export const iniciarInformesEspeciales = iniciarModuloInformes;
 
 async function cargarOperativosInternos() {
+  if (esDecreto46022()) {
+    const resultado = await obtenerOperativosDisponibles46022();
+    estadoInforme.operativos = resultado.operativos;
+    estadoInforme.estadoGuardia46022 = resultado.estado;
+    return;
+  }
   try {
     estadoInforme.operativos = await obtenerOperativosPorModo(
       estadoInforme.modelo?.codigo === "PROCEDIMIENTO" ? "PROCEDIMIENTO" : "INFORMES"
@@ -89,14 +103,15 @@ function renderSelectorOperativoInterno({
   if (!contenedor) return;
 
   const operativos = estadoInforme.operativos;
+  const es460 = esDecreto46022();
 
   contenedor.innerHTML = `
     <section class="informe-operativo-interno">
       <h3>${escapeHtml(estadoInforme.modelo?.nombre || "INFORME")}</h3>
-      <label for="selectorOperativoDentroInforme">Últimos Operativos</label>
+      ${es460 ? "" : '<label for="selectorOperativoDentroInforme">Últimos Operativos</label>'}
 
       <select id="selectorOperativoDentroInforme" ${operativos.length ? "" : "disabled"}>
-        <option value="">${operativos.length ? "Seleccione Operativo" : "No hay operativos disponibles"}</option>
+        <option value="">${operativos.length ? "Seleccione Operativo" : es460 ? "No hay operativos de guardia disponibles" : "No hay operativos disponibles"}</option>
         ${operativos.map((op) => `
           <option value="${escapeHtml(op.operativo_key)}">
             ${escapeHtml(construirEtiquetaOperativo(op))}
@@ -105,15 +120,23 @@ function renderSelectorOperativoInterno({
       </select>
 
       <p class="informe-operativo-ayuda">
-        ${operativos.length ? "Puede seleccionar un operativo aunque ya esté FINALIZADO." : "Todavía no hay operativos que hayan sido iniciados para vincular el informe."}
+        ${es460 ? mensajeGuardia46022() : operativos.length ? "Puede seleccionar un operativo aunque ya esté FINALIZADO." : "Todavía no hay operativos que hayan sido iniciados para vincular el informe."}
       </p>
     </section>
   `;
 
   const selector = contenedor.querySelector("#selectorOperativoDentroInforme");
 
-  selector?.addEventListener("change", () => {
-    estadoInforme.operativoSeleccionado = operativos.find((op) => String(op.operativo_key) === selector.value) || null;
+  selector?.addEventListener("change", async () => {
+    const claveElegida = selector.value;
+    if (es460) {
+      // Evitar una selección obsoleta si Desktop cerró la guardia mientras
+      // estaba abierto el desplegable.
+      await refrescarOperativos46022(host);
+    }
+    estadoInforme.operativoSeleccionado = estadoInforme.operativos.find((op) => String(op.operativo_key) === claveElegida) || null;
+    const selectorVigente = host.querySelector("#selectorOperativoDentroInforme");
+    if (selectorVigente) selectorVigente.value = estadoInforme.operativoSeleccionado?.operativo_key || "";
 
     // No reconstruir el formulario: elegir/cambiar el operativo nunca debe borrar
     // lo que el usuario ya escribió ni las fotos que ya seleccionó.
@@ -194,6 +217,75 @@ async function renderFormularioInforme({
     getOperativoSeleccionado: () => estadoInforme.operativoSeleccionado,
     getContexto
   });
+}
+
+function esDecreto46022() {
+  return estadoInforme.modelo?.codigo === "DECRETO_460_22";
+}
+
+function mensajeGuardia46022() {
+  const estado = estadoInforme.estadoGuardia46022;
+  if (estado === "FINALIZADA") return "La guardia fue cerrada en BMZCN Desktop.";
+  if (estado === "BLOQUEO_PREVENTIVO") return "Guardia bloqueada preventivamente en BMZCN Desktop.";
+  if (estado === "SIN_VERIFICAR") return "No se pudo verificar el cierre de guardia en BMZCN Desktop.";
+  if (estado === "SIN_GUARDIA") return "No hay una guardia vigente confirmada por BMZCN Desktop.";
+  return estadoInforme.operativos.length
+    ? "Puede seleccionar un operativo de la guardia vigente aunque ya esté FINALIZADO."
+    : "No hay operativos iniciados en la guardia vigente.";
+}
+
+async function refrescarOperativos46022(host) {
+  if (!esDecreto46022() || !host?.isConnected) return;
+  const resultado = await obtenerOperativosDisponibles46022();
+  if (!esDecreto46022() || !host?.isConnected) return;
+  const antes = estadoInforme.operativos.map(op => [
+    op.guardia_fecha, op.operativo_key, op.estado, op.lugar, op.tipo_nombre
+  ].join("|")).join(";");
+  const despues = resultado.operativos.map(op => [
+    op.guardia_fecha, op.operativo_key, op.estado, op.lugar, op.tipo_nombre
+  ].join("|")).join(";");
+  if (antes === despues && estadoInforme.estadoGuardia46022 === resultado.estado) return;
+
+  const seleccionAnterior = estadoInforme.operativoSeleccionado;
+  const claveAnterior = seleccionAnterior?.operativo_key;
+  estadoInforme.operativos = resultado.operativos;
+  estadoInforme.estadoGuardia46022 = resultado.estado;
+  const vigente = estadoInforme.operativos.find(op =>
+    op.operativo_key === claveAnterior && op.guardia_fecha === seleccionAnterior?.guardia_fecha
+  );
+  estadoInforme.operativoSeleccionado = vigente || null;
+  renderSelectorOperativoInterno({ host });
+  const selector = host.querySelector("#selectorOperativoDentroInforme");
+  if (selector && vigente) selector.value = vigente.operativo_key;
+
+  if (seleccionAnterior && !vigente) {
+    const formHost = host.querySelector("#informeEspecialHost");
+    const form = formHost?.querySelector("form") ||
+      formHost?.querySelector("[data-modelo-informe]") ||
+      formHost?.firstElementChild;
+    actualizarOperativoInformeEspecial({ form, operativoSeleccionado: null });
+  }
+}
+
+function iniciarVigilancia46022(host) {
+  let activa = true;
+  let verificando = false;
+  const refrescar = async () => {
+    if (!activa || verificando || document.visibilityState === "hidden") return;
+    verificando = true;
+    try { await refrescarOperativos46022(host); }
+    finally { verificando = false; }
+  };
+  const recuperar = () => { if (document.visibilityState === "visible") void refrescar(); };
+  const intervalo = setInterval(() => void refrescar(), 15000);
+  document.addEventListener("visibilitychange", recuperar);
+  window.addEventListener("focus", recuperar);
+  detenerVigilancia46022 = () => {
+    activa = false;
+    clearInterval(intervalo);
+    document.removeEventListener("visibilitychange", recuperar);
+    window.removeEventListener("focus", recuperar);
+  };
 }
 
 function construirEtiquetaOperativo(op = {}) {

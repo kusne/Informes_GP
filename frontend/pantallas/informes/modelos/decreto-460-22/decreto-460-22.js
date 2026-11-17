@@ -4,7 +4,7 @@ import { iniciarSelectorJuzgado } from "../../compartido/selector-juzgado.js";
 import {
   obtenerQthOperativo,
   requiereLugarManual46022
-} from "../../../../../backend/dominio/compartido/lugares/lugar-procedimiento-460-22.js";
+} from "../../../../../api/decreto-460-22-api.js";
 
 export async function iniciarModeloInformeUI({ form, operativoSeleccionado } = {}) {
   if (!form) return () => null;
@@ -29,11 +29,10 @@ export async function iniciarModeloInformeUI({ form, operativoSeleccionado } = {
     if (lugar.dataset.operativoLugarClave !== identidad) {
       lugar.value = requiereManual ? "" : qth;
       lugar.dataset.operativoLugarClave = identidad;
-    } else if (!requiereManual) {
-      lugar.value = qth;
     }
 
-    lugar.readOnly = !requiereManual;
+    // El QTH fijo autocompletado permanece editable; no pisar correcciones.
+    lugar.readOnly = false;
     lugar.required = true;
     lugar.placeholder = requiereManual
       ? "Ingresá el lugar exacto del procedimiento"
