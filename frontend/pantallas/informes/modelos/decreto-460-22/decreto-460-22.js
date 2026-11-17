@@ -4,7 +4,7 @@ import { iniciarSelectorJuzgado } from "../../compartido/selector-juzgado.js";
 import {
   obtenerQthOperativo,
   requiereLugarManual46022
-} from "../../../../../backend/dominio/compartido/lugares/lugar-procedimiento-460-22.js";
+} from "../../../../../api/decreto-460-22-api.js";
 
 export async function iniciarModeloInformeUI({ form, operativoSeleccionado } = {}) {
   if (!form) return () => null;
