@@ -38,7 +38,7 @@ function validarDecreto46022(informe, errores) {
 
 function validarJuzgadoRetencion(f, errores, habilitado) {
   if (!habilitado) return;
-  const elegido = texto(f.juzgado || "SANTA FE").toLocaleUpperCase("es-AR");
+  const elegido = texto(f.juzgado || "RINCON").toLocaleUpperCase("es-AR");
   const opciones = ["SANTA FE", "RINCON", "RECREO", "SAUCE VIEJO", "SANTO TOME", "OTRO"];
   if (!opciones.includes(elegido)) {
     errores.push("Seleccione un juzgado válido.");
