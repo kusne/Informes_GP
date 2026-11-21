@@ -1,5 +1,6 @@
 import { TABLAS_SUPABASE } from "./supabase-client.js";
 import { validarDotacionFinalizadoContraEstado } from "../../dominio/finaliza/validar-dotacion-finalizado.js";
+import { prepararRevisionInicioOperativo } from "../../dominio/inicia/revision-inicio.js";
 
 const TABLA_OPERATIVOS_ESTADO = TABLAS_SUPABASE.operativosEstado;
 
@@ -185,6 +186,44 @@ export async function guardarInicioOperativoV2(payload) {
   if (error) throw error;
 
   return data;
+}
+
+/**
+ * Actualizar INICIO existente sin crear filas, sin reiniciar el estado y con
+ * control de concurrencia para no pisar movimientos de otra terminal.
+ */
+export async function guardarRevisionInicioOperativoV2({
+  guardia_fecha, operativo_key, expected_updated_at,
+  accion, formulario, dependencias
+} = {}) {
+  if (!guardia_fecha || !operativo_key || !expected_updated_at)
+    throw Error("Falta identidad y versión del INICIO a modificar.");
+  const cliente = await obtenerClienteSupabase();
+  if (!cliente) throw Error("Sin conexión con Supabase. No se guardó la revisión.");
+
+  const existente = await obtenerEstadoOperativoV2({ guardia_fecha, operativo_key });
+  if (!existente || existente.estado !== "EN_CURSO")
+    throw Error("El operativo ya no está EN CURSO; no puede rectificarse.");
+  if (existente.updated_at !== expected_updated_at)
+    throw Error("El INICIO o la dotación cambiaron en otro dispositivo. Reabrí el operativo y revisá los datos.");
+
+  const revision = prepararRevisionInicioOperativo({
+    operativo:existente, accion, formulario, dependencias
+  });
+  const actualizadoEn = new Date().toISOString();
+  const {data,error} = await cliente
+    .from(TABLA_OPERATIVOS_ESTADO)
+    .update({...revision.parche, updated_at: actualizadoEn})
+    .eq("id",existente.id)
+    .eq("guardia_fecha",guardia_fecha)
+    .eq("operativo_key",operativo_key)
+    .eq("estado","EN_CURSO")
+    .eq("updated_at",expected_updated_at)
+    .select()
+    .maybeSingle();
+  if(error)throw error;
+  if(!data)throw Error("Se modificó el operativo antes de guardar. Reabrí el INICIO; no se enviaron cambios.");
+  return {data, texto:revision.texto, accion:revision.accion};
 }
 
 export async function guardarFinalizadoOperativoV2(payload) {

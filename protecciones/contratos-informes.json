@@ -9,7 +9,7 @@
       ]
     },
     "api/persistencia-api.js": {
-      "sha": "3117dde6efd134b832856f5ac3f8c9fef5015e69",
+      "sha": "f6d74a23eac9169157b33972dfc9c3bf9def7422",
       "alcance": [
         "todos"
       ]
@@ -1591,6 +1591,13 @@
         "relevo",
         "acople",
         "retiro"
+      ]
+    },
+    "backend/dominio/inicia/revision-inicio.js": {
+      "sha": "d5f552f6af5e01fa05424cbebc12952649411aa2",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
       ]
     }
   }
