@@ -12,6 +12,7 @@ const estadoPantalla = {
   modo: "",
   operativoSeleccionado: null,
   modeloInformeSeleccionado: null,
+  inicioRevisionActivo: false,
   cantidadOperativos: 0,
   operativosDisponibles: [],
   modelosInformesDisponibles: []
@@ -78,6 +79,7 @@ async function cambiarModoPantalla(modo, { operativosPrefetched = null } = {}) {
   estadoPantalla.modo = normalizarModo(modo);
   estadoPantalla.operativoSeleccionado = null;
   estadoPantalla.modeloInformeSeleccionado = null;
+  estadoPantalla.inicioRevisionActivo = false;
 
   // Mostrar INICIA/FINALIZA sin cargar aún los componentes del formulario.
   // La consulta de operativos es la primera tarea de contenido del arranque.
@@ -106,6 +108,7 @@ async function recargarItemsPantalla({
   if (!refrescoNoDestructivo) {
     estadoPantalla.operativoSeleccionado = null;
     estadoPantalla.modeloInformeSeleccionado = null;
+    estadoPantalla.inicioRevisionActivo = false;
     await registrarOperativoSeguro(null);
   }
 
@@ -130,7 +133,7 @@ async function recargarItemsPantalla({
     // Esto también cubre el caso en que otro dispositivo haya FINALIZADO el
     // mismo operativo: no se bloquea el formulario; el último envío guardado
     // seguirá siendo el válido.
-    if (refrescoNoDestructivo && estadoPantalla.operativoSeleccionado) {
+    if (refrescoNoDestructivo && estadoPantalla.operativoSeleccionado && !estadoPantalla.inicioRevisionActivo) {
       items = conservarOperativoSeleccionadoEnItems(items, estadoPantalla.operativoSeleccionado);
     }
 
@@ -160,7 +163,13 @@ async function recargarItemsPantalla({
       items
     });
 
-    if (refrescoNoDestructivo && estadoPantalla.operativoSeleccionado) {
+    if (modo === "INICIA") {
+      await renderSelectorRevisionInicioSeguro({
+        conservar: refrescoNoDestructivo && estadoPantalla.inicioRevisionActivo
+      });
+    }
+
+    if (refrescoNoDestructivo && estadoPantalla.operativoSeleccionado && !estadoPantalla.inicioRevisionActivo) {
       restaurarSeleccionVisualOperativo(estadoPantalla.operativoSeleccionado);
     }
   } else {
@@ -353,6 +362,9 @@ async function renderSelectorOperativoSeguro({
 
           estadoPantalla.operativoSeleccionado = item;
           estadoPantalla.modeloInformeSeleccionado = null;
+          estadoPantalla.inicioRevisionActivo = false;
+          const selectorRevision = document.querySelector("#selectorRevisionInicioEnCurso");
+          if (selectorRevision) selectorRevision.value = "";
 
           await registrarOperativoSeguro(item);
           if (!item?.operativo_key) {
@@ -383,6 +395,85 @@ async function renderSelectorOperativoSeguro({
   renderSelectorFallback({
     modo,
     items
+  });
+}
+
+// En INICIA el selector de programados permanece independiente. Los ya
+// iniciados se consultan con la misma fuente EN CURSO que usa FINALIZADO.
+async function renderSelectorRevisionInicioSeguro({ conservar = false } = {}) {
+  if (estadoPantalla.modo !== "INICIA") return;
+  const host = document.querySelector("#selectorOperativoContextualHost");
+  if (!host) return;
+
+  const lista = (await obtenerOperativosSeguro("FINALIZA")).filter(op =>
+    String(op?.estado || "").toUpperCase() === "EN_CURSO" &&
+    Boolean(op?.operativo_key && op?.guardia_fecha)
+  );
+  if (estadoPantalla.modo !== "INICIA" || !host.isConnected) return;
+
+  host.querySelector("#selectorRevisionInicioHost")?.remove();
+  const bloque = document.createElement("section");
+  bloque.id = "selectorRevisionInicioHost";
+  bloque.className = "selector-operativo-contextual";
+  bloque.style.marginTop = "12px";
+  bloque.innerHTML =
+    '<label for="selectorRevisionInicioEnCurso" style="display:block;margin-bottom:6px;font-weight:800">Modificar un INICIO ya enviado</label>' +
+    '<select id="selectorRevisionInicioEnCurso" aria-label="Seleccionar operativo EN CURSO para modificar INICIO"></select>' +
+    '<small style="display:block;margin-top:6px">Corregir INICIO o agregar dependencias sin duplicar el operativo.</small>';
+  host.appendChild(bloque);
+
+  const selector = bloque.querySelector("select");
+  function opcion(valor, etiqueta) {
+    const option = document.createElement("option");
+    option.value = valor;
+    option.textContent = etiqueta;
+    selector.appendChild(option);
+  }
+  opcion("", lista.length ? "Seleccionar operativo EN CURSO..." : "No hay operativos EN CURSO");
+  lista.forEach((op, indice) => opcion(String(indice),
+    (op.hora_inicio || "--:--") + " A " + (op.hora_fin || "--:--") +
+    " - " + (op.lugar || "SIN LUGAR") + " - " + (op.tipo_nombre || op.tipo_operativo || "OPERATIVO")));
+
+  if (conservar && estadoPantalla.operativoSeleccionado) {
+    const indice = lista.findIndex(op =>
+      op.operativo_key === estadoPantalla.operativoSeleccionado.operativo_key &&
+      op.guardia_fecha === estadoPantalla.operativoSeleccionado.guardia_fecha
+    );
+    if (indice >= 0) selector.value = String(indice);
+  }
+
+  selector.addEventListener("change", async () => {
+    const indice = Number(selector.value);
+    const item = selector.value === "" ? null : lista[indice] || null;
+    if (!item) {
+      estadoPantalla.inicioRevisionActivo = false;
+      estadoPantalla.operativoSeleccionado = null;
+      await registrarOperativoSeguro(null);
+      mostrarEsperaSeleccionOperativo("INICIA");
+      return;
+    }
+
+    estadoPantalla.inicioRevisionActivo = true;
+    estadoPantalla.operativoSeleccionado = item;
+    estadoPantalla.modeloInformeSeleccionado = null;
+    const selectorProgramados = document.querySelector("#operativoContextualSelect, #selectorContextualFallback");
+    if (selectorProgramados) selectorProgramados.value = "";
+    await registrarOperativoSeguro(item);
+
+    const hostFormulario = document.querySelector("#contenedorDinamicoHost");
+    if (!hostFormulario) return;
+    hostFormulario.innerHTML = '<section class="pantalla-mensaje"><h2>INICIO enviado</h2><p>Cargando datos guardados...</p></section>';
+    try {
+      const modulo = await import("../inicia/revision-inicio.js");
+      if (estadoPantalla.modo !== "INICIA" || !estadoPantalla.inicioRevisionActivo ||
+        estadoPantalla.operativoSeleccionado?.operativo_key !== item.operativo_key ||
+        estadoPantalla.operativoSeleccionado?.guardia_fecha !== item.guardia_fecha) return;
+      await modulo.iniciarRevisionInicio({host:hostFormulario,operativoSeleccionado:item});
+    } catch (error) {
+      console.error("[Informes_GP] No se pudo abrir la revisión del INICIO:", error);
+      hostFormulario.innerHTML = '<section class="pantalla-mensaje error-formulario"><h2>No se pudo abrir el INICIO</h2><p></p></section>';
+      hostFormulario.querySelector("p").textContent = error?.message || "Error al cargar datos guardados.";
+    }
   });
 }
 
