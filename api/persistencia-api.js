@@ -183,4 +183,4 @@ function normalizarModo(valor) {
 
 // Movimientos de dotación en operativos EN CURSO.
 export { guardarMovimientoOperativo, dotacionVigenteOperativo } from "../backend/infraestructura/supabase/movimientos-recursos-repo.js";
-export { obtenerEstadoOperativoV2 } from "../backend/infraestructura/supabase/operativos-estado-v2-repo.js";
+export { obtenerEstadoOperativoV2, guardarRevisionInicioOperativoV2 } from "../backend/infraestructura/supabase/operativos-estado-v2-repo.js";
