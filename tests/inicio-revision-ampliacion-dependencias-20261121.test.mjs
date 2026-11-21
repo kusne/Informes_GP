@@ -126,3 +126,12 @@ test("Front INICIA mantiene separados programados y EN CURSO con reenvío y vers
   assert.match(repo,/\.eq\("estado","EN_CURSO"\)/);
   assert.match(repo,/\.eq\("updated_at",expected_updated_at\)/);
 });
+
+test("Etiqueta breve de revisión de INICIO en selector y encabezado", () => {
+  const main=readFileSync(new URL("../frontend/pantallas/pantalla-principal/pantalla-principal.js",import.meta.url),"utf8");
+  const revision=readFileSync(new URL("../frontend/pantallas/inicia/revision-inicio.js",import.meta.url),"utf8");
+  for (const codigo of [main,revision]) {
+    assert.match(codigo,/Modificar un INICIO/);
+    assert.doesNotMatch(codigo,/Modificar un INICIO ya enviado/);
+  }
+});
