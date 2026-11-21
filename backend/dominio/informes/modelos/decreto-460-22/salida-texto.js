@@ -51,6 +51,9 @@ function construirDescripcionOperativo(informe = {}, { mayusculas = false } = {}
 }
 
 function resolverHoraInforme(informe = {}) {
+  // La hora escrita en el input del Decreto 460/22 manda sobre la automática.
+  const editable = texto(informe?.formulario?.hora);
+  if (/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(editable)) return editable;
   const directa = texto(informe.hora_informe);
   if (/^\d{1,2}:\d{2}$/.test(directa)) return directa;
 
