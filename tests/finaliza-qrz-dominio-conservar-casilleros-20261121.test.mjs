@@ -62,7 +62,7 @@ test("FINALIZADO: QRZ 10 a 11 agrega sólo una celda y conserva los 10 DNI", () 
     const originales = [...refs.qrzCasilleros.children];
     originales.forEach((input, indice) => {
       input.value = String(30000000 + indice);
-      input.emit("input");
+      input.emitir("input");
     });
     refs.qrz.value = "11";
     sincronizarQrzDominio(refs);
@@ -86,7 +86,7 @@ test("FINALIZADO: Dominio 10 a 11 conserva textos escritos y agrega una sola cel
     const originales = [...refs.dominioCasilleros.children];
     originales.forEach((input, indice) => {
       input.value = "AA" + String(100 + indice) + "QZ AUTO";
-      input.emit("input");
+      input.emitir("input");
     });
     refs.dominio.value = "11";
     sincronizarQrzDominio(refs);
@@ -105,11 +105,11 @@ test("FINALIZADO: reducir cantidad conserva los restantes y recuperar casilleros
     sincronizarQrzDominio(refs);
     refs.qrzCasilleros.children.forEach((input, indice) => {
       input.value = String(31000000 + indice);
-      input.emit("input");
+      input.emitir("input");
     });
     refs.dominioCasilleros.children.forEach((input, indice) => {
       input.value = "AB" + String(200 + indice);
-      input.emit("input");
+      input.emitir("input");
     });
     const primerosQrz = [...refs.qrzCasilleros.children.slice(0, 7)];
     const primerosDominios = [...refs.dominioCasilleros.children.slice(0, 8)];
@@ -165,9 +165,9 @@ test("FINALIZADO: al escribir en un casillero se actualiza el JSON y se sanitiza
     const qrz = refs.qrzCasilleros.children[0];
     const dominio = refs.dominioCasilleros.children[0];
     qrz.value = "34.567.890";
-    qrz.emit("input");
+    qrz.emitir("input");
     dominio.value = "ab-123-cd";
-    dominio.emit("input");
+    dominio.emitir("input");
     assert.equal(qrz.value, "34567890");
     assert.equal(dominio.value, "AB123CD");
     assert.deepEqual(JSON.parse(refs.hiddenQrz.value), ["34567890"]);
