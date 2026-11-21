@@ -345,7 +345,7 @@
       ]
     },
     "backend/dominio/informes/modelos/decreto-460-22/salida-texto.js": {
-      "sha": "c03bff210f61e4e3f073aeae0fed14876e717dbf",
+      "sha": "23b96eba568076a29d683fe979fa5ac8f07fb5b2",
       "alcance": [
         "decreto-460-22"
       ]
@@ -1003,7 +1003,7 @@
       ]
     },
     "frontend/pantallas/informes/informes.js": {
-      "sha": "db2b0f08d35f94f1a819f0eea5b4582814779d93",
+      "sha": "87fd0a56e7deefebfa899d6680081c57a8bf5b15",
       "alcance": [
         "todos"
       ]
@@ -1111,13 +1111,13 @@
       ]
     },
     "frontend/pantallas/informes/modelos/decreto-460-22/decreto-460-22.html": {
-      "sha": "167682f2eafb40bf1a7ab7fd0813b6293b9a1791",
+      "sha": "04832b1ece07929cc37102f3f72faeff6931cfd7",
       "alcance": [
         "decreto-460-22"
       ]
     },
     "frontend/pantallas/informes/modelos/decreto-460-22/decreto-460-22.js": {
-      "sha": "f284850a1ddfe94f53563ae9e467a3b5e6e3a0bd",
+      "sha": "7b89c2f5d2e0e8696991ab3ce775c88cf6119e8e",
       "alcance": [
         "decreto-460-22"
       ]

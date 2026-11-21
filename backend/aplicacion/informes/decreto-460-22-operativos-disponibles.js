@@ -1,6 +1,5 @@
 // Vinculación exclusiva para Decreto 460/22: sólo operativos de la guardia
 // habilitada por BMZCN Desktop. No modifica la lógica de otros informes.
-import { seleccionarUltimosOperativosIniciados } from "../operativos/operativos.js";
 import { listarEstadosOperativosRestRapido } from "../../infraestructura/supabase/supabase-rest-rapido.js";
 import { obtenerGuardiaFecha0600 } from "../../dominio/compartido/fechas/guardia-0600.js";
 import { modoEnsayoActivo } from "../../infraestructura/ensayo/modo-ensayo.js";
@@ -73,8 +72,8 @@ export async function obtenerOperativosDisponibles46022({
     return {
       estado: "ENSAYO_LOCAL",
       guardiaFecha: fecha,
-      operativos: seleccionarUltimosOperativosIniciados(
-        obtenerOperativosEnsayoPorModo("INFORMES", fecha), 2
+      operativos: seleccionarOperativosGuardia46022(
+        obtenerOperativosEnsayoPorModo("DECRETO_460_22", fecha), fecha
       )
     };
   }
@@ -89,13 +88,71 @@ export async function obtenerOperativosDisponibles46022({
     return {
       estado: guardia.estado,
       guardiaFecha: guardia.guardiaFecha,
-      operativos: seleccionarUltimosOperativosIniciados(
-        (operativos || []).filter(op => op.guardia_fecha === guardia.guardiaFecha), 2
-      )
+      operativos: seleccionarOperativosGuardia46022(operativos, guardia.guardiaFecha)
     };
   } catch (error) {
     console.warn("[460/22] Estado de guardia sin verificar; selector bloqueado.", error);
     // Fallar cerrado: nunca recuperar operativos históricos de caché.
     return { estado: "SIN_VERIFICAR", guardiaFecha: "", operativos: [] };
   }
+}
+
+// Exclusivo Decreto 460/22: todos los EN CURSO (incluido procedimiento)
+// y los dos últimos FINALIZADOS, siempre de la guardia actualmente vigente.
+// Se excluyen programados, suspendidos y guardias históricas.
+const ESTADOS_ABIERTOS_46022 = new Set(["EN_CURSO", "EN_PROCEDIMIENTO", "INICIADO", "ACTIVO"]);
+
+export function seleccionarOperativosGuardia46022(operativos = [], guardiaFecha = "") {
+  const fecha = String(guardiaFecha || "").trim();
+  if (!fecha || !Array.isArray(operativos)) return [];
+
+  const unicos = new Map();
+  for (const op of operativos) {
+    if (!op || String(op.guardia_fecha || "").trim() !== fecha) continue;
+    const clave = String(op.operativo_key || "").trim();
+    const estado = estadoOperativo46022(op);
+    if (!clave || (!ESTADOS_ABIERTOS_46022.has(estado) && estado !== "FINALIZADO")) continue;
+    const previo = unicos.get(clave);
+    if (!previo || fechaModificacion46022(op) >= fechaModificacion46022(previo)) {
+      unicos.set(clave, op);
+    }
+  }
+
+  const filas = Array.from(unicos.values());
+  const enCurso = filas
+    .filter(op => ESTADOS_ABIERTOS_46022.has(estadoOperativo46022(op)))
+    .sort((a, b) => fechaInicio46022(b) - fechaInicio46022(a));
+  const finalizados = filas
+    .filter(op => estadoOperativo46022(op) === "FINALIZADO")
+    .sort((a, b) => fechaFinalizado46022(b) - fechaFinalizado46022(a))
+    .slice(0, 2);
+
+  return [...enCurso, ...finalizados];
+}
+
+function estadoOperativo46022(op) {
+  return String(op?.estado || "").trim().toUpperCase().replace(/\s+/g, "_");
+}
+
+function fechaTimestamp46022(...valores) {
+  for (const valor of valores) {
+    const marca = Date.parse(String(valor || ""));
+    if (Number.isFinite(marca)) return marca;
+  }
+  return 0;
+}
+
+function fechaModificacion46022(op) {
+  return fechaTimestamp46022(op?.updated_at, op?.fecha_evento, op?.created_at);
+}
+
+function fechaInicio46022(op) {
+  return fechaTimestamp46022(op?.created_at, op?.inicio_created_at, op?.fecha_evento, op?.updated_at);
+}
+
+function fechaFinalizado46022(op) {
+  return fechaTimestamp46022(
+    op?.finalizado_at, op?.finalizado_en, op?.datos?.finalizado_en,
+    op?.fecha_evento, op?.updated_at, op?.created_at
+  );
 }

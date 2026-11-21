@@ -12,6 +12,35 @@ export async function iniciarModeloInformeUI({ form, operativoSeleccionado } = {
   let operativoActual = operativoSeleccionado || null;
   const lugar = form.querySelector('[name="lugar_procedimiento"]');
   const avisoLugar = form.querySelector("[data-aviso-lugar-procedimiento]");
+  const horaInforme = form.querySelector('[name="hora"]');
+
+  // Hora visible de confección, editable sin restricciones.
+  // Si el usuario no la modificó, actualizarla justo al pulsar Enviar.
+  const refrescarHoraAutomatica = (notificar = false) => {
+    if (!horaInforme) return;
+    if (horaInforme.dataset.horaEditada === "true" && horaInforme.value) return;
+    const ahora = new Date();
+    const horaActual = String(ahora.getHours()).padStart(2, "0") + ":" +
+      String(ahora.getMinutes()).padStart(2, "0");
+    if (horaInforme.value === horaActual) return;
+    horaInforme.value = horaActual;
+    if (notificar) form.dispatchEvent(new Event("input", { bubbles: true }));
+  };
+  horaInforme?.addEventListener("input", () => {
+    horaInforme.dataset.horaEditada = horaInforme.value ? "true" : "false";
+  });
+  refrescarHoraAutomatica();
+
+  const prepararHoraParaEnvio = (evento) => {
+    if (!form.isConnected) {
+      document.removeEventListener("click", prepararHoraParaEnvio, true);
+      return;
+    }
+    if (!evento.target?.closest?.("#botonEnviarWhatsapp")) return;
+    // Captura: se actualiza antes del click que prepara el texto para WSP.
+    refrescarHoraAutomatica(true);
+  };
+  document.addEventListener("click", prepararHoraParaEnvio, true);
 
   const actualizarLugar = (operativo) => {
     if (!lugar) return;

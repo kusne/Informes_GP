@@ -102,6 +102,10 @@ export function obtenerOperativosEnsayoPorModo(modo, guardiaFecha) {
     return operativos.filter((item) => item.estado === "PROGRAMADO");
   }
 
+  if (modoNormalizado === "DECRETO_460_22") {
+    return operativos.filter((item) => ["EN_CURSO", "FINALIZADO"].includes(item.estado));
+  }
+
   if (modoNormalizado === "FINALIZA" || modoNormalizado === "INFORMES") {
     return operativos.filter((item) => item.estado === "EN_CURSO");
   }

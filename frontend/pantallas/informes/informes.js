@@ -251,7 +251,7 @@ function mensajeGuardia46022() {
   if (estado === "SIN_GUARDIA") return "No hay una guardia vigente confirmada por BMZCN Desktop.";
   const fecha = estadoInforme.guardiaFecha46022 || "actual";
   return estadoInforme.operativos.length
-    ? `Guardia ${fecha}: seleccioná un operativo iniciado (también se admiten FINALIZADOS de esta misma guardia).`
+    ? `Guardia ${fecha}: todos los operativos EN CURSO y los dos últimos FINALIZADOS de esta misma guardia.`
     : `Guardia ${fecha} vigente, pero sin operativos iniciados registrados. Primero registrá INICIO en Informes GP y después pulsá «Actualizar operativos». No se utilizan operativos de guardias cerradas.`;
 }
 
