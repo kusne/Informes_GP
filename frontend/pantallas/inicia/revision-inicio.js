@@ -42,7 +42,7 @@ export async function iniciarRevisionInicio({host,operativoSeleccionado,esSelecc
     '.inicio-revision-panel [data-vista-previa] {white-space:pre-wrap;overflow-wrap:anywhere;background:#f1f5f9;color:#0f172a;border-radius:8px;padding:12px;max-height:360px;overflow:auto}',
     '.inicio-revision-panel [data-error] {color:#fff;font-weight:700}',
     '</style>',
-    '<h2>Modificar un INICIO ya enviado</h2>',
+    '<h2>Modificar un INICIO</h2>',
     '<p><strong>'+escapar(registro.tipo_nombre || registro.tipo_operativo)+'</strong></p>',
     '<p>'+escapar(registro.hora_inicio)+' A '+escapar(registro.hora_fin)+' — '+escapar(registro.lugar)+'</p>',
     '<div class="ir-opciones" role="group" aria-label="Acción para el inicio">',
