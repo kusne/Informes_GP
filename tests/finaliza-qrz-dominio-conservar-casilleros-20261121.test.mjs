@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { iniciarResultadosDinamicosFinaliza, sincronizarQrzDominio } from "../frontend/pantallas/finaliza/componentes/resultados-dinamicos/resultados-dinamicos.js";
+import { sincronizarQrzDominio } from "../frontend/pantallas/finaliza/componentes/resultados-dinamicos/resultados-dinamicos.js";
 
 class FakeInput {
   constructor() {
