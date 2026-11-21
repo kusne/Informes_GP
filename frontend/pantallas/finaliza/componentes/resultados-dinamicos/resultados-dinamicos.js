@@ -156,7 +156,7 @@ function renderLista(host, cantidad, tipo, onInput) {
     input.type = "text";
     input.autocomplete = "off";
     input.spellcheck = false;
-    input.className = \`finaliza-casillero-\${tipo}\`;
+    input.className = "finaliza-casillero-" + tipo;
     input.value = normalizar(memoria.valores[indice] || "");
 
     if (tipo === "qrz") {
