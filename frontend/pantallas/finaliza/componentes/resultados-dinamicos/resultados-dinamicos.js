@@ -123,29 +123,57 @@ function renderGraduaciones(host, cantidad, onInput) {
   }
 }
 
+// Cada host conserva sus datos únicamente mientras permanece abierto el mismo
+// formulario. No compartir DNI ni dominios entre guardias u operativos.
+const memoriaCasilleros = new WeakMap();
+
 function renderLista(host, cantidad, tipo, onInput) {
   if (!host) return;
-  const actuales = Array.from(host.querySelectorAll('input[type="text"]')).map((i) => i.value);
-  host.innerHTML = "";
-  for (let i = 0; i < cantidad; i += 1) {
+
+  const normalizar = tipo === "qrz" ? sanitizarQrz : sanitizarDominio;
+  let memoria = memoriaCasilleros.get(host);
+  if (!memoria || memoria.tipo !== tipo) {
+    memoria = { tipo, valores: [] };
+    memoriaCasilleros.set(host, memoria);
+  }
+
+  // Capturar el valor real de las celdas visibles antes de redimensionar.
+  // No borrar y recrear las restantes: conservar sus nodos, foco y contenido.
+  const actuales = Array.from(host.querySelectorAll('input[type="text"]'));
+  actuales.forEach((input, indice) => {
+    memoria.valores[indice] = normalizar(input.value);
+  });
+
+  // Al disminuir, retirar sólo las últimas celdas. Sus valores permanecen
+  // en la memoria del formulario por si el usuario vuelve a incrementar.
+  for (let indice = actuales.length - 1; indice >= cantidad; indice -= 1) {
+    actuales[indice].remove();
+  }
+
+  // Al aumentar, agregar exclusivamente las nuevas celdas.
+  for (let indice = actuales.length; indice < cantidad; indice += 1) {
     const input = document.createElement("input");
     input.type = "text";
     input.autocomplete = "off";
     input.spellcheck = false;
-    input.className = `finaliza-casillero-${tipo}`;
+    input.className = \`finaliza-casillero-\${tipo}\`;
+    input.value = normalizar(memoria.valores[indice] || "");
+
     if (tipo === "qrz") {
       input.inputMode = "numeric";
       input.maxLength = 9;
       input.placeholder = "36459780";
-      input.value = sanitizarQrz(actuales[i]);
-      input.addEventListener("input", () => { input.value = sanitizarQrz(input.value); onInput?.(); });
     } else {
       input.inputMode = "text";
       input.maxLength = 16;
       input.placeholder = "AA123QK Sedan";
-      input.value = sanitizarDominio(actuales[i]);
-      input.addEventListener("input", () => { input.value = sanitizarDominio(input.value); onInput?.(); });
     }
+
+    input.addEventListener("input", () => {
+      input.value = normalizar(input.value);
+      memoria.valores[indice] = input.value;
+      onInput?.();
+    });
     host.appendChild(input);
   }
 }
