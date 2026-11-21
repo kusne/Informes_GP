@@ -15,9 +15,11 @@ let estadoInforme = {
   modelo: null,
   operativoSeleccionado: null,
   operativos: [],
-  estadoGuardia46022: "SIN_GUARDIA"
+  estadoGuardia46022: "SIN_GUARDIA",
+  guardiaFecha46022: ""
 };
 let detenerVigilancia46022 = null;
+let secuenciaConsulta46022 = 0;
 
 export async function iniciarModuloInformes({
   hostSelector = "#informesModuloHost",
@@ -30,6 +32,7 @@ export async function iniciarModuloInformes({
   if (!host) return;
   detenerVigilancia46022?.();
   detenerVigilancia46022 = null;
+  secuenciaConsulta46022 += 1;
 
   const modeloKey = normalizarModeloInforme(
     modeloInformeSeleccionado?.modelo_key ||
@@ -43,7 +46,8 @@ export async function iniciarModuloInformes({
     modelo,
     operativoSeleccionado: null,
     operativos: [],
-    estadoGuardia46022: "SIN_GUARDIA"
+    estadoGuardia46022: "SIN_GUARDIA",
+    guardiaFecha46022: ""
   };
 
   if (!modelo) {
@@ -82,6 +86,7 @@ async function cargarOperativosInternos() {
     const resultado = await obtenerOperativosDisponibles46022();
     estadoInforme.operativos = resultado.operativos;
     estadoInforme.estadoGuardia46022 = resultado.estado;
+    estadoInforme.guardiaFecha46022 = resultado.guardiaFecha || "";
     return;
   }
   try {
@@ -110,7 +115,7 @@ function renderSelectorOperativoInterno({
       <h3>${escapeHtml(estadoInforme.modelo?.nombre || "INFORME")}</h3>
       ${es460 ? "" : '<label for="selectorOperativoDentroInforme">Últimos Operativos</label>'}
 
-      <select id="selectorOperativoDentroInforme" ${operativos.length ? "" : "disabled"}>
+      <select id="selectorOperativoDentroInforme" aria-label="Seleccionar operativo para el informe" ${operativos.length ? "" : "disabled"}>
         <option value="">${operativos.length ? "Seleccione Operativo" : es460 ? "No hay operativos de guardia disponibles" : "No hay operativos disponibles"}</option>
         ${operativos.map((op) => `
           <option value="${escapeHtml(op.operativo_key)}">
@@ -119,9 +124,10 @@ function renderSelectorOperativoInterno({
         `).join("")}
       </select>
 
-      <p class="informe-operativo-ayuda">
+      <p class="informe-operativo-ayuda" role="status">
         ${es460 ? mensajeGuardia46022() : operativos.length ? "Puede seleccionar un operativo aunque ya esté FINALIZADO." : "Todavía no hay operativos que hayan sido iniciados para vincular el informe."}
       </p>
+      ${es460 ? '<button type="button" id="btnActualizarOperativos46022">Actualizar operativos</button>' : ""}
     </section>
   `;
 
@@ -130,11 +136,15 @@ function renderSelectorOperativoInterno({
   selector?.addEventListener("change", async () => {
     const claveElegida = selector.value;
     if (es460) {
-      // Evitar una selección obsoleta si Desktop cerró la guardia mientras
-      // estaba abierto el desplegable.
-      await refrescarOperativos46022(host);
+      // Antes de confirmar, volver a verificar la guardia sin perder la selección:
+      // la recarga puede reconstruir el <select> durante el evento change.
+      await refrescarOperativos46022(host, { claveSolicitada: claveElegida });
+      if (!esDecreto46022() || !host.isConnected) return;
     }
-    estadoInforme.operativoSeleccionado = estadoInforme.operativos.find((op) => String(op.operativo_key) === claveElegida) || null;
+    estadoInforme.operativoSeleccionado = estadoInforme.operativos.find((op) =>
+      String(op.operativo_key) === claveElegida &&
+      (!es460 || String(op.guardia_fecha) === String(estadoInforme.guardiaFecha46022))
+    ) || null;
     const selectorVigente = host.querySelector("#selectorOperativoDentroInforme");
     if (selectorVigente) selectorVigente.value = estadoInforme.operativoSeleccionado?.operativo_key || "";
 
@@ -150,6 +160,16 @@ function renderSelectorOperativoInterno({
       form,
       operativoSeleccionado: estadoInforme.operativoSeleccionado
     });
+  });
+  contenedor.querySelector("#btnActualizarOperativos46022")?.addEventListener("click", async (evento) => {
+    const boton = evento.currentTarget;
+    if (boton?.disabled) return;
+    boton.disabled = true;
+    try {
+      await refrescarOperativos46022(host, { forzar: true });
+    } finally {
+      if (boton.isConnected) boton.disabled = false;
+    }
   });
 }
 
@@ -229,34 +249,49 @@ function mensajeGuardia46022() {
   if (estado === "BLOQUEO_PREVENTIVO") return "Guardia bloqueada preventivamente en BMZCN Desktop.";
   if (estado === "SIN_VERIFICAR") return "No se pudo verificar el cierre de guardia en BMZCN Desktop.";
   if (estado === "SIN_GUARDIA") return "No hay una guardia vigente confirmada por BMZCN Desktop.";
+  const fecha = estadoInforme.guardiaFecha46022 || "actual";
   return estadoInforme.operativos.length
-    ? "Puede seleccionar un operativo de la guardia vigente aunque ya esté FINALIZADO."
-    : "No hay operativos iniciados en la guardia vigente.";
+    ? `Guardia ${fecha}: seleccioná un operativo iniciado (también se admiten FINALIZADOS de esta misma guardia).`
+    : `Guardia ${fecha} vigente, pero sin operativos iniciados registrados. Primero registrá INICIO en Informes GP y después pulsá «Actualizar operativos». No se utilizan operativos de guardias cerradas.`;
 }
 
-async function refrescarOperativos46022(host) {
+async function refrescarOperativos46022(host, { forzar = false, claveSolicitada = "" } = {}) {
   if (!esDecreto46022() || !host?.isConnected) return;
+  const secuencia = ++secuenciaConsulta46022;
   const resultado = await obtenerOperativosDisponibles46022();
-  if (!esDecreto46022() || !host?.isConnected) return;
+  // Un cambio de pantalla u otra consulta más nueva invalida esta respuesta.
+  if (secuencia !== secuenciaConsulta46022 || !esDecreto46022() || !host?.isConnected) return;
   const antes = estadoInforme.operativos.map(op => [
     op.guardia_fecha, op.operativo_key, op.estado, op.lugar, op.tipo_nombre
   ].join("|")).join(";");
   const despues = resultado.operativos.map(op => [
     op.guardia_fecha, op.operativo_key, op.estado, op.lugar, op.tipo_nombre
   ].join("|")).join(";");
-  if (antes === despues && estadoInforme.estadoGuardia46022 === resultado.estado) return;
+  const cambio = antes !== despues ||
+    estadoInforme.estadoGuardia46022 !== resultado.estado ||
+    estadoInforme.guardiaFecha46022 !== (resultado.guardiaFecha || "");
 
   const seleccionAnterior = estadoInforme.operativoSeleccionado;
-  const claveAnterior = seleccionAnterior?.operativo_key;
+  // Priorizar la selección realizada por el usuario mientras ocurría la consulta.
+  const clave = String(claveSolicitada || seleccionAnterior?.operativo_key || "");
+  const guardia = String(claveSolicitada
+    ? estadoInforme.guardiaFecha46022
+    : seleccionAnterior?.guardia_fecha || "");
   estadoInforme.operativos = resultado.operativos;
   estadoInforme.estadoGuardia46022 = resultado.estado;
+  estadoInforme.guardiaFecha46022 = resultado.guardiaFecha || "";
   const vigente = estadoInforme.operativos.find(op =>
-    op.operativo_key === claveAnterior && op.guardia_fecha === seleccionAnterior?.guardia_fecha
-  );
-  estadoInforme.operativoSeleccionado = vigente || null;
-  renderSelectorOperativoInterno({ host });
+    String(op.operativo_key) === clave &&
+    String(op.guardia_fecha) === guardia &&
+    String(op.guardia_fecha) === String(estadoInforme.guardiaFecha46022)
+  ) || null;
+  estadoInforme.operativoSeleccionado = vigente;
+
+  if (cambio || forzar) {
+    renderSelectorOperativoInterno({ host });
+  }
   const selector = host.querySelector("#selectorOperativoDentroInforme");
-  if (selector && vigente) selector.value = vigente.operativo_key;
+  if (selector) selector.value = vigente?.operativo_key || "";
 
   if (seleccionAnterior && !vigente) {
     const formHost = host.querySelector("#informeEspecialHost");
