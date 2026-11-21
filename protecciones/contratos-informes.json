@@ -1601,7 +1601,7 @@
       ]
     },
     "frontend/pantallas/inicia/revision-inicio.js": {
-      "sha": "989a3db7d9751428135e89e208b1bfbabc7bcfea",
+      "sha": "a0871c1036236e7ca724d2fd442e9590ee8d2bc8",
       "alcance": [
         "inicio",
         "presencia-activa"

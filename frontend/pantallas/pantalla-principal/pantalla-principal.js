@@ -468,7 +468,13 @@ async function renderSelectorRevisionInicioSeguro({ conservar = false } = {}) {
       if (estadoPantalla.modo !== "INICIA" || !estadoPantalla.inicioRevisionActivo ||
         estadoPantalla.operativoSeleccionado?.operativo_key !== item.operativo_key ||
         estadoPantalla.operativoSeleccionado?.guardia_fecha !== item.guardia_fecha) return;
-      await modulo.iniciarRevisionInicio({host:hostFormulario,operativoSeleccionado:item});
+      await modulo.iniciarRevisionInicio({
+        host:hostFormulario,operativoSeleccionado:item,
+        esSeleccionVigente:()=>estadoPantalla.modo === "INICIA" &&
+          estadoPantalla.inicioRevisionActivo &&
+          estadoPantalla.operativoSeleccionado?.operativo_key === item.operativo_key &&
+          estadoPantalla.operativoSeleccionado?.guardia_fecha === item.guardia_fecha
+      });
     } catch (error) {
       console.error("[Informes_GP] No se pudo abrir la revisión del INICIO:", error);
       hostFormulario.innerHTML = '<section class="pantalla-mensaje error-formulario"><h2>No se pudo abrir el INICIO</h2><p></p></section>';

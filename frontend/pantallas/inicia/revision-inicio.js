@@ -9,7 +9,7 @@ const texto = value => String(value ?? "").trim();
 const escapar = value => String(value ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;")
   .replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
 
-export async function iniciarRevisionInicio({host,operativoSeleccionado} = {}) {
+export async function iniciarRevisionInicio({host,operativoSeleccionado,esSeleccionVigente} = {}) {
   if (!host || !operativoSeleccionado?.operativo_key) return;
   if (modoEnsayoActivo()) throw Error("La rectificación de INICIO requiere un operativo real de Supabase; el modo ensayo no realiza modificaciones.");
 
@@ -17,7 +17,7 @@ export async function iniciarRevisionInicio({host,operativoSeleccionado} = {}) {
     guardia_fecha:operativoSeleccionado.guardia_fecha,
     operativo_key:operativoSeleccionado.operativo_key
   });
-  if (!host.isConnected) return;
+  if (!host.isConnected || (typeof esSeleccionVigente === "function" && !esSeleccionVigente())) return;
   if (!registro || registro.estado !== "EN_CURSO")
     throw Error("El operativo seleccionado ya no está EN CURSO o no tiene un INICIO guardado.");
   const previos = obtenerDatosInicioParaRevision(registro);
