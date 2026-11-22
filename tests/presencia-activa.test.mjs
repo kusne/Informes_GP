@@ -76,3 +76,25 @@ test("Impide duplicar transiciones y guardar motivos o horarios inválidos", () 
   assert.throws(() => iniciar(), /EN CURSO/);
   assert.equal(MOTIVOS_PRESENCIA_ACTIVA.length, 5);
 });
+
+test("Otro motivo personalizado e insumos vigentes se conservan en el informe", () => {
+  const row = operativo();
+  row.datos.recursos_vigentes = {
+    personal: ["Subinspector Mariaux A.", "Suboficial de Policia Delgado Yasmila Ailen"],
+    moviles: ["8105"], motos: [],
+    elementos: {
+      escopetas: [], ht: [], pda: ["67", "68"],
+      impresoras: ["N°64"], alometros: ["ARTL-0425"],
+      alcoholimetros: ["ARLM-0536"]
+    }
+  };
+  const salida = prepararCambioPresenciaActiva({
+    operativo: row, accion: "INICIAR", motivo: "OTROS",
+    otro_motivo: "desperfecto del equipo de control",
+    hora_reporte: "07:22", fecha_evento: "2026-11-22T10:22:00.000Z"
+  });
+  assert.match(salida.texto, /por desperfecto del equipo de control/);
+  assert.match(salida.texto, /Delgado Yasmila Ailen/);
+  assert.match(salida.texto, /ARLM-0536/);
+  assert.doesNotMatch(salida.texto, /Se adjunta vista fotográfica/);
+});
