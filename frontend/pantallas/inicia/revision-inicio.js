@@ -59,7 +59,7 @@ export async function iniciarRevisionInicio({host,operativoSeleccionado,esSelecc
       ? '<p role="status">Los movimientos posteriores (RELEVO, ACOPLE y RETIRO) permanecerán intactos. Esta rectificación no cambia la dotación vigente que ya fue modificada.</p>' : '',
     '</div>',
     '<div data-form-ampliacion hidden>',
-    '<p>El personal nuevo se agrega al inicio hecho</p>',
+    '<p>Se conserva el INICIO enviado y se agregan las nuevas dependencias después de los móviles originales.</p>',
     '<div data-dependencias-existentes></div><div data-dependencias-nuevas></div>',
     '<button type="button" data-agregar-dependencia>+ Agregar otra dependencia</button>',
     '</div>',
@@ -175,7 +175,7 @@ export async function iniciarRevisionInicio({host,operativoSeleccionado,esSelecc
     const accion = preparado.datos.accion;
     if (!confirm(accion === "CORRECCION"
       ? "¿Confirmás el reenvío del INICIO RECTIFICADO?"
-      : "¿Confirmás la AMPLIACIÓN DE INICIO con las dependencias agregadas?")) return;
+      : "¿Confirmás la ACTUALIZACIÓN DEL INICIO con las dependencias agregadas?")) return;
 
     // Se abre durante el gesto del usuario para no perder la activación del navegador.
     const ventana = prepararVentanaWhatsapp();
@@ -190,6 +190,9 @@ export async function iniciarRevisionInicio({host,operativoSeleccionado,esSelecc
         dependencias:preparado.datos.dependencias
       });
       textoGuardado = guardado.texto;
+      // El mismo texto guardado será el mostrado y enviado a WhatsApp.
+      vista.textContent = guardado.texto;
+      vista.hidden = false;
       reintentar.hidden = false;
       error.textContent = "Modificación guardada en el mismo operativo. Abriendo WhatsApp...";
       window.dispatchEvent(new CustomEvent("informesgp:envio-whatsapp-ok", {

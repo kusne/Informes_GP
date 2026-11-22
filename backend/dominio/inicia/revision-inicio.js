@@ -100,22 +100,55 @@ function construirTextoCorreccion(op, snapshot, dependencias) {
   return bloques ? rectificado + "\n\n" + bloques : rectificado;
 }
 
-function construirTextoAmpliacion(op, nuevas, fecha) {
-  const fechaLocal = new Date(fecha);
-  const dia = Number.isNaN(fechaLocal.getTime()) ? "" : fechaLocal.toLocaleDateString("es-AR");
-  const hora = Number.isNaN(fechaLocal.getTime()) ? "" :
-    fechaLocal.toLocaleTimeString("es-AR", {hour:"2-digit",minute:"2-digit"});
-  return [
-    "*POLICÍA DE LA PROVINCIA DE SANTA FE - DIRECCIÓN GENERAL GUARDIA PROVINCIAL*",
-    "*BRIGADA MOTORIZADA ZONA CENTRO NORTE*",
-    "",
-    "*AMPLIACIÓN DE INICIO: " + texto(op.tipo_nombre || op.tipo_operativo || "OPERATIVO") + "*",
-    "*FECHA:* " + dia + "    *HORA:* " + hora,
-    "*GUARDIA:* " + texto(op.guardia_fecha),
-    "*OPERATIVO:* " + texto(op.hora_inicio) + " A " + texto(op.hora_fin) + " - " + texto(op.lugar),
-    "",
-    anexarBloquesDependencias(nuevas)
-  ].join("\n").trim();
+// Una actualización de INICIO NO es un parte distinto: usa el texto íntegro
+// que ya fue enviado. Nunca volver a inventar encabezados, fecha ni horario.
+function resolverTextoBaseGuardado(op, datos, anteriores) {
+  if (texto(datos.inicio_texto_base)) return texto(datos.inicio_texto_base);
+  const salida = texto(op?.texto_salida) || texto(objeto(datos.inicio_snapshot).texto_salida);
+  if (!salida) throw Error("No se encontró el texto original del INICIO. No se puede actualizar sin conservar su formato.");
+  // Compatibilidad con INICIOS rectificados en versiones anteriores: únicamente
+  // se retiran bloques añadidos por la plantilla antigua al FINAL del documento.
+  const bloqueAnterior = anexarBloquesDependencias(anteriores);
+  const sufijo = bloqueAnterior ? "\n\n" + bloqueAnterior : "";
+  if (sufijo && salida.endsWith(sufijo)) return salida.slice(0, -sufijo.length);
+  return salida;
+}
+
+function etiquetaDependencia(nombre) {
+  // Conservar el nombre institucional en Supabase, pero usar el rótulo corto
+  // de los modelos que emplea la Sub Base UOR3.
+  return /^SUB\s*BASE(?:\s+U\.?\s*O\.?\s*R\.?\s*\d+)?$/i.test(nombre)
+    ? "Sub Base" : texto(nombre);
+}
+
+function bloquesActualizacion(dependencias) {
+  return dependencias.map(dep => {
+    const titulo = etiquetaDependencia(dep.nombre);
+    return [
+      "*Personal " + titulo + ":*",
+      dep.personal || "/",
+      "*Movil " + titulo + ":* " + (dep.moviles || "/")
+    ].join("\n");
+  }).join("\n\n");
+}
+
+function insertarDependenciasEnInicio(original, dependencias) {
+  const base = String(original ?? "");
+  if (!dependencias.length) return base;
+  // La plantilla vigente sitúa Móviles en una sola línea antes de Elementos.
+  // Si el documento persistido difiere, no reconstruirlo ni generar datos
+  // supuestos: se exige un anclaje inequívoco para conservar el INICIO exacto.
+  const lineaMoviles = /^[ \t]*\*M[oó]viles:\*[^\r\n]*(?:\r?\n|$)/im.exec(base);
+  const lineaElementos = /^[ \t]*\*Elementos:\*/im.exec(base);
+  if (!lineaMoviles || !lineaElementos ||
+      lineaMoviles.index + lineaMoviles[0].length > lineaElementos.index)
+    throw Error("El INICIO guardado no tiene un bloque Móviles seguido de Elementos. No se modificó su formato.");
+  const posicion = lineaMoviles.index + lineaMoviles[0].length;
+  const salto = lineaMoviles[0].endsWith("\r\n") ? "\r\n" : "\n";
+  const antes = base.slice(0, posicion);
+  const despues = base.slice(posicion);
+  const bloques = bloquesActualizacion(dependencias).replace(/\n/g, salto);
+  return antes + salto + bloques + (despues.startsWith(salto) ? salto : salto + salto) + despues;
 }
 
 function vigentesDeSnapshot(op, snapshot, datos) {
@@ -187,15 +220,20 @@ export function prepararRevisionInicioOperativo({
   if (accion === TIPO_AMPLIACION && mismo(actualizadas, antiguas))
     throw Error("Las dependencias indicadas ya figuran en el inicio. No hay datos nuevos.");
 
+  const baseActualizada = accion === TIPO_CORRECCION
+    ? construirTextoCorreccion(operativo, siguiente, [])
+    : resolverTextoBaseGuardado(operativo, datosPrevios, antiguas);
   const textoSalida = accion === TIPO_CORRECCION
     ? construirTextoCorreccion(operativo, siguiente, actualizadas)
-    : construirTextoAmpliacion(operativo, nuevas, fecha);
+    : insertarDependenciasEnInicio(baseActualizada, actualizadas);
 
   const movimientosPosteriores = Array.isArray(datosPrevios.movimientos_recursos)
     ? datosPrevios.movimientos_recursos : [];
   const datos = {
     ...datosPrevios,
     inicio_snapshot: siguiente,
+    inicio_texto_base: baseActualizada,
+    inicio_texto_actualizado: textoSalida,
     dependencias_agregadas: actualizadas,
     revisiones_inicio: [
       ...(Array.isArray(datosPrevios.revisiones_inicio) ? datosPrevios.revisiones_inicio : []),
@@ -225,8 +263,10 @@ export function prepararRevisionInicioOperativo({
     parche.moviles_motos = siguiente.moviles_motos;
     parche.elementos = siguiente.elementos;
     parche.observaciones = siguiente.observaciones;
-    parche.texto_salida = textoSalida;
   }
+  // La última versión íntegra del INICIO debe seguir accesible desde la misma
+  // fila, incluso después de actualizaciones sucesivas o reversiones.
+  parche.texto_salida = textoSalida;
 
   return { texto: textoSalida, parche, accion, guardia_fecha: operativo.guardia_fecha,
     operativo_key: operativo.operativo_key };
