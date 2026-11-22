@@ -1,4 +1,4 @@
-import { modoEnsayoActivo, MOTIVOS_PRESENCIA_ACTIVA, prepararCambioPresenciaActiva, estaEnPresenciaActiva, horaReporteBuenosAires } from "../../../api/app-api.js";
+import { modoEnsayoActivo, MOTIVOS_PRESENCIA_ACTIVA, obtenerDetallePresenciaActiva, prepararCambioPresenciaActiva, estaEnPresenciaActiva, horaReporteBuenosAires } from "../../../api/app-api.js";
 import { obtenerEstadoOperativoV2, guardarCambioPresenciaActiva } from "../../../api/persistencia-api.js";
 import { prepararVentanaWhatsapp, cerrarVentanaWhatsappPreparada, abrirWhatsappConTexto } from "../../servicios/whatsapp/abrir-whatsapp.js";
 
@@ -26,6 +26,11 @@ export async function iniciarFormularioPresenciaActiva({ host, operativoSeleccio
       }
       .pa-panel textarea {min-height:85px;resize:vertical}
       .pa-panel .pa-nota {font-size:14px;color:#e2e8f0 !important}
+      .pa-panel .pa-detalle {margin:13px 0;padding:12px;border:1px solid #8795a7;border-radius:12px}
+      .pa-panel .pa-detalle summary {cursor:pointer;color:#f8fafc;font-weight:850;font-size:16px}
+      .pa-panel .pa-detalle pre {white-space:pre-wrap;overflow-wrap:anywhere;margin:6px 0 14px;
+        font:600 14px/1.4 Arial,sans-serif;color:#f8fafc !important}
+      .pa-panel .pa-detalle strong {display:block;margin-top:12px}
       .pa-panel .pa-estado {border-radius:10px;padding:12px;background:#12355c;color:#fff !important}
       .pa-panel .pa-check {display:flex;align-items:center;gap:12px}
       .pa-panel .pa-check input {flex:0 0 auto;width:24px;height:24px;accent-color:#0b5aba}
@@ -62,12 +67,19 @@ export async function iniciarFormularioPresenciaActiva({ host, operativoSeleccio
   const accion = activa ? "RETOMAR" : "INICIAR";
   const datos = registro.datos && typeof registro.datos === "object" ? registro.datos : {};
   const estado = datos.presencia_activa || {};
+  const heredado = obtenerDetallePresenciaActiva(registro);
   panel.innerHTML = estilo + [
     '<h2>' + (activa ? 'Retomar operativo normal' : 'Iniciar Presencia Activa') + '</h2>',
     '<div class="pa-estado"><strong>' + escapar(registro.tipo_nombre || registro.tipo_operativo || "Operativo") + '</strong>',
     '<p>' + escapar(registro.hora_inicio || "") + ' A ' + escapar(registro.hora_fin || "") + ' — ' + escapar(registro.lugar || "") + '</p>',
     '<p>' + (activa ? 'Modalidad actual: PRESENCIA ACTIVA' + (estado.motivo ? ' — ' + escapar(estado.motivo) : '') : 'Modalidad actual: OPERATIVO NORMAL') + '</p></div>',
-    '<p class="pa-nota">Se conserva el INICIO, sus órdenes, personal, móviles y elementos; sólo cambia la modalidad de trabajo. El operativo sigue EN CURSO.</p>',
+    '<details class="pa-detalle"><summary>Ver personal, móviles e inventario heredados</summary>',
+    '<strong>Personal policial</strong><pre>' + escapar(heredado.personal) + '</pre>',
+    '<strong>Móviles</strong><pre>' + escapar(heredado.moviles) + '</pre>',
+    '<strong>Elementos</strong><pre>' + escapar(heredado.elementos) + '</pre>',
+    '<p class="pa-nota">Datos del INICIO y, si corresponde, los RELEVOS, ACOPLES y RETIROS registrados.</p>',
+    '</details>',
+    '<p class="pa-nota">El operativo y sus órdenes siguen siendo los mismos. La modalidad cambia sin registrar otro INICIO.</p>',
     '<form data-pa-form>',
     '<div class="pa-campo"><label for="paHora">Horario del informe (editable)</label>',
     '<input id="paHora" type="time" name="hora_reporte" required value="' + horaReporteBuenosAires() + '"></div>',
