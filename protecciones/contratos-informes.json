@@ -202,7 +202,7 @@
       ]
     },
     "backend/dominio/finaliza/finalizado-salida-texto-base.js": {
-      "sha": "da3fe1ea3993a2e905ace4066d2fde83fa8952c4",
+      "sha": "2691a2cc318e0c9173a7370a4c189f79f8fc5094",
       "alcance": [
         "finalizado",
         "presencia-activa"
@@ -1605,6 +1605,12 @@
       "alcance": [
         "inicio",
         "presencia-activa"
+      ]
+    },
+    "backend/dominio/finaliza/dependencias-finalizado.js": {
+      "sha": "a3230b31d14c522b14c36a8d1ce49098f1fb4175",
+      "alcance": [
+        "finalizado"
       ]
     }
   }
