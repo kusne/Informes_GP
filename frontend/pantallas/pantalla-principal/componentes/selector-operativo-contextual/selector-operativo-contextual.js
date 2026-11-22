@@ -130,6 +130,7 @@ function construirFranja(inicio, fin) {
 function resolverLabel(modo) {
   if (modo === "INICIA") return "Operativos pendientes / franjas horarias";
   if (modo === "FINALIZA") return "Operativos iniciados / en curso";
+  if (modo === "PRESENCIA_ACTIVA") return "Operativos EN CURSO";
   if (modo === "INFORMES") return "Modelos de informes";
   if (modo === "CONTROL_MOVILES") return "Control de móviles";
 
@@ -141,6 +142,7 @@ function resolverAyuda(modo, cantidad) {
   if (modo === "CONTROL_MOVILES") return "Este módulo no depende de un operativo puntual.";
   if (modo === "INICIA") return `${cantidad} operativo(s) pendiente(s) para iniciar.`;
   if (modo === "FINALIZA") return `${cantidad} operativo(s) iniciado(s) para finalizar.`;
+  if (modo === "PRESENCIA_ACTIVA") return `${cantidad} operativo(s) EN CURSO disponibles.`;
   if (modo === "INFORMES") return `${cantidad} modelo(s) de informe disponible(s).`;
 
   return "";
@@ -150,13 +152,14 @@ function resolverPlaceholder(modo) {
   if (modo === "INFORMES") return "Seleccionar informe";
   if (modo === "INICIA") return "Seleccionar operativo";
   if (modo === "FINALIZA") return "Seleccionar operativo iniciado";
+  if (modo === "PRESENCIA_ACTIVA") return "Seleccionar operativo EN CURSO";
 
   return "Seleccionar";
 }
 
 export function resolverTextoSinItems(modo) {
   if (modo === "INICIA") return "NO HAY OPERATIVOS A INICIAR";
-  if (["ACOPLE", "RELEVO", "RETIRO", "FINALIZA"].includes(modo))
+  if (["ACOPLE", "RELEVO", "RETIRO", "FINALIZA", "PRESENCIA_ACTIVA"].includes(modo))
     return "NO HAY OPERATIVOS EN CURSO";
   if (modo === "INFORMES") return "No hay modelos de informes disponibles.";
 
