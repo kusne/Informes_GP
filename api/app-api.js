@@ -240,6 +240,7 @@ export { procesarInformeEspecialFormulario } from "../backend/aplicacion/procesa
 export {
   MOTIVOS_PRESENCIA_ACTIVA,
   prepararCambioPresenciaActiva,
+  obtenerDetallePresenciaActiva,
   estaEnPresenciaActiva,
   horaReporteBuenosAires
 } from "../backend/dominio/presencia-activa/presencia-activa.js";
