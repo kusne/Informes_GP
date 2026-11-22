@@ -315,7 +315,9 @@ export async function borrarFinalizadoOperativoV2({
     moviles_motos: snapshot.moviles_motos ?? existente.moviles_motos ?? "",
     elementos: snapshot.elementos ?? existente.elementos ?? "",
     observaciones: snapshot.observaciones ?? existente.observaciones ?? "",
-    texto_salida: snapshot.texto_salida || existente.texto_salida || "",
+    // Al revertir FINALIZADO, recuperar el último INICIO actualizado y no
+    // perder las dependencias añadidas al informe original.
+    texto_salida: datosActuales.inicio_texto_actualizado || snapshot.texto_salida || existente.texto_salida || "",
     actas: 0,
     personas: 0,
     vehiculos: 0,
