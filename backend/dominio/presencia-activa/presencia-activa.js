@@ -50,15 +50,59 @@ function descripcionMotivo(motivo, otro) {
   return MOTIVOS_TEXTO[motivo];
 }
 
+
+const ETIQUETAS_ELEMENTOS = Object.freeze([
+  ["escopetas","Escopetas"],["ht","Ht"],["pda","Pda"],
+  ["impresoras","Impresoras"],["alometros","Alómetros"],
+  ["alcoholimetros","Alcoholímetros"]
+]);
+
 function construirElementos(valor) {
-  const base = [
-    "Escopetas: /", "Ht: /", "Pda: /",
-    "Impresoras: /", "Alómetros: /", "Alcoholímetros: /"
-  ];
+  // Inventario exclusivamente del INICIO / recursos vigentes, sin completar
+  // números ficticios del catálogo institucional.
+  if (valor && typeof valor === "object" && !Array.isArray(valor)) {
+    return ETIQUETAS_ELEMENTOS.map(([clave, etiqueta]) => {
+      const seleccionados = valor[clave];
+      const items = (Array.isArray(seleccionados) ? seleccionados : [])
+        .map(limpio).filter(Boolean);
+      return etiqueta + ": " + (items.join(" / ") || "/");
+    }).join("\n");
+  }
   const lineas = limpio(valor).split(/\r?\n/).map(limpio).filter(Boolean);
-  if (!lineas.length) return base.join("\n");
-  const mapa = new Map(lineas.map(linea => [linea.split(":")[0].trim().toLowerCase(), linea]));
-  return base.map(linea => mapa.get(linea.split(":")[0].toLowerCase()) || linea).join("\n");
+  const normalizar = nombre => limpio(nombre).normalize("NFD")
+    .replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("es-AR");
+  const mapa = new Map(lineas
+    .filter(linea => linea.includes(":"))
+    .map(linea => [normalizar(linea.split(":")[0]), limpio(linea.slice(linea.indexOf(":") + 1))]));
+  return ETIQUETAS_ELEMENTOS.map(([,etiqueta]) =>
+    etiqueta + ": " + (mapa.get(normalizar(etiqueta)) || "/")
+  ).join("\n");
+}
+
+/**
+ * Misma fuente que FINALIZADO: si hubo RELEVO/ACOPLE/RETIRO, toma la
+ * dotación vigente; en caso contrario reconstituye los datos del INICIO.
+ * No permite que otro evento reemplace la identidad documental del operativo.
+ */
+export function obtenerDetallePresenciaActiva(operativo = {}) {
+  const datos = objeto(operativo.datos);
+  const snapshot = objeto(datos.inicio_snapshot);
+  const recursos = resolverRecursosInicioParaFinaliza(operativo);
+  const tipoNombre = formatearTituloOperativo(
+    limpio(snapshot.tipo_nombre || operativo.tipo_nombre || operativo.tipo_operativo || "Operativo")
+  );
+  const titulo = anexarOrdenesAlTitulo(tipoNombre, resolverOrdenesOrigenOperativo(
+    { operativo, ...snapshot }, operativo
+  ));
+  return {
+    titulo,
+    lugar: formatearLugarOperativo(operativo.lugar || snapshot.lugar),
+    personal: normalizarPersonalSalidaFinaliza(
+      recursos.personal || recursos.seleccionInicial?.personal || snapshot.personal || operativo.personal
+    ) || "/",
+    moviles: limpio(recursos.moviles_motos || snapshot.moviles_motos || operativo.moviles_motos) || "/",
+    elementos: construirElementos(recursos.elementos || snapshot.elementos || operativo.elementos)
+  };
 }
 
 export function prepararCambioPresenciaActiva({
@@ -82,22 +126,7 @@ export function prepararCambioPresenciaActiva({
   if (Number.isNaN(fecha.getTime())) throw Error("La fecha del evento no es válida.");
   const motivoTexto = accion === "INICIAR" ? descripcionMotivo(motivo, otro_motivo) : "";
 
-  const datos = objeto(operativo.datos);
-  const snapshot = objeto(datos.inicio_snapshot);
-  const recursos = resolverRecursosInicioParaFinaliza(operativo);
-  const nombre = formatearTituloOperativo(
-    limpio(snapshot.tipo_nombre || operativo.tipo_nombre || operativo.tipo_operativo || "Operativo")
-  );
-  const titulo = anexarOrdenesAlTitulo(nombre, resolverOrdenesOrigenOperativo(
-    { operativo, ...snapshot }, operativo
-  ));
-  const personal = normalizarPersonalSalidaFinaliza(
-    recursos.personal || recursos.seleccionInicial?.personal || snapshot.personal || operativo.personal
-  );
-  const moviles = limpio(recursos.moviles_motos || snapshot.moviles_motos || operativo.moviles_motos);
-  const elementos = construirElementos(
-    recursos.elementos || snapshot.elementos || operativo.elementos
-  );
+  const detalle = obtenerDetallePresenciaActiva(operativo);
   const observaciones = accion === "INICIAR"
     ? "Se informa que siendo la hora y en lugar Ut-supra se comienza a realizar Presencia Activa por " + motivoTexto + "."
     : "Se informa que siendo la hora y en lugar Ut-supra se retoma el operativo con normalidad, finalizando la modalidad de Presencia Activa.";
@@ -107,19 +136,19 @@ export function prepararCambioPresenciaActiva({
     negrita("Brigada Motorizada Centro Norte"),
     negrita("Tercio Charlie"),
     "",
-    negrita((accion === "INICIAR" ? "Presencia Activa " : "Retoma de Operativo ") + titulo),
+    negrita((accion === "INICIAR" ? "Presencia Activa " : "Retoma de Operativo ") + detalle.titulo),
     "",
     negrita("Fecha:") + " " + fechaReporteBuenosAires(fecha),
     negrita("Horario:") + " " + hora,
-    negrita("Lugar:") + " " + formatearLugarOperativo(operativo.lugar || snapshot.lugar),
+    negrita("Lugar:") + " " + detalle.lugar,
     "",
     negrita("Personal Policial:"),
-    personal || "/",
+    detalle.personal,
     "",
-    negrita("Móviles:") + " " + (moviles || "/"),
+    negrita("Móviles:") + " " + detalle.moviles,
     "",
     negrita("Elementos:"),
-    elementos,
+    detalle.elementos,
     "",
     negrita("Observaciones:"),
     observaciones +
