@@ -66,13 +66,17 @@ export async function iniciarFormularioPresenciaActiva({ host, operativoSeleccio
   const activa = estaEnPresenciaActiva(registro);
   const accion = activa ? "RETOMAR" : "INICIAR";
   const datos = registro.datos && typeof registro.datos === "object" ? registro.datos : {};
-  const estado = datos.presencia_activa || {};
+  const eventosPrevios = Array.isArray(datos.presencia_activa_eventos) ? datos.presencia_activa_eventos : [];
+  const ultimaModalidad = eventosPrevios.length ? eventosPrevios[eventosPrevios.length - 1] : {};
+  const estado = datos.presencia_activa && typeof datos.presencia_activa === "object"
+    ? datos.presencia_activa : {};
+  const motivoActivo = estado.motivo || ultimaModalidad.motivo_descripcion || "";
   const heredado = obtenerDetallePresenciaActiva(registro);
   panel.innerHTML = estilo + [
     '<h2>' + (activa ? 'Retomar operativo normal' : 'Iniciar Presencia Activa') + '</h2>',
     '<div class="pa-estado"><strong>' + escapar(registro.tipo_nombre || registro.tipo_operativo || "Operativo") + '</strong>',
     '<p>' + escapar(registro.hora_inicio || "") + ' A ' + escapar(registro.hora_fin || "") + ' — ' + escapar(registro.lugar || "") + '</p>',
-    '<p>' + (activa ? 'Modalidad actual: PRESENCIA ACTIVA' + (estado.motivo ? ' — ' + escapar(estado.motivo) : '') : 'Modalidad actual: OPERATIVO NORMAL') + '</p></div>',
+    '<p>' + (activa ? 'Modalidad actual: PRESENCIA ACTIVA' + (motivoActivo ? ' — ' + escapar(motivoActivo) : '') : 'Modalidad actual: OPERATIVO NORMAL') + '</p></div>',
     '<details class="pa-detalle"><summary>Ver personal, móviles e inventario heredados</summary>',
     '<strong>Personal policial</strong><pre>' + escapar(heredado.personal) + '</pre>',
     '<strong>Móviles</strong><pre>' + escapar(heredado.moviles) + '</pre>',
@@ -95,6 +99,7 @@ export async function iniciarFormularioPresenciaActiva({ host, operativoSeleccio
     '<p data-pa-error role="alert" aria-live="polite"></p>',
     '<button type="button" data-pa-guardar>' + (activa ? 'Guardar retorno y enviar por WhatsApp' : 'Guardar Presencia Activa y enviar por WhatsApp') + '</button>',
     '<button type="button" data-pa-reintentar hidden>Volver a abrir WhatsApp</button>',
+    '<button type="button" data-pa-recargar hidden>Registrar siguiente cambio de modalidad</button>',
     '</form>'
   ].join("");
   const form = panel.querySelector("[data-pa-form]");
@@ -104,6 +109,7 @@ export async function iniciarFormularioPresenciaActiva({ host, operativoSeleccio
   const previa = form.querySelector("[data-pa-texto]");
   const guardar = form.querySelector("[data-pa-guardar]");
   const reintentar = form.querySelector("[data-pa-reintentar]");
+  const recargar = form.querySelector("[data-pa-recargar]");
   let textoGuardado = "";
 
   form.addEventListener("submit", e => e.preventDefault());
@@ -135,6 +141,9 @@ export async function iniciarFormularioPresenciaActiva({ host, operativoSeleccio
   reintentar.addEventListener("click", () => {
     if (textoGuardado) abrirWhatsappConTexto(textoGuardado);
   });
+  recargar.addEventListener("click", () => {
+    void iniciarFormularioPresenciaActiva({host, operativoSeleccionado});
+  });
   guardar.addEventListener("click", async () => {
     if (guardar.disabled) return;
     let preparado;
@@ -160,6 +169,8 @@ export async function iniciarFormularioPresenciaActiva({ host, operativoSeleccio
       });
       textoGuardado = resultado.texto;
       reintentar.hidden = false;
+      recargar.hidden = false;
+      recargar.textContent = accion === "INICIAR" ? "Retomar operativo normal" : "Registrar nueva Presencia Activa";
       error.textContent = "Evento guardado en el mismo operativo. Abriendo WhatsApp...";
       window.dispatchEvent(new CustomEvent("informesgp:envio-whatsapp-ok", {
         detail: { modo: "PRESENCIA_ACTIVA", transicion: accion, textoFinal: resultado.texto }
