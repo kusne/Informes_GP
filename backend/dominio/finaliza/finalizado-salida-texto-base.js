@@ -1,4 +1,5 @@
 import { normalizarPersonalSalidaFinaliza } from "./recursos-finaliza.js";
+import { distribuirDependenciasFinalizado, bloquesDependenciasFinalizado } from "./dependencias-finalizado.js";
 import { anexarOrdenesAlTitulo, resolverOrdenesOrigenOperativo } from "../compartido/operativo-identidad.js";
 import { usaControladosOpcionalesFinaliza } from "../compartido/tipos/operativos-elementos-controlados-opcionales.js";
 import { esOperativoPatrullaje } from "../compartido/tipos/patrullaje.js";
@@ -10,6 +11,9 @@ export function construirTextoFinalizadoBase(finalizado) {
 
   const f = finalizado.formulario || {};
   const operativo = finalizado.operativo || {};
+  // Preservar origen de cada recurso agregado al INICIO. RETIRO/RELEVO ya
+  // modificaron la dotación vigente antes de llegar a este formulario.
+  const distribucion = distribuirDependenciasFinalizado({formulario:f,operativo});
   const numerales = finalizado.numeralesFinaliza || {};
   const lineas = [];
   const resultadosOpcionales = usaControladosOpcionalesFinaliza(operativo, finalizado?.tipo_operativo);
@@ -29,9 +33,14 @@ export function construirTextoFinalizadoBase(finalizado) {
   lineas.push(`${negrita("Lugar:")} ${formatearLugarOperativo(finalizado.lugar)}`);
   lineas.push("");
   lineas.push(negrita("Personal Policial:"));
-  lineas.push(normalizarPersonalSalidaFinaliza(f.personal) || "/");
+  lineas.push(normalizarPersonalSalidaFinaliza(distribucion.personalPrincipal) || "/");
   lineas.push("");
-  lineas.push(`${negrita("Móviles:")} ${texto(f.moviles_motos) || "/"}`);
+  lineas.push(`${negrita("Móviles:")} ${texto(distribucion.movilesPrincipales) || "/"}`);
+  const bloquesDependencia = bloquesDependenciasFinalizado(distribucion.bloques);
+  if (bloquesDependencia) {
+    lineas.push("");
+    lineas.push(bloquesDependencia);
+  }
   lineas.push("");
   lineas.push(negrita("Elementos:"));
   lineas.push(texto(f.elementos) || construirElementosVacios());
