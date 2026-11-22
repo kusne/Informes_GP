@@ -89,7 +89,7 @@ async function obtenerOperativosDesdeSupabase({ modo, guardiaFecha, ahora = new 
     return filtrarProgramadosPendientes({ programados, enCurso, finalizados });
   }
 
-  if (["FINALIZA", "RELEVO", "ACOPLE", "RETIRO", "PROCEDIMIENTO"].includes(modo)) {
+  if (["FINALIZA", "RELEVO", "ACOPLE", "RETIRO", "PROCEDIMIENTO", "PRESENCIA_ACTIVA"].includes(modo)) {
     const incluirGuardiaAnterior = debeIncluirGuardiaAnteriorFinaliza({ guardiaFecha, ahora });
     const guardiaAnterior = incluirGuardiaAnterior ? obtenerGuardiaAnterior(guardiaFecha) : "";
 
@@ -221,6 +221,8 @@ export function filtrarOperativosIniciadosParaFinalizar(operativos = []) {
 }
 
 function filtrarSegunModo(modo, operativos = []) {
+  if (modo === "PRESENCIA_ACTIVA") return normalizarOperativos(operativos)
+    .filter(op => normalizarEstado(op.estado) === "EN_CURSO");
   if (["FINALIZA","RELEVO","ACOPLE","RETIRO","PROCEDIMIENTO"].includes(modo)) return filtrarOperativosIniciadosParaFinalizar(operativos);
   if (modo === "INFORMES") return seleccionarUltimosOperativosIniciados(operativos, 2);
   return normalizarOperativos(operativos);
