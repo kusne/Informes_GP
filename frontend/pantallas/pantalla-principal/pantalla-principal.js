@@ -417,9 +417,9 @@ async function renderSelectorRevisionInicioSeguro({ conservar = false } = {}) {
   bloque.className = "selector-operativo-contextual";
   bloque.style.marginTop = "12px";
   bloque.innerHTML =
-    '<label for="selectorRevisionInicioEnCurso" style="display:block;margin-bottom:6px;font-weight:800">Modificar un INICIO</label>' +
+    '<label for="selectorRevisionInicioEnCurso" style="display:block;margin-bottom:6px;font-weight:800;color:#f8fafc;font-size:16px">Modificar un INICIO</label>' +
     '<select id="selectorRevisionInicioEnCurso" aria-label="Seleccionar operativo EN CURSO para modificar INICIO"></select>' +
-    '<small style="display:block;margin-top:6px">Corregir INICIO o agregar dependencias sin duplicar el operativo.</small>';
+    '<small style="display:block;margin-top:6px;color:#e2e8f0;font-size:14px">Corregir INICIO o agregar dependencias sin duplicar el operativo.</small>';
   host.appendChild(bloque);
 
   const selector = bloque.querySelector("select");
