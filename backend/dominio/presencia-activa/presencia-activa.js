@@ -23,7 +23,12 @@ const negrita = valor => "*" + limpio(valor) + "*";
 const objeto = valor => valor && typeof valor === "object" && !Array.isArray(valor) ? valor : {};
 
 export function estaEnPresenciaActiva(operativo = {}) {
-  const modalidad = objeto(operativo.datos).presencia_activa;
+  const datos = objeto(operativo.datos);
+  const historial = Array.isArray(datos.presencia_activa_eventos) ? datos.presencia_activa_eventos : [];
+  // El último evento es la fuente de verdad, incluso si FINALIZADO
+  // guardó un booleano antiguo en datos.presencia_activa.
+  if (historial.length) return historial[historial.length - 1]?.accion === "INICIAR";
+  const modalidad = datos.presencia_activa;
   // Compatibilidad con los INICIOS anteriores: guardaban un booleano.
   if (typeof modalidad === "boolean") return modalidad;
   return objeto(modalidad).activa === true;
