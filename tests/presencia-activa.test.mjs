@@ -154,3 +154,16 @@ test("Un INICIO histórico con presencia_activa=true habilita retorno a normalid
     operativo: row, accion: "RETOMAR", hora_reporte: "08:00"
   }).evento.tipo, "RETOMA_OPERATIVO");
 });
+
+test("El historial manda al reabrir un FINALIZADO y conserva la última modalidad", () => {
+  const row = operativo();
+  row.datos.presencia_activa = false; // marcador legado reescrito por FINALIZA
+  row.datos.presencia_activa_eventos = [
+    {accion:"INICIAR",tipo:"PRESENCIA_ACTIVA",motivo_descripcion:"lluvia"},
+    {accion:"RETOMAR",tipo:"RETOMA_OPERATIVO"},
+    {accion:"INICIAR",tipo:"PRESENCIA_ACTIVA",motivo_descripcion:"neblina"}
+  ];
+  assert.equal(estaEnPresenciaActiva(row), true);
+  row.datos.presencia_activa_eventos.push({accion:"RETOMAR",tipo:"RETOMA_OPERATIVO"});
+  assert.equal(estaEnPresenciaActiva(row), false);
+});
