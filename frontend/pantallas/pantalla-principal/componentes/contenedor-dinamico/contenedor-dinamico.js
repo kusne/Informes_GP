@@ -40,6 +40,12 @@ export async function renderContenedorDinamico({
       return;
     }
 
+    if (modoNormalizado === "PRESENCIA_ACTIVA") {
+      const modulo = await import("../../../presencia-activa/presencia-activa.js");
+      await modulo.iniciarFormularioPresenciaActiva({ host, operativoSeleccionado });
+      return;
+    }
+
     if (modoNormalizado === "FINALIZA") {
       await renderFormularioFinalizaContinuo({
         host,
