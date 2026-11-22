@@ -132,6 +132,89 @@ function bloquesActualizacion(dependencias) {
   }).join("\n\n");
 }
 
+// El INICIO de algunas guardias ya incluye un bloque de dependencia escrito a
+// mano (sin asteriscos), por ejemplo "Personal Sub Base / Movil: 10138".
+// Normalizar sólo ese bloque cuando es inequívocamente el mismo que se agrega.
+// No modificar jamás observaciones, personal propio ni otras dependencias.
+function claveBloque(valor) {
+  return texto(valor).replace(/\*/g, "").normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "").toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ").trim().replace(/\s+/g, " ");
+}
+
+function tokensIdentidad(valor) {
+  const ignorar = new Set([
+    "of", "oficial", "subof", "suboficial", "policia", "policial", "agente",
+    "subinspector", "inspector", "comisario", "subcomisario", "de", "del",
+    "la", "el", "dr", "crio", "sargento", "cabo", "primero"
+  ]);
+  return claveBloque(valor).split(" ").filter(p => p.length >= 3 && !ignorar.has(p));
+}
+
+function retirarBloquesDependenciaRepetidos(original, dependencias) {
+  if (!dependencias.length) return String(original ?? "");
+  const salida = String(original ?? "");
+  const salto = salida.includes("\r\n") ? "\r\n" : "\n";
+  const lineasOriginales = salida.split(/\r?\n/);
+  const inicioMoviles = lineasOriginales.findIndex(l => /^\s*\*M[oó]viles:\*/i.test(l));
+  const inicioElementos = lineasOriginales.findIndex((l, i) => i > inicioMoviles && /^\s*\*Elementos:\*/i.test(l));
+  if (inicioMoviles < 0 || inicioElementos < 0) return salida;
+  const lineasSalida = lineasOriginales.slice();
+
+  for (const dependencia of dependencias) {
+    const etiquetas = new Set([
+      claveBloque(dependencia.nombre), claveBloque(etiquetaDependencia(dependencia.nombre))
+    ]);
+    for (let i = inicioMoviles + 1; i < lineasSalida.length; i++) {
+      if (/^\s*\*Elementos:\*/i.test(lineasSalida[i])) break;
+      const cabecera = /^\s*\*?\s*Personal\s+(.+?):\s*\*?\s*$/i.exec(lineasSalida[i]);
+      if (!cabecera || !etiquetas.has(claveBloque(cabecera[1]))) continue;
+
+      const personal = [];
+      let fin = -1, movilesImpresos = "";
+      for (let j = i + 1; j < lineasSalida.length && j < i + 24; j++) {
+        const actual = lineasSalida[j].trim();
+        if (/^\*?\s*(?:Personal\s+.+?:|Elementos:)/i.test(actual)) break;
+        const movil = /^\*?\s*M[oó]vil(?:es|\/es)?\s*(.*?)\s*:\s*\*?\s*(.*?)\s*\*?\s*$/i.exec(actual);
+        if (movil) {
+          if (movil[1] && !etiquetas.has(claveBloque(movil[1]))) break;
+          fin = j;
+          movilesImpresos = movil[2];
+          break;
+        }
+        if (actual) personal.push(actual);
+      }
+      if (fin < 0) throw Error("No se pudo reconocer el bloque previo de " + dependencia.nombre + ". No se modificó el INICIO.");
+
+      const anterioresMoviles = partes(movilesImpresos);
+      const nuevosMoviles = partes(dependencia.moviles);
+      const mismosMoviles = anterioresMoviles.every(m => nuevosMoviles.some(n => claveBloque(m) === claveBloque(n)));
+      const tokensNuevos = lineas(dependencia.personal).map(tokensIdentidad);
+      const mismoPersonal = personal.every(p => {
+        const tokens = tokensIdentidad(p);
+        return tokens.length && tokensNuevos.some(otros => tokens.some(t => otros.includes(t)));
+      });
+      if (!mismosMoviles || !mismoPersonal) {
+        throw Error("El bloque preexistente de " + dependencia.nombre +
+          " contiene personal o móviles distintos. Revisalo antes de actualizar el INICIO; no se borró información.");
+      }
+      // Retirar sólo esta copia redundante (con o sin negritas). La versión
+      // canónica se insertará exactamente una vez tras los móviles propios.
+      lineasSalida.splice(i, fin - i + 1);
+      i--;
+    }
+  }
+  // Si el sector entre Móviles y Elementos sólo quedó con renglones vacíos,
+  // restaurar exactamente una línea separadora, como en el INICIO original.
+  const inicioFinal = lineasSalida.findIndex(l => /^\s*\*M[oó]viles:\*/i.test(l));
+  const elementosFinal = lineasSalida.findIndex((l, j) => j > inicioFinal && /^\s*\*Elementos:\*/i.test(l));
+  if (inicioFinal >= 0 && elementosFinal > inicioFinal &&
+      lineasSalida.slice(inicioFinal + 1, elementosFinal).every(l => !l.trim())) {
+    lineasSalida.splice(inicioFinal + 1, elementosFinal - inicioFinal - 1, "");
+  }
+  return lineasSalida.join(salto);
+}
+
 function insertarDependenciasEnInicio(original, dependencias) {
   const base = String(original ?? "");
   if (!dependencias.length) return base;
@@ -146,9 +229,11 @@ function insertarDependenciasEnInicio(original, dependencias) {
   const posicion = lineaMoviles.index + lineaMoviles[0].length;
   const salto = lineaMoviles[0].endsWith("\r\n") ? "\r\n" : "\n";
   const antes = base.slice(0, posicion);
-  const despues = base.slice(posicion);
+  // La copia manual retirada puede dejar líneas vacías; conservar una única
+  // separación entre bloques, sin alterar el resto del informe original.
+  const despues = base.slice(posicion).replace(/^(?:[ \t]*\r?\n)*/, "");
   const bloques = bloquesActualizacion(dependencias).replace(/\n/g, salto);
-  return antes + salto + bloques + (despues.startsWith(salto) ? salto : salto + salto) + despues;
+  return antes + salto + bloques + salto + salto + despues;
 }
 
 function vigentesDeSnapshot(op, snapshot, datos) {
@@ -217,15 +302,21 @@ export function prepararRevisionInicioOperativo({
   }
 
   const actualizadas = combinarDependencias(antiguas, nuevas);
-  if (accion === TIPO_AMPLIACION && mismo(actualizadas, antiguas))
-    throw Error("Las dependencias indicadas ya figuran en el inicio. No hay datos nuevos.");
 
-  const baseActualizada = accion === TIPO_CORRECCION
+
+  const baseOriginal = accion === TIPO_CORRECCION
     ? construirTextoCorreccion(operativo, siguiente, [])
     : resolverTextoBaseGuardado(operativo, datosPrevios, antiguas);
+  const baseActualizada = accion === TIPO_CORRECCION
+    ? baseOriginal : retirarBloquesDependenciaRepetidos(baseOriginal, actualizadas);
   const textoSalida = accion === TIPO_CORRECCION
     ? construirTextoCorreccion(operativo, siguiente, actualizadas)
     : insertarDependenciasEnInicio(baseActualizada, actualizadas);
+  // Una reimpresión correctiva puede quitar un bloque redundante preexistente
+  // aun cuando la dependencia ya figure en los datos del operativo.
+  if (accion === TIPO_AMPLIACION && mismo(actualizadas, antiguas) &&
+      textoSalida === texto(operativo.texto_salida))
+    throw Error("Las dependencias indicadas ya figuran en el inicio. No hay datos nuevos.");
 
   const movimientosPosteriores = Array.isArray(datosPrevios.movimientos_recursos)
     ? datosPrevios.movimientos_recursos : [];

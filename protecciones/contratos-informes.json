@@ -1594,7 +1594,7 @@
       ]
     },
     "backend/dominio/inicia/revision-inicio.js": {
-      "sha": "5b1fab8629130df3c7431476dc8887b2786144b8",
+      "sha": "be4f7da45b04e43bfa539c60b56a64b031f254c4",
       "alcance": [
         "inicio",
         "presencia-activa"

@@ -261,3 +261,92 @@ test("Reversión de FINALIZADO respeta texto de INICIO actualizado y la vista pr
   assert.match(vista,/ACTUALIZACIÓN DEL INICIO/);
   assert.doesNotMatch(vista,/Confirmás la AMPLIACIÓN DE INICIO/);
 });
+
+
+test("Regresión real Sub Base: eliminar copia sin negrita que ya estaba en el INICIO",()=>{
+  const inicioConCopia = textoInicioOriginal.replace("*Elementos:*", [
+    "Personal Sub Base:",
+    "Of. Olaguibe",
+    "Subof. Preiswerk ",
+    "Movil: 10138",
+    "",
+    "*Elementos:*"
+  ].join("\n"));
+  const op={...inicio(),texto_salida:inicioConCopia};
+  const revision=prepararRevisionInicioOperativo({operativo:op,accion:"AMPLIACION",
+    dependencias:[{nombre:"SUB BASE UOR3",personal:"Oficial olaguibe\nSuboficial preiswerk",moviles:"10138"}]});
+  const bloque=["*Personal Sub Base:*","Oficial olaguibe","Suboficial preiswerk",
+    "*Movil Sub Base:* 10138"].join("\n");
+  const esperado=textoInicioOriginal.replace("*Elementos:*",bloque+"\n\n*Elementos:*");
+  assert.equal(revision.texto,esperado);
+  assert.equal(revision.parche.datos.inicio_texto_base, textoInicioOriginal);
+  assert.equal(revision.texto.match(/Personal Sub Base:/g)?.length,1);
+  assert.doesNotMatch(revision.texto,/\nPersonal Sub Base:\n|Of\. Olaguibe|Subof\. Preiswerk|^\s*Movil: 10138/m);
+  assert.match(revision.texto,/\*Observaciones:\*\nPara conocimiento superior/);
+  assert.equal(op.texto_salida,inicioConCopia);
+});
+
+test("Reimpresión correcta de un INICIO ya guardado con bloque en negrita y repetición simple",()=>{
+  const dependencia={nombre:"SUB BASE UOR3",personal:"Oficial olaguibe\nSuboficial preiswerk",moviles:"10138"};
+  const bloqueNegrita=["*Personal Sub Base:*","Oficial olaguibe","Suboficial preiswerk",
+    "*Movil Sub Base:* 10138"].join("\n");
+  const bloquePlano=["Personal Sub Base:","Of. Olaguibe","Subof. Preiswerk ",
+    "Movil: 10138"].join("\n");
+  const duplicado=textoInicioOriginal.replace("*Elementos:*",
+    bloqueNegrita+"\n\n"+bloquePlano+"\n\n*Elementos:*");
+  const op={...inicio(),texto_salida:duplicado,datos:{
+    ...inicio().datos,
+    inicio_texto_base:textoInicioOriginal.replace("*Elementos:*",bloquePlano+"\n\n*Elementos:*"),
+    dependencias_agregadas:[dependencia]
+  }};
+  const revision=prepararRevisionInicioOperativo({operativo:op,accion:"AMPLIACION",
+    dependencias:[dependencia]});
+  assert.equal(revision.texto, textoInicioOriginal.replace("*Elementos:*",bloqueNegrita+"\n\n*Elementos:*"));
+  assert.equal(revision.parche.datos.dependencias_agregadas.length,1);
+  assert.equal(revision.parche.datos.revisiones_inicio.length,1);
+  assert.equal(revision.parche.estado,undefined);
+  assert.equal(revision.parche.tipo_evento,undefined);
+  const yaLimpio={...op,...revision.parche};
+  assert.throws(()=>prepararRevisionInicioOperativo({operativo:yaLimpio,accion:"AMPLIACION",
+    dependencias:[dependencia]}),/No hay datos nuevos/);
+});
+
+test("No eliminar bloques existentes si el móvil o el personal son diferentes",()=>{
+  const conDiferencias=textoInicioOriginal.replace("*Elementos:*",[
+    "Personal Sub Base:","Of. OtraPersona","Movil: 99999","","*Elementos:*"
+  ].join("\n"));
+  const op={...inicio(),texto_salida:conDiferencias};
+  assert.throws(()=>prepararRevisionInicioOperativo({operativo:op,accion:"AMPLIACION",
+    dependencias:[{nombre:"SUB BASE UOR3",personal:"Oficial olaguibe",moviles:"10138"}]
+  }),/contiene personal o móviles distintos/);
+  assert.equal(op.texto_salida,conDiferencias);
+});
+
+test("Si se agrega otra dependencia, el bloque redundante de Sub Base desaparece sin afectar la nueva",()=>{
+  const datosSub={nombre:"SUB BASE UOR3",personal:"Oficial Olaguibe\nSuboficial Preiswerk",moviles:"10138"};
+  const base=textoInicioOriginal.replace("*Elementos:*",[
+    "Personal Sub Base:","Of. Olaguibe","Subof. Preiswerk","Movil: 10138","","*Elementos:*"
+  ].join("\n"));
+  const op={...inicio(),texto_salida:base,
+    datos:{...inicio().datos,dependencias_agregadas:[datosSub]}};
+  const revision=prepararRevisionInicioOperativo({operativo:op,accion:"AMPLIACION",
+    dependencias:[{nombre:"UFIV",personal:"Agente Tercero",moviles:"20200"}]});
+  assert.equal(revision.texto.match(/\*Personal Sub Base:\*/g)?.length,1);
+  assert.equal(revision.texto.match(/\*Personal UFIV:\*/g)?.length,1);
+  assert.doesNotMatch(revision.texto,/^Personal Sub Base:$/m);
+  assert.ok(revision.texto.indexOf("*Personal Sub Base:*")<revision.texto.indexOf("*Personal UFIV:*"));
+  assert.ok(revision.texto.indexOf("*Personal UFIV:*")<revision.texto.indexOf("*Elementos:*"));
+  assert.equal(revision.parche.datos.dependencias_agregadas.length,2);
+});
+
+test("No toca bloques de otras dependencias, fecha, horario ni observaciones",()=>{
+  const bloqueOtro = "Personal organismo distinto:\nAgente Particular\nMovil: 55555\n\n";
+  const op={...inicio(),texto_salida:textoInicioOriginal.replace("*Elementos:*",bloqueOtro+"*Elementos:*")};
+  const revision=prepararRevisionInicioOperativo({operativo:op,accion:"AMPLIACION",
+    dependencias:[{nombre:"SUB BASE UOR3",personal:"Oficial Olaguibe",moviles:"10138"}]});
+  assert.ok(revision.texto.includes(bloqueOtro.trim()));
+  assert.match(revision.texto,/\*Horario:\* 13:00 A 16:00 HS/);
+  assert.match(revision.texto,/\*Observaciones:\*\nPara conocimiento superior/);
+  assert.equal(revision.parche.personal,undefined);
+  assert.equal(revision.parche.moviles_motos,undefined);
+});
