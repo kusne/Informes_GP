@@ -147,7 +147,9 @@ test("Doble atribución a brigada y dependencia prioriza el origen sin duplicar 
  const {texto}=finalizado(estado);
  assert.equal(texto.match(/Olaguibe/g)?.length,1);
  assert.equal(texto.match(/10138/g)?.length,1);
- assert.doesNotMatch(texto,/\*Personal Sub Base:\*/);
+ assert.match(texto,/\*Personal Sub Base:\*\nSuboficial Preiswerk/);
+ assert.doesNotMatch(texto,/\*Movil Sub Base:\*/);
+ assert.doesNotMatch(texto.split("*Personal Sub Base:*")[1],/Olaguibe/);
 });
 
 test("Selección manual en FINALIZADO no inventa recursos que el oficial desmarcó",()=>{
