@@ -3,7 +3,7 @@
   "descripcion": "Huellas Git de archivos institucionales blindados; actualizar sólo bajo petición expresa.",
   "archivos": {
     "api/app-api.js": {
-      "sha": "06cdc066fa3aeed8a9a189f5caf4f829e197c0a0",
+      "sha": "8363937e02cf93d85c279042d030be676ba2619c",
       "alcance": [
         "todos"
       ]
