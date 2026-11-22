@@ -88,20 +88,30 @@ export function obtenerDetallePresenciaActiva(operativo = {}) {
   const datos = objeto(operativo.datos);
   const snapshot = objeto(datos.inicio_snapshot);
   const recursos = resolverRecursosInicioParaFinaliza(operativo);
+  const tieneVigentes = Object.keys(objeto(datos.recursos_vigentes)).length > 0;
   const tipoNombre = formatearTituloOperativo(
     limpio(snapshot.tipo_nombre || operativo.tipo_nombre || operativo.tipo_operativo || "Operativo")
   );
   const titulo = anexarOrdenesAlTitulo(tipoNombre, resolverOrdenesOrigenOperativo(
     { operativo, ...snapshot }, operativo
   ));
+  // Si RETIRO dejó un campo vacío, ese vacío es real: jamás recuperar
+  // efectivos, móviles ni elementos retirados desde el INICIO original.
+  const personal = tieneVigentes ? recursos.personal : (
+    recursos.personal || snapshot.personal || operativo.personal
+  );
+  const moviles = tieneVigentes ? recursos.moviles_motos : (
+    recursos.moviles_motos || snapshot.moviles_motos || operativo.moviles_motos
+  );
+  const elementos = tieneVigentes ? recursos.elementos : (
+    recursos.elementos || snapshot.elementos || operativo.elementos
+  );
   return {
     titulo,
     lugar: formatearLugarOperativo(operativo.lugar || snapshot.lugar),
-    personal: normalizarPersonalSalidaFinaliza(
-      recursos.personal || recursos.seleccionInicial?.personal || snapshot.personal || operativo.personal
-    ) || "/",
-    moviles: limpio(recursos.moviles_motos || snapshot.moviles_motos || operativo.moviles_motos) || "/",
-    elementos: construirElementos(recursos.elementos || snapshot.elementos || operativo.elementos)
+    personal: normalizarPersonalSalidaFinaliza(personal) || "/",
+    moviles: limpio(moviles) || "/",
+    elementos: construirElementos(elementos)
   };
 }
 
