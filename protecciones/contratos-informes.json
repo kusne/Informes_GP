@@ -1594,14 +1594,14 @@
       ]
     },
     "backend/dominio/inicia/revision-inicio.js": {
-      "sha": "d5f552f6af5e01fa05424cbebc12952649411aa2",
+      "sha": "5b1fab8629130df3c7431476dc8887b2786144b8",
       "alcance": [
         "inicio",
         "presencia-activa"
       ]
     },
     "frontend/pantallas/inicia/revision-inicio.js": {
-      "sha": "990efd82a807d85e8e4d9c6d8593edd40626e554",
+      "sha": "b094177134fd576a37259b6a313cb95e4da0a8ae",
       "alcance": [
         "inicio",
         "presencia-activa"
