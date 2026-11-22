@@ -221,9 +221,11 @@ function insertarDependenciasEnInicio(original, dependencias) {
   const posicion = lineaMoviles.index + lineaMoviles[0].length;
   const salto = lineaMoviles[0].endsWith("\r\n") ? "\r\n" : "\n";
   const antes = base.slice(0, posicion);
-  const despues = base.slice(posicion);
+  // La copia manual retirada puede dejar líneas vacías; conservar una única
+  // separación entre bloques, sin alterar el resto del informe original.
+  const despues = base.slice(posicion).replace(/^(?:[ \t]*\r?\n)*/, "");
   const bloques = bloquesActualizacion(dependencias).replace(/\n/g, salto);
-  return antes + salto + bloques + (despues.startsWith(salto) ? salto : salto + salto) + despues;
+  return antes + salto + bloques + salto + salto + despues;
 }
 
 function vigentesDeSnapshot(op, snapshot, datos) {
