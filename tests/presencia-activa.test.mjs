@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  prepararCambioPresenciaActiva, estaEnPresenciaActiva, MOTIVOS_PRESENCIA_ACTIVA
+  prepararCambioPresenciaActiva, obtenerDetallePresenciaActiva, estaEnPresenciaActiva, MOTIVOS_PRESENCIA_ACTIVA
 } from "../backend/dominio/presencia-activa/presencia-activa.js";
 
 const operativo = () => ({
@@ -42,6 +42,9 @@ test("Presencia Activa conserva el inicio, la orden principal y las referencias"
   assert.match(salida.texto, /Subinspector Mariaux/);
   assert.match(salida.texto, /8105/);
   assert.match(salida.texto, /ARTL-0425/);
+  for (const renglon of ["Escopetas: /", "Ht: /", "Pda: 67 / 68", "Impresoras: N°64", "Alómetros: ARTL-0425", "Alcoholímetros: ARLM-0536"]) {
+    assert.ok(salida.texto.includes(renglon), "El inventario debe heredar sin modificaciones: " + renglon);
+  }
   assert.match(salida.texto, /por lluvia/);
   assert.match(salida.texto, /Se adjunta vista fotográfica/);
   assert.equal(salida.evento.tipo, "PRESENCIA_ACTIVA");
@@ -97,4 +100,57 @@ test("Otro motivo personalizado e insumos vigentes se conservan en el informe", 
   assert.match(salida.texto, /Delgado Yasmila Ailen/);
   assert.match(salida.texto, /ARLM-0536/);
   assert.doesNotMatch(salida.texto, /Se adjunta vista fotográfica/);
+});
+
+test("RETIRO no vuelve a incorporar móviles ni elementos del INICIO", () => {
+  const row = operativo();
+  row.datos.recursos_vigentes = {
+    personal: ["Subinspector Mariaux A."],
+    moviles: [], motos: [],
+    elementos: {
+      escopetas: [], ht: [], pda: [],
+      impresoras: [], alometros: [], alcoholimetros: []
+    }
+  };
+  const detalle = obtenerDetallePresenciaActiva(row);
+  assert.equal(detalle.moviles, "/");
+  assert.equal(detalle.elementos, [
+    "Escopetas: /", "Ht: /", "Pda: /",
+    "Impresoras: /", "Alómetros: /", "Alcoholímetros: /"
+  ].join("\n"));
+  assert.doesNotMatch(detalle.personal, /Aquino Francisco/);
+  const informe = prepararCambioPresenciaActiva({
+    operativo: row, accion: "INICIAR", motivo: "LLUVIA",
+    hora_reporte: "07:05"
+  }).texto;
+  assert.match(informe, /\*Móviles:\* \/\n/);
+  assert.doesNotMatch(informe, /8105|ARTL-0425|ARLM-0536|Pda: 67/);
+});
+
+test("Los RELEVOS y ACOPLES se reflejan sin repetir el inventario anterior", () => {
+  const row = operativo();
+  row.datos.recursos_vigentes = {
+    personal: ["Suboficial de Policia Delgado Yasmila Ailen"],
+    moviles: ["8107"], motos: [],
+    elementos: {
+      escopetas: [], ht: ["N°06"], pda: ["68"],
+      impresoras: ["N°64"], alometros: [],
+      alcoholimetros: ["ARLM-0536"]
+    }
+  };
+  const detalle = obtenerDetallePresenciaActiva(row);
+  assert.match(detalle.personal, /Delgado Yasmila/);
+  assert.doesNotMatch(detalle.personal, /Aquino Francisco/);
+  assert.equal(detalle.moviles, "8107");
+  assert.match(detalle.elementos, /Ht: N°06/);
+  assert.match(detalle.elementos, /Alómetros: \/$/m);
+});
+
+test("Un INICIO histórico con presencia_activa=true habilita retorno a normalidad", () => {
+  const row = operativo();
+  row.datos.presencia_activa = true;
+  assert.equal(estaEnPresenciaActiva(row), true);
+  assert.equal(prepararCambioPresenciaActiva({
+    operativo: row, accion: "RETOMAR", hora_reporte: "08:00"
+  }).evento.tipo, "RETOMA_OPERATIVO");
 });
