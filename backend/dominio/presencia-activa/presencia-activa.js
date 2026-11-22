@@ -23,7 +23,10 @@ const negrita = valor => "*" + limpio(valor) + "*";
 const objeto = valor => valor && typeof valor === "object" && !Array.isArray(valor) ? valor : {};
 
 export function estaEnPresenciaActiva(operativo = {}) {
-  return objeto(objeto(operativo.datos).presencia_activa).activa === true;
+  const modalidad = objeto(operativo.datos).presencia_activa;
+  // Compatibilidad con los INICIOS anteriores: guardaban un booleano.
+  if (typeof modalidad === "boolean") return modalidad;
+  return objeto(modalidad).activa === true;
 }
 
 export function horaReporteBuenosAires(fecha = new Date()) {
