@@ -106,6 +106,7 @@
       { value: "RELEVO", label: "RELEVO" },
       { value: "ACOPLE", label: "ACOPLE" },
       { value: "FINALIZA", label: "FINALIZADO" },
+      { value: "PRESENCIA_ACTIVA", label: "PRESENCIA ACTIVA" },
       { value: "PROCEDIMIENTO", label: "PROCEDIMIENTO" },
       { value: "INFORMES", label: "INFORMES" },
       { value: "CONTROL_MOVILES", label: "CONTROL DE MÓVILES" },

@@ -3,13 +3,13 @@
   "descripcion": "Huellas Git de archivos institucionales blindados; actualizar sólo bajo petición expresa.",
   "archivos": {
     "api/app-api.js": {
-      "sha": "788e41de3ae8f6e6445b18f4dd747560a16ed612",
+      "sha": "8363937e02cf93d85c279042d030be676ba2619c",
       "alcance": [
         "todos"
       ]
     },
     "api/persistencia-api.js": {
-      "sha": "f6d74a23eac9169157b33972dfc9c3bf9def7422",
+      "sha": "0d2da7b6c149c3e9515caee1f859892136ea8736",
       "alcance": [
         "todos"
       ]
@@ -1601,7 +1601,7 @@
       ]
     },
     "frontend/pantallas/inicia/revision-inicio.js": {
-      "sha": "62b4850d9141f94bd181e21567be2b9f85d34afc",
+      "sha": "990efd82a807d85e8e4d9c6d8593edd40626e554",
       "alcance": [
         "inicio",
         "presencia-activa"

@@ -235,3 +235,12 @@ function crearAdaptadorStorageNavegador() {
 export { procesarInicioFormulario } from "../backend/aplicacion/procesamiento/procesar-inicio.js";
 export { procesarFinalizadoFormulario } from "../backend/aplicacion/procesamiento/procesar-finalizado.js";
 export { procesarInformeEspecialFormulario } from "../backend/aplicacion/procesamiento/procesar-informe-especial.js";
+
+// Formato y reglas de cambio reversible entre operativo normal y Presencia Activa.
+export {
+  MOTIVOS_PRESENCIA_ACTIVA,
+  prepararCambioPresenciaActiva,
+  obtenerDetallePresenciaActiva,
+  estaEnPresenciaActiva,
+  horaReporteBuenosAires
+} from "../backend/dominio/presencia-activa/presencia-activa.js";

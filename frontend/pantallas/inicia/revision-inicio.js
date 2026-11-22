@@ -26,19 +26,19 @@ export async function iniciarRevisionInicio({host,operativoSeleccionado,esSelecc
   host.innerHTML = [
     '<section class="contenedor-dinamico-card inicio-revision-panel">',
     '<style>',
-    '.inicio-revision-panel {color:#f8fafc}',
-    '.inicio-revision-panel h2,.inicio-revision-panel h3 {color:#fff}',
+    '.inicio-revision-panel {color:#f8fafc !important;background:#29313b;border-radius:14px;padding:14px}',
+    '.inicio-revision-panel h2,.inicio-revision-panel h3,.inicio-revision-panel p,.inicio-revision-panel small,.inicio-revision-panel strong {color:#fff !important}',
     '.inicio-revision-panel .ir-campo {display:grid;gap:6px;margin:12px 0}',
-    '.inicio-revision-panel label {font-weight:700}',
-    '.inicio-revision-panel input[type=text],.inicio-revision-panel textarea {width:100%;min-height:40px;padding:9px;border:1px solid #94a3b8;border-radius:8px;background:#fff;color:#111827;font-size:15px}',
+    '.inicio-revision-panel label {font-weight:800;color:#fff !important;font-size:16px}',
+    '.inicio-revision-panel input[type=text],.inicio-revision-panel textarea {display:block;box-sizing:border-box;width:100%;min-width:0;min-height:48px;padding:11px 12px;border:2px solid #94a3b8;border-radius:10px;background:#fff !important;color:#111827 !important;font-size:17px;font-weight:600}',
     '.inicio-revision-panel textarea {min-height:75px}',
     '.inicio-revision-panel .ir-opciones {display:grid;gap:10px;margin:12px 0}',
-    '.inicio-revision-panel .ir-opciones label {display:flex;align-items:center;gap:10px}',
+    '.inicio-revision-panel .ir-opciones label {display:flex;align-items:center;gap:10px;color:#fff !important;line-height:1.3}',
     '.inicio-revision-panel .ir-opciones input {width:20px;height:20px}',
-    '.inicio-revision-panel [data-dependencia-bloque] {border:1px solid #94a3b8;border-radius:10px;padding:12px;margin:10px 0}',
-    '.inicio-revision-panel .ir-linea {display:flex;align-items:end;gap:8px}',
-    '.inicio-revision-panel .ir-linea .ir-campo {flex:1}',
-    '.inicio-revision-panel button {min-height:38px;padding:8px 12px;margin:6px 4px 6px 0}',
+    '.inicio-revision-panel [data-dependencia-bloque] {border:1px solid #94a3b8;background:#26313d;border-radius:10px;padding:14px;margin:12px 0}',
+    '.inicio-revision-panel .ir-linea {display:block;width:100%}',
+    '.inicio-revision-panel .ir-linea .ir-campo {width:100%;margin:0 0 14px}',
+    '.inicio-revision-panel button {min-height:44px;padding:10px 12px;margin:8px 0;border:0;border-radius:10px;background:#0b4a9d;color:#fff !important;font-weight:800}',
     '.inicio-revision-panel [data-vista-previa] {white-space:pre-wrap;overflow-wrap:anywhere;background:#f1f5f9;color:#0f172a;border-radius:8px;padding:12px;max-height:360px;overflow:auto}',
     '.inicio-revision-panel [data-error] {color:#fff;font-weight:700}',
     '</style>',
@@ -59,7 +59,7 @@ export async function iniciarRevisionInicio({host,operativoSeleccionado,esSelecc
       ? '<p role="status">Los movimientos posteriores (RELEVO, ACOPLE y RETIRO) permanecerán intactos. Esta rectificación no cambia la dotación vigente que ya fue modificada.</p>' : '',
     '</div>',
     '<div data-form-ampliacion hidden>',
-    '<p>Las dependencias nuevas se incorporan al mismo operativo y conservan sus bloques de personal y móviles.</p>',
+    '<p>El personal nuevo se agrega al inicio hecho</p>',
     '<div data-dependencias-existentes></div><div data-dependencias-nuevas></div>',
     '<button type="button" data-agregar-dependencia>+ Agregar otra dependencia</button>',
     '</div>',
@@ -104,8 +104,8 @@ export async function iniciarRevisionInicio({host,operativoSeleccionado,esSelecc
     bloque.innerHTML = [
       '<div class="ir-linea"><div class="ir-campo">',
       '<label>Dependencia u organismo</label><input type="text" data-dependencia-nombre placeholder="Ej.: UFIV - PAT" autocomplete="off">',
-      '</div><button type="button" data-agregar-otra aria-label="Agregar otra dependencia">+</button>',
-      '<button type="button" data-quitar-dependencia aria-label="Quitar dependencia">×</button></div>',
+      '</div>',
+      '</div>',
       '<div class="ir-campo"><label data-label-movil>¿Móvil/es de la dependencia?</label>',
       '<input type="text" data-dependencia-moviles placeholder="N.º 10139 / 10240"></div>',
       '<div class="ir-campo"><label data-label-personal>¿Personal de la dependencia?</label>',
@@ -117,11 +117,6 @@ export async function iniciarRevisionInicio({host,operativoSeleccionado,esSelecc
       const titulo = texto(nombre.value) || "la dependencia";
       bloque.querySelector("[data-label-movil]").textContent = "¿Móvil/es " + titulo + "?";
       bloque.querySelector("[data-label-personal]").textContent = "¿Personal " + titulo + "?";
-    });
-    bloque.querySelector("[data-agregar-otra]").addEventListener("click", agregarDependencia);
-    bloque.querySelector("[data-quitar-dependencia]").addEventListener("click", () => {
-      bloque.remove();
-      if (!containerDeps.children.length) agregarDependencia();
     });
   }
 
