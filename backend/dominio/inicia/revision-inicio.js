@@ -204,6 +204,14 @@ function retirarBloquesDependenciaRepetidos(original, dependencias) {
       i--;
     }
   }
+  // Si el sector entre Móviles y Elementos sólo quedó con renglones vacíos,
+  // restaurar exactamente una línea separadora, como en el INICIO original.
+  const inicioFinal = lineasSalida.findIndex(l => /^\s*\*M[oó]viles:\*/i.test(l));
+  const elementosFinal = lineasSalida.findIndex((l, j) => j > inicioFinal && /^\s*\*Elementos:\*/i.test(l));
+  if (inicioFinal >= 0 && elementosFinal > inicioFinal &&
+      lineasSalida.slice(inicioFinal + 1, elementosFinal).every(l => !l.trim())) {
+    lineasSalida.splice(inicioFinal + 1, elementosFinal - inicioFinal - 1, "");
+  }
   return lineasSalida.join(salto);
 }
 
