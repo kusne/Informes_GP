@@ -23,6 +23,12 @@ export function redactarObservacionesUnificadas(m,hora){
  }
  const i=m.intervinientes||{},visitas=[personal(i),movilidad(i).map(x=>"móvil N° "+x).join(" / "),equipos(i)].filter(Boolean);
  let texto="Siendo las "+hora+" hs "+partes.join("; ")+".";
+ const asignaciones=Array.isArray(m.transporte_retiro)?m.transporte_retiro:[];
+ for(const numero of [...new Set(asignaciones.map(a=>a.movil).filter(Boolean))]){
+  const nombres=asignaciones.filter(a=>a.movil===numero).map(a=>presentarPersonalOperativo(a.personal).valor);
+  texto+=" En el móvil N° "+numero+" "+(nombres.length===1?"se retira ":"se retira el personal policial: ")+nombres.join(" y ")+ ".";
+ }
+ if(m.clasificaciones?.some(c=>c.recurso==="movilidad"&&c.tipo==="INTERCAMBIO")&&!m.retirados?.personal?.length)texto+=" No se retira personal policial del operativo.";
  if(visitas.length)texto+=" Intervienen "+visitas.join("; ")+", sin incorporarse a la dotación del operativo.";
  texto+=" La dotación consignada queda afectada al operativo.";
  return texto;

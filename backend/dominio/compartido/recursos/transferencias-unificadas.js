@@ -27,3 +27,24 @@ export function validarAltasSinDuplicar(movimientos,otros){
   if(ocupados.has(v)||vigentes.some((r,j)=>j!==i&&r.has(v)))throw Error("El recurso "+v+" ya está asignado a otro operativo. Seleccioná el operativo relacionado para transferirlo.");
  }
 }
+
+/** Sólo se atribuye transporte a personal efectivamente retirado y a un móvil
+ * saliente o interviniente confirmado. No altera la dotación ni deduce choferes. */
+export function opcionesTransporteRetiro(m){
+ const movilidad=r=>[...(r?.moviles||[]),...(r?.motos||[])];
+ return [...new Set([...movilidad(m?.retirados),...movilidad(m?.intervinientes)])];
+}
+export function validarTransporteRetiro(m,asignaciones=[]){
+ if(!Array.isArray(asignaciones))throw Error("Asignaciones de retiro inválidas.");
+ const personas=m?.retirados?.personal||[],moviles=opcionesTransporteRetiro(m),vistos=new Set();
+ const salida=[];
+ for(const a of asignaciones){
+  if(!a||!personas.includes(a.personal)||vistos.has(a.personal)||!(a.movil===null||moviles.includes(a.movil)))
+   throw Error("Asignación de retiro inválida: revisá el efectivo y el móvil.");
+  vistos.add(a.personal);
+  salida.push({personal:a.personal,movil:a.movil});
+ }
+ if(moviles.length&&personas.some(p=>!vistos.has(p)))
+  throw Error("Indicá en qué móvil se retira cada efectivo, o confirmá que no utiliza ninguno de los indicados.");
+ return salida;
+}
