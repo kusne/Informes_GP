@@ -506,7 +506,7 @@ function renderSelectorFallback({
     <div class="selector-operativo-contextual">
       <label>${modo === "INFORMES" ? "Modelos de informes" : "Operativo / franja horaria"}</label>
       <select id="selectorContextualFallback">
-        <option value="">${items.length ? placeholder : modo === "INICIA" ? "NO HAY OPERATIVOS A INICIAR" : ["ACOPLE","RELEVO","RETIRO","MOVIMIENTOS","FINALIZA"].includes(modo) ? "NO HAY OPERATIVOS EN CURSO" : modo === "PRESENCIA_ACTIVA" ? "NO HAY OPERATIVOS EN CURSO" : "No hay opciones disponibles"}</option>
+        <option value="">${items.length ? placeholder : modo === "INICIA" ? "NO HAY OPERATIVOS A INICIAR" : modo === "MOVIMIENTOS" ? "NO HAY OPERATIVOS EN CURSO" : ["ACOPLE","RELEVO","RETIRO","FINALIZA"].includes(modo) ? "NO HAY OPERATIVOS EN CURSO" : modo === "PRESENCIA_ACTIVA" ? "NO HAY OPERATIVOS EN CURSO" : "No hay opciones disponibles"}</option>
         ${items.map((item) => `<option value="${escapeHtml(item.operativo_key || item.modelo_key)}">${escapeHtml(item.label || item.etiqueta || construirEtiqueta(item))}</option>`).join("")}
       </select>
     </div>

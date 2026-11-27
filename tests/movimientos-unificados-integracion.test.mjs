@@ -29,3 +29,14 @@ test("no se incorpora recurso ya asignado a otro operativo sin transferencia",()
  assert.throws(()=>validarAltasSinDuplicar([p.principal],[b]),/ya está asignado/);
 });
 test("transferencia no permite dejar la otra patrulla sin personal",()=>assert.throws(()=>planificarTransferencias({actual:a,otro:b,altas:{personal:b.personal}}),/FINALIZADO/));
+
+import { readFileSync } from "node:fs";
+import { resolverTextoSinItems } from "../frontend/pantallas/pantalla-principal/componentes/selector-operativo-contextual/selector-operativo-contextual.js";
+test("MOVIMIENTOS es la única opción de movimientos y conserva el aviso sin operativos",()=>{
+ const selector=readFileSync(new URL("../frontend/pantallas/pantalla-principal/componentes/selector-modo-informe/selector-modo-informe.js",import.meta.url),"utf8");
+ assert.match(selector,/value="MOVIMIENTOS"/);
+ assert.doesNotMatch(selector,/value="(?:RELEVO|ACOPLE|RETIRO)"/);
+ assert.equal(resolverTextoSinItems("MOVIMIENTOS"),"NO HAY OPERATIVOS EN CURSO");
+ const pantalla=readFileSync(new URL("../frontend/pantallas/pantalla-principal/pantalla-principal.js",import.meta.url),"utf8");
+ assert.match(pantalla,/modo === "MOVIMIENTOS" \? "NO HAY OPERATIVOS EN CURSO"/);
+});
