@@ -514,7 +514,7 @@
       ]
     },
     "backend/dominio/movimientos/unificado/informe.js": {
-      "sha": "5f2214fdc3612ee46e5112f3d83d18de4b2645ae",
+      "sha": "cdd58d7e708065571b18ae3c841837830003e512",
       "alcance": [
         "relevo",
         "acople",
@@ -556,7 +556,7 @@
       ]
     },
     "backend/infraestructura/supabase/movimientos-unificados-repo.js": {
-      "sha": "89849a2832c0d492a04b8829ccea738b4b8fb887",
+      "sha": "e74c311a7dec46b7651b5a0e57c76b7fa991684c",
       "alcance": [
         "relevo",
         "acople",
@@ -1654,7 +1654,7 @@
       ]
     },
     "frontend/pantallas/movimientos/movimientos-unificados.js": {
-      "sha": "f2af4c1b9d9d45db8940493effc4ca48db88543c",
+      "sha": "ab37ccf2f85e6f3d53aa3ea6f767173944317d31",
       "alcance": [
         "relevo",
         "acople",

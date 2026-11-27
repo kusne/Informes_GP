@@ -15,7 +15,12 @@ begin
   if not found or fila.estado is distinct from 'EN_CURSO' or fila.updated_at is null or fila.updated_at is distinct from (item->>'expected_updated_at')::timestamptz then raise exception 'La dotación cambió o no está disponible'; end if;
   evento:=item->'movimiento';
   if jsonb_typeof(evento->'vigente') is distinct from 'object' or jsonb_typeof(evento->'anterior') is distinct from 'object' or coalesce(evento->>'texto','')='' then raise exception 'Movimiento inválido'; end if;
-  if jsonb_typeof(fila.datos->'recursos_vigentes')='object' and (fila.datos->'recursos_vigentes'->'personal') is distinct from (evento->'anterior'->'personal') then raise exception 'La dotación anterior no coincide'; end if;
+  if jsonb_typeof(fila.datos->'recursos_vigentes')='object' then
+   if coalesce(fila.datos->'recursos_vigentes'->'personal','[]'::jsonb) is distinct from coalesce(evento->'anterior'->'personal','[]'::jsonb)
+    or coalesce(fila.datos->'recursos_vigentes'->'moviles','[]'::jsonb) is distinct from coalesce(evento->'anterior'->'moviles','[]'::jsonb)
+    or coalesce(fila.datos->'recursos_vigentes'->'motos','[]'::jsonb) is distinct from coalesce(evento->'anterior'->'motos','[]'::jsonb)
+   then raise exception 'La dotación anterior no coincide'; end if;
+  end if;
   historial:=case when jsonb_typeof(fila.datos->'movimientos_recursos')='array' then fila.datos->'movimientos_recursos' else '[]'::jsonb end;
   update public.bmzcn_operativos_estado_v2 set datos=coalesce(fila.datos,'{}'::jsonb)||jsonb_build_object('recursos_vigentes',evento->'vigente','movimientos_recursos',historial||jsonb_build_array(evento)),updated_at=clock_timestamp() where id=fila.id and estado='EN_CURSO';
   if not found then raise exception 'No se pudo actualizar uno de los operativos'; end if;

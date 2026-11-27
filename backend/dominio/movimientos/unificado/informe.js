@@ -24,7 +24,7 @@ export function redactarObservacionesUnificadas(m,hora){
  const i=m.intervinientes||{},visitas=[personal(i),movilidad(i).map(x=>"móvil N° "+x).join(" / "),equipos(i)].filter(Boolean);
  let texto="Siendo las "+hora+" hs "+partes.join("; ")+".";
  if(visitas.length)texto+=" Intervienen "+visitas.join("; ")+", sin incorporarse a la dotación del operativo.";
- texto+=" La dotación restante continúa afectada al operativo.";
+ texto+=" La dotación consignada queda afectada al operativo.";
  return texto;
 }
 export function construirInformeMovimientoUnificado(m,operativo,hora){

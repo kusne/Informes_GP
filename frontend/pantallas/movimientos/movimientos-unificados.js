@@ -6,14 +6,14 @@ import { abrirWhatsappAppDirectamente } from "../../servicios/whatsapp/abrir-wha
 const vacio=()=>({personal:[],moviles:[],motos:[],elementos:{}});
 const lista=(r,k)=>k.startsWith("elementos.")?(r?.elementos?.[k.slice(10)]||[]):(r?.[k]||[]);
 const agregar=(r,k,v)=>{if(k.startsWith("elementos.")){(r.elementos[k.slice(10)]??=[]).push(v);}else r[k].push(v);};
-const unir=(...listas)=>[...new Set(listas.flat().map(x=>String(x).trim()).filter(Boolean))];
+const unir=(...listas)=>[...new Set(listas.flat().filter(x=>x!=null).map(x=>String(x).trim()).filter(Boolean))];
 export async function iniciarMovimientosUnificados({host,operativoSeleccionado}={}){
  if(!host||!operativoSeleccionado)return;
  host.innerHTML='<section class="contenedor-dinamico-card"><h2>MOVIMIENTOS</h2><p>Cargando dotación vigente…</p></section>';
  const panel=host.firstElementChild;
  const a=await obtenerEstadoOperativoV2(operativoSeleccionado);
  if(!a||a.estado!=="EN_CURSO")throw Error("El operativo ya no está EN CURSO.");
- const [padron,activos]=await Promise.all([consultarRecursosGuardiaV2(),listarOperativosMovimiento()]);
+ const [padron,activos]=await Promise.all([consultarRecursosGuardiaV2(),listarOperativosMovimiento(a.guardia_fecha)]);
  if(!panel.isConnected)return;
  const actual=dotacionVigenteOperativo(a),catalogo=obtenerCatalogoRecursosOperativos();
  const otros=activos.filter(r=>r.id!==a.id&&r.estado==="EN_CURSO");
@@ -49,7 +49,9 @@ export async function iniciarMovimientosUnificados({host,operativoSeleccionado}=
  function pintar(){
   estados.clear();area.replaceChildren();
   q("[data-nota]").textContent=b?"Los recursos de la otra patrulla marcados «Se incorpora» se transfieren a ésta. Marcá «Pasa a la otra patrulla» para transferir en sentido contrario.":"Si se intercambian recursos con otro operativo registrado, elegilo arriba.";
-  for(const [k,nombre,disponibles] of grupos){
+  const gruposVista=[...grupos];
+  for(const k of Object.keys(otro?.elementos||{}))if(!gruposVista.some(g=>g[0]==="elementos."+k))gruposVista.push(["elementos."+k,k,[]]);
+  for(const [k,nombre,disponibles] of gruposVista){
    const vigentes=lista(actual,k).map(String),externos=lista(otro,k).map(String);
    const detalle=document.createElement("details");detalle.open=vigentes.length>0;
    const titulo=document.createElement("summary");titulo.textContent=nombre+" ("+vigentes.length+" vigentes)";detalle.append(titulo);

@@ -1,12 +1,22 @@
 import { supabase, TABLAS_SUPABASE } from "./supabase-client.js";
-import { obtenerEstadoOperativoV2, listarEstadosOperativosV2 } from "./operativos-estado-v2-repo.js";
+import { obtenerEstadoOperativoV2 } from "./operativos-estado-v2-repo.js";
 import { dotacionVigenteOperativo } from "./movimientos-recursos-repo.js";
 import { planificarTransferencias, validarAltasSinDuplicar } from "../../dominio/compartido/recursos/transferencias-unificadas.js";
 import { construirInformeMovimientoUnificado } from "../../dominio/movimientos/unificado/informe.js";
 import { modoEnsayoActivo } from "../ensayo/modo-ensayo.js";
-export async function listarOperativosMovimiento(){
- const filas=await listarEstadosOperativosV2();
- return filas.filter(x=>["EN_CURSO","EN_PROCEDIMIENTO"].includes(x.estado));
+export async function listarOperativosMovimiento(guardiaFecha){
+ if(!supabase||!/^\d{4}-\d{2}-\d{2}$/.test(guardiaFecha||""))throw Error("Falta conexión o fecha de guardia.");
+ const base=Date.parse(guardiaFecha+"T00:00:00Z");
+ if(!Number.isFinite(base))throw Error("Fecha inválida.");
+ const guardias=[-1,0,1].map(d=>new Date(base+d*86400000).toISOString().slice(0,10));
+ const filas=[];
+ for(let desde=0;;desde+=500){
+  const {data,error}=await supabase.from(TABLAS_SUPABASE.operativosEstado).select("*").in("guardia_fecha",guardias).in("estado",["EN_CURSO","EN_PROCEDIMIENTO"]).order("id",{ascending:true}).range(desde,desde+499);
+  if(error)throw error;
+  const lote=data||[];filas.push(...lote);
+  if(lote.length<500)break;
+ }
+ return filas;
 }
 export async function guardarMovimientoUnificado({principal,secundario,altas,bajas,intervinientes,transferencias}={}){
  if(modoEnsayoActivo())throw Error("No se permite guardar movimientos en modo ensayo.");
@@ -21,7 +31,7 @@ export async function guardarMovimientoUnificado({principal,secundario,altas,baj
  if(b&&a.id===b.id)throw Error("Elegí dos operativos diferentes.");
  const plan=planificarTransferencias({actual:dotacionVigenteOperativo(a),otro:b?dotacionVigenteOperativo(b):null,altas,bajas,intervinientes,transferencias});
  const pares=[[a,plan.principal],...(plan.secundario?[[b,plan.secundario]]:[])];
- const activos=await listarOperativosMovimiento();
+ const activos=await listarOperativosMovimiento(a.guardia_fecha);
  const afectados=new Set(pares.map(([r])=>r.id));
  validarAltasSinDuplicar(pares.map(([,m])=>m),activos.filter(r=>!afectados.has(r.id)).map(dotacionVigenteOperativo));
  const fecha=new Date().toISOString(),hora=new Intl.DateTimeFormat("es-AR",{timeZone:"America/Argentina/Buenos_Aires",hour:"2-digit",minute:"2-digit",hour12:false}).format(new Date(fecha));
