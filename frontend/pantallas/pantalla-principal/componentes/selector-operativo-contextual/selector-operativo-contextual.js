@@ -159,7 +159,7 @@ function resolverPlaceholder(modo) {
 
 export function resolverTextoSinItems(modo) {
   if (modo === "INICIA") return "NO HAY OPERATIVOS A INICIAR";
-  if (["ACOPLE", "RELEVO", "RETIRO", "FINALIZA", "PRESENCIA_ACTIVA"].includes(modo))
+  if (["ACOPLE", "RELEVO", "RETIRO", "MOVIMIENTOS", "FINALIZA", "PRESENCIA_ACTIVA"].includes(modo))
     return "NO HAY OPERATIVOS EN CURSO";
   if (modo === "INFORMES") return "No hay modelos de informes disponibles.";
 

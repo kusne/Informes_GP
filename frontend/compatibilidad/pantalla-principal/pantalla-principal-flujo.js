@@ -99,12 +99,12 @@
   function asegurarOpcionesModo(select) {
     if (!select) return;
 
+    for(const op of Array.from(select.options||[])) if(["RELEVO","ACOPLE","RETIRO"].includes(op.value)) op.remove();
     const actuales = opcionesNormalizadas(select);
 
     const deseadas = [
       { value: "INICIA", label: "INICIO" },
-      { value: "RELEVO", label: "RELEVO" },
-      { value: "ACOPLE", label: "ACOPLE" },
+      { value: "MOVIMIENTOS", label: "MOVIMIENTOS" },
       { value: "FINALIZA", label: "FINALIZADO" },
       { value: "PRESENCIA_ACTIVA", label: "PRESENCIA ACTIVA" },
       { value: "PROCEDIMIENTO", label: "PROCEDIMIENTO" },

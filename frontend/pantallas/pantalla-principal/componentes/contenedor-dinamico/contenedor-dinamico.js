@@ -33,6 +33,13 @@ export async function renderContenedorDinamico({
       return;
     }
 
+    if (modoNormalizado === "MOVIMIENTOS") {
+      if(!operativoSeleccionado){mostrarMensaje(host,{titulo:"MOVIMIENTOS",texto:"Seleccione un operativo EN CURSO."});return;}
+      const modulo=await import("../../../movimientos/movimientos-unificados.js");
+      await modulo.iniciarMovimientosUnificados({host,operativoSeleccionado});
+      return;
+    }
+
     if (modoNormalizado === "RELEVO" || modoNormalizado === "ACOPLE" || modoNormalizado === "RETIRO") {
       if(!operativoSeleccionado){mostrarMensaje(host,{titulo:modoNormalizado,texto:"Seleccione un operativo EN CURSO."});return;}
       const modulo=await import("../../../movimientos/movimientos.js");
