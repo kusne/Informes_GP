@@ -1,7 +1,7 @@
 import { supabase, TABLAS_SUPABASE } from "./supabase-client.js";
 import { obtenerEstadoOperativoV2 } from "./operativos-estado-v2-repo.js";
 import { dotacionVigenteOperativo } from "./movimientos-recursos-repo.js";
-import { planificarTransferencias, validarAltasSinDuplicar } from "../../dominio/compartido/recursos/transferencias-unificadas.js";
+import { planificarTransferencias, validarAltasSinDuplicar, validarTransporteRetiro } from "../../dominio/compartido/recursos/transferencias-unificadas.js";
 import { construirInformeMovimientoUnificado } from "../../dominio/movimientos/unificado/informe.js";
 import { modoEnsayoActivo } from "../ensayo/modo-ensayo.js";
 export async function listarOperativosMovimiento(guardiaFecha){
@@ -18,7 +18,7 @@ export async function listarOperativosMovimiento(guardiaFecha){
  }
  return filas;
 }
-export async function guardarMovimientoUnificado({principal,secundario,altas,bajas,intervinientes,transferencias}={}){
+export async function guardarMovimientoUnificado({principal,secundario,altas,bajas,intervinientes,transferencias,transporte_retiro={}}={}){
  if(modoEnsayoActivo())throw Error("No se permite guardar movimientos en modo ensayo.");
  if(!supabase)throw Error("Sin conexión a Supabase.");
  const cargar=async ref=>{
@@ -30,6 +30,10 @@ export async function guardarMovimientoUnificado({principal,secundario,altas,baj
  const a=await cargar(principal),b=secundario?await cargar(secundario):null;
  if(b&&a.id===b.id)throw Error("Elegí dos operativos diferentes.");
  const plan=planificarTransferencias({actual:dotacionVigenteOperativo(a),otro:b?dotacionVigenteOperativo(b):null,altas,bajas,intervinientes,transferencias});
+ if(!transporte_retiro||typeof transporte_retiro!=="object"||Array.isArray(transporte_retiro)||Object.keys(transporte_retiro).some(k=>!["principal","secundario"].includes(k)))throw Error("Transporte de retiro inválido.");
+ plan.principal.transporte_retiro=validarTransporteRetiro(plan.principal,transporte_retiro.principal);
+ if(plan.secundario)plan.secundario.transporte_retiro=validarTransporteRetiro(plan.secundario,transporte_retiro.secundario);
+ else if(transporte_retiro.secundario?.length)throw Error("No existe movimiento secundario.");
  const pares=[[a,plan.principal],...(plan.secundario?[[b,plan.secundario]]:[])];
  const activos=await listarOperativosMovimiento(a.guardia_fecha);
  const afectados=new Set(pares.map(([r])=>r.id));
