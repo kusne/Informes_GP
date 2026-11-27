@@ -8,6 +8,14 @@
         "todos"
       ]
     },
+    "api/movimientos-unificados-api.js": {
+      "sha": "121648a2ff7528343111061843ed3e75252a3967",
+      "alcance": [
+        "relevo",
+        "acople",
+        "retiro"
+      ]
+    },
     "api/persistencia-api.js": {
       "sha": "0d2da7b6c149c3e9515caee1f859892136ea8736",
       "alcance": [
@@ -86,6 +94,14 @@
         "todos"
       ]
     },
+    "backend/dominio/compartido/recursos/movimientos-unificados.js": {
+      "sha": "03d62ecb163354c01452a162318df8770d93cd9a",
+      "alcance": [
+        "relevo",
+        "acople",
+        "retiro"
+      ]
+    },
     "backend/dominio/compartido/recursos/recursos-acople-disponibles.js": {
       "sha": "39732c43fd8ccd0b49a0b74bc30cfcd09879b3cf",
       "alcance": [
@@ -102,6 +118,14 @@
       "sha": "b0ce1a1f1bcb797118039c21b15d2b6b515c02e0",
       "alcance": [
         "relevo"
+      ]
+    },
+    "backend/dominio/compartido/recursos/transferencias-unificadas.js": {
+      "sha": "bcc28450ea191ab31e5db82d1800d3507f95888b",
+      "alcance": [
+        "relevo",
+        "acople",
+        "retiro"
       ]
     },
     "backend/dominio/compartido/texto/acople-observaciones.js": {
@@ -192,6 +216,12 @@
       "sha": "6540c02ebf44484e435a2d7d7dc9611d1b211481",
       "alcance": [
         "todos"
+      ]
+    },
+    "backend/dominio/finaliza/dependencias-finalizado.js": {
+      "sha": "a3230b31d14c522b14c36a8d1ce49098f1fb4175",
+      "alcance": [
+        "finalizado"
       ]
     },
     "backend/dominio/finaliza/finalizado-mapper-supabase.js": {
@@ -426,6 +456,13 @@
         "presencia-activa"
       ]
     },
+    "backend/dominio/inicia/revision-inicio.js": {
+      "sha": "be4f7da45b04e43bfa539c60b56a64b031f254c4",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
     "backend/dominio/movimientos/acople/informe.js": {
       "sha": "ad8c12c28dc0f6ecabe76438338514fb06703d07",
       "alcance": [
@@ -476,6 +513,22 @@
         "retiro"
       ]
     },
+    "backend/dominio/movimientos/unificado/informe.js": {
+      "sha": "cdd58d7e708065571b18ae3c841837830003e512",
+      "alcance": [
+        "relevo",
+        "acople",
+        "retiro"
+      ]
+    },
+    "backend/dominio/movimientos/unificado/plantilla.js": {
+      "sha": "1d7b8c43f16d39114fb8f415f84cdf07de4962b6",
+      "alcance": [
+        "relevo",
+        "acople",
+        "retiro"
+      ]
+    },
     "backend/infraestructura/supabase/informes-especiales-v2-repo.js": {
       "sha": "6d2fec237c89a1a09a91dfa0baae57011a8b24c9",
       "alcance": [
@@ -496,6 +549,14 @@
     },
     "backend/infraestructura/supabase/movimientos-recursos-repo.js": {
       "sha": "7d1fbf6301993483f7e76baf205f9634dcc6e2fe",
+      "alcance": [
+        "relevo",
+        "acople",
+        "retiro"
+      ]
+    },
+    "backend/infraestructura/supabase/movimientos-unificados-repo.js": {
+      "sha": "e74c311a7dec46b7651b5a0e57c76b7fa991684c",
       "alcance": [
         "relevo",
         "acople",
@@ -1333,6 +1394,13 @@
         "presencia-activa"
       ]
     },
+    "frontend/pantallas/inicia/revision-inicio.js": {
+      "sha": "b094177134fd576a37259b6a313cb95e4da0a8ae",
+      "alcance": [
+        "inicio",
+        "presencia-activa"
+      ]
+    },
     "frontend/pantallas/inicia/tipos/control-peso/fotos/fotos-inicio-control-peso.css": {
       "sha": "83051b98185d8b81a950c09cfa94464ede60531c",
       "alcance": [
@@ -1585,32 +1653,20 @@
         "presencia-activa"
       ]
     },
-    "frontend/pantallas/movimientos/movimientos.js": {
-      "sha": "5bcb79aa8a25df6d3fbb72af6b024ab43007ba32",
+    "frontend/pantallas/movimientos/movimientos-unificados.js": {
+      "sha": "ab37ccf2f85e6f3d53aa3ea6f767173944317d31",
       "alcance": [
         "relevo",
         "acople",
         "retiro"
       ]
     },
-    "backend/dominio/inicia/revision-inicio.js": {
-      "sha": "be4f7da45b04e43bfa539c60b56a64b031f254c4",
+    "frontend/pantallas/movimientos/movimientos.js": {
+      "sha": "5bcb79aa8a25df6d3fbb72af6b024ab43007ba32",
       "alcance": [
-        "inicio",
-        "presencia-activa"
-      ]
-    },
-    "frontend/pantallas/inicia/revision-inicio.js": {
-      "sha": "b094177134fd576a37259b6a313cb95e4da0a8ae",
-      "alcance": [
-        "inicio",
-        "presencia-activa"
-      ]
-    },
-    "backend/dominio/finaliza/dependencias-finalizado.js": {
-      "sha": "a3230b31d14c522b14c36a8d1ce49098f1fb4175",
-      "alcance": [
-        "finalizado"
+        "relevo",
+        "acople",
+        "retiro"
       ]
     }
   }

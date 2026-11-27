@@ -1,3 +1,4 @@
+// RELEVO, ACOPLE y RETIRO se clasifican dentro de MOVIMIENTOS.
 export async function iniciarSelectorModoInforme({ hostSelector, onChange }) {
   const host = document.querySelector(hostSelector);
   if (!host) return;
@@ -8,7 +9,7 @@ export async function iniciarSelectorModoInforme({ hostSelector, onChange }) {
 
       <select id="selectorModoInformeSelect" class="obligatorio">
         <option value="INICIA" selected>INICIO</option>
-        <option value="RELEVO">RELEVO</option>\n        <option value="ACOPLE">ACOPLE</option>\n        <option value="RETIRO">RETIRO</option>\n        <option value="PRESENCIA_ACTIVA">PRESENCIA ACTIVA</option>\n        <option value="FINALIZA">FINALIZADO</option>
+        <option value="MOVIMIENTOS">MOVIMIENTOS</option>\n        <option value="PRESENCIA_ACTIVA">PRESENCIA ACTIVA</option>\n        <option value="FINALIZA">FINALIZADO</option>
         <option value="PROCEDIMIENTO">PROCEDIMIENTO</option>
         <option value="INFORMES">INFORMES</option>
         <option value="CONTROL_MOVILES">CONTROL DE MÓVILES</option>
